@@ -1,0 +1,1552 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<!--
+This document was converted from RTF source: 
+By rtftohtml 4.19
+See http://www.sunpack.com/RTF
+Filename:TicV2.rtf
+Application Directory:c:\TOOLS\RTF2HTML\
+Subject:
+Author:Bruce Eckel
+Operator:Bruce Eckel
+Document Comments:
+Version Comments:
+Comments:
+Keywords:
+Translation Date:05/23/2000
+Translation Time:06:44:36
+Translation Platform:Win32
+Number of Output files:19
+This File:Chapter07.html
+SplitDepth=1
+SkipNavPanel=1
+SkipLeadingToc=1
+SkipTrailingToc=1
+GenContents=1
+GenFrames=1
+GenIndex=1
+-->
+<HEAD lang="en"><META http-equiv="Content-Type" content="text/html">
+<TITLE>7: Exception handling</TITLE>
+</HEAD>
+
+<BODY  BGCOLOR="#FFFFFF"><DIV ALIGN="CENTER">
+  <a href="http://www.MindView.net">
+  <img src="mindview-head.gif" alt="MindView Inc." BORDER = "0"></a>
+  <CENTER>
+    <FONT FACE="Verdana" size = "-1">
+    [ <a href="README-HTML.txt">Viewing Hints</a> ]
+    [ <a href="RevisionHistory.html">Revision History</a> ]
+    [ <a href="http://www.mindview.net/MailingList.html">Free Newsletter</a> ] <br>
+    [ <a href="http://www.mindview.net/CPPServices/#PublicSeminars">Seminars</a> ]
+    [ <a href="http://www.mindview.net/CPPServices/#SeminarsOnCD">Seminars on CD ROM</a> ]
+    [ <a href="http://www.mindview.net/CPPServices/#ConsultingServices">Consulting</a> ]
+    </FONT>
+  <H2><FONT FACE="Verdana">
+  Thinking in C++, 2nd ed., Volume 2, Revision 3</FONT></H2>
+  <H3><FONT FACE="Verdana">&copy;2000 by Bruce Eckel</FONT></H3>
+  
+    <FONT FACE="Verdana" size = "-1">
+     [ <a href="Chapter06.html">Previous Chapter</a> ] 
+    [ <a href="SimpleContents.html">Short TOC</a> ] 
+    [ <a href="Contents.html">Table of Contents</a> ] 
+    [ <a href="DocIndex.html">Index</a> ]
+     [ <a href="Chapter08.html">Next Chapter</a> ] 
+    </FONT>
+    
+  </CENTER>
+  </P></DIV><A NAME="_Toc305593295"></A><A NAME="_Toc305628767"></A><A NAME="_Toc312374110"></A><A NAME="_Toc462393529"></A><A NAME="Heading235"></A><FONT FACE = "Verdana"><H1 ALIGN="LEFT">
+7: Exception handling</H1></FONT>
+<DIV ALIGN="LEFT"><P><FONT SIZE=4>Improved error recovery<A NAME="Index421"></A> is
+one of the most powerful ways you can increase the robustness of your
+code.</FONT><BR>show how you can make several function calls with only one
+catch, thus greatly reducing the amount of error-handling code you must
+write.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Unfortunately, it&#8217;s almost accepted practice to ignore
+error conditions, as if we&#8217;re in a state of denial about errors. Some of
+the reason is no doubt the tediousness and code bloat of checking for many
+errors. For example, <B>printf(&#160;)<A NAME="Index422"></A></B> returns the
+number of characters that were successfully printed, but virtually no one checks
+this value. The proliferation of code alone would be disgusting, not to mention
+the difficulty it would add in reading the code.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The problem with C&#8217;s approach to error handling could be
+thought of as one of coupling &#8211; the user of a function must tie the
+error-handling code so closely to that function that it becomes too ungainly and
+awkward to use.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>One of the major features in C++ is <I>exception handling</I>,
+which is a better way of thinking about and handling errors. With exception
+handling<A NAME="Index423"></A>,<BR></P></DIV>
+<OL>
+<LI>	Error-handling code is not nearly so tedious to write, and it doesn't
+become mixed up with your "normal" code. You write the code you <I>want</I> to
+happen; later in a separate section you write the code to cope with the
+problems. If you make multiple calls to a function, you handle the errors from
+that function once, in one place.<LI>	Errors cannot be ignored. If a function
+needs to send an error message to the caller of that function, it
+&#8220;throws&#8221; an object representing that error out of the function. If
+the caller doesn&#8217;t &#8220;catch&#8221; the error and handle it, it goes to
+the next enclosing scope, and so on until <I>someone</I> catches the error.
+</OL><DIV ALIGN="LEFT"><P>This chapter examines C&#8217;s approach to error
+handling (such as it is), why it did not work very well for C, and why it
+won&#8217;t work at all for C++. Then you&#8217;ll learn about <B>try</B>,
+<B>throw</B>,<B> </B>and <B>catch</B>, the C++ keywords that support exception
+handling.<A NAME="_Toc305593296"></A><A NAME="_Toc305628768"></A><A NAME="_Toc312374111"></A><A NAME="_Toc462393530"></A><BR></P></DIV>
+<A NAME="Heading236"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Error handling in C<BR><A NAME="Index424"></A><A NAME="Index425"></A></H2></FONT>
+<DIV ALIGN="LEFT"><P>In most of the examples in this book, <B>assert(&#160;)</B>
+was used as it was intended: for debugging during development with code that
+could be disabled with <B>#define</B> <B>NDEBUG</B> for the shipping product.
+Runtime error checking uses the <B>require.h</B> functions developed in Chapter
+XX. These were a convenient way to say, &#8220;There&#8217;s a problem here
+you&#8217;ll probably want to handle with some more sophisticated code, but you
+don&#8217;t need to be distracted by it in this example.&#8221; The
+<B>require.h</B> functions may be enough for small programs, but for complicated
+products you may need to write more sophisticated error-handling code.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Error handling is quite straightforward in situations where
+you check some condition and you know exactly what to do because you have all
+the necessary information in that context. Of course, you just handle the error
+at that point. These are ordinary errors and not the subject of this chapter.
+<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The problem occurs when you <I>don&#8217;t</I> have enough
+information in that context, and you need to pass the error information into a
+larger context where that information does exist. There are three typical
+approaches in C to handle this situation.<BR></P></DIV>
+<OL>
+<LI>	Return error information from the function or, if the return value cannot
+be used this way, set a global error condition flag. (Standard C provides
+<B>errno</B></OL><DIV ALIGN="LEFT"><P> <A NAME="Index426"></A>and
+<B>perror(&#160;)<A NAME="Index427"></A></B> to support this.) As mentioned
+before, the programmer may simply ignore the error information because tedious
+and obfuscating error checking must occur with each function call. In addition,
+returning from a function that hits an exceptional condition may not make
+sense.<BR></P></DIV>
+<OL>
+<LI>	Use the little-known Standard C library signal-handling system, implemented
+with the
+<B>signal(&#160;</B></OL><DIV ALIGN="LEFT"><P><B>)<A NAME="Index428"></A></B>
+function (to determine what happens when the event occurs) and
+<B>raise(&#160;)<A NAME="Index429"></A></B> (to generate an event). Again, this
+has high coupling because it requires the user of any library that generates
+signals to understand and install the appropriate signal-handling mechanism;
+also in large projects the signal numbers from different libraries may clash
+with each other.<BR></P></DIV>
+<OL>
+<LI>	Use the nonlocal
+got</OL><DIV ALIGN="LEFT"><P>o<A NAME="Index430"></A><A NAME="Index431"></A>
+functions in the Standard C library:
+<B>setjmp(&#160;)<A NAME="Index432"></A></B> and
+<B>longjmp(&#160;)<A NAME="Index433"></A></B>. With <B>setjmp(&#160;)</B> you
+save a known good state in the program, and if you get into trouble,
+<B>longjmp(&#160;)</B> will restore that state. Again, there is high coupling
+between the place where the state is stored and the place where the error
+occurs.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>When considering error-handling schemes with C++,
+there&#8217;s an additional very critical problem: The C techniques of signals
+and setjmp/longjmp do not call destructors, so objects aren&#8217;t properly
+cleaned up. This makes it virtually impossible to effectively recover from an
+exceptional condition because you&#8217;ll always leave objects behind that
+haven&#8217;t been cleaned up and that can no longer be accessed. The following
+example demonstrates this with setjmp/longjmp:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C07:Nonlocal.cpp</font>
+<font color=#009900>// setjmp() &amp; longjmp()</font>
+#include &lt;iostream&gt;
+#include &lt;csetjmp&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>class</font> Rainbow {
+<font color=#0000ff>public</font>:
+  Rainbow() { cout &lt;&lt; <font color=#004488>"Rainbow()"</font> &lt;&lt; endl; }
+  ~Rainbow() { cout &lt;&lt; <font color=#004488>"~Rainbow()"</font> &lt;&lt; endl; }
+};
+
+jmp_buf kansas;
+
+<font color=#0000ff>void</font> oz() {
+  Rainbow rb;
+  <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; 3; i++)
+    cout &lt;&lt; <font color=#004488>"there's no place like home\n"</font>;
+  longjmp(kansas, 47);
+}
+
+<font color=#0000ff>int</font> main() {
+  <font color=#0000ff>if</font>(setjmp(kansas) == 0) {
+    cout &lt;&lt; <font color=#004488>"tornado, witch, munchkins...\n"</font>;
+    oz();
+  } <font color=#0000ff>else</font> {
+    cout &lt;&lt; <font color=#004488>"Auntie Em! "</font>
+         &lt;&lt; <font color=#004488>"I had the strangest dream..."</font>
+         &lt;&lt; endl;
+  }</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P><B>setjmp(&#160;)</B> is an odd function because if you call
+it directly, it stores all the relevant information about the current processor
+state in the <B>jmp_buf</B> and returns zero. In that case it has the behavior
+of an ordinary function. However, if you call <B>longjmp(&#160;)</B> using the
+same <B>jmp_buf</B>, it&#8217;s as if you&#8217;re returning from
+<B>setjmp(&#160;)</B> again &#8211; you pop right out the back end of the
+<B>setjmp(&#160;)</B>. This time, the value returned is the second argument to
+<B>longjmp(&#160;)</B>, so you can detect that you&#8217;re actually coming back
+from a <B>longjmp(&#160;)</B>. You can imagine that with many different
+<B>jmp_buf</B>s, you could pop around to many different places in the program.
+The difference between a local <B>goto</B> (with a label) and this nonlocal goto
+is that you can go <I>anywhere</I> with setjmp/longjmp (with some restrictions
+not discussed here).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The problem with C++ is that <B>longjmp(&#160;)</B>
+doesn&#8217;t respect objects; in particular it doesn&#8217;t call destructors
+when it jumps out of a scope.<A NAME="fnB23" HREF="#fn23">[23]</A> Destructor
+calls are essential, so this approach won&#8217;t work with
+C++.<A NAME="_Toc305593297"></A><A NAME="_Toc305628769"></A><A NAME="_Toc312374112"></A><A NAME="_Toc462393531"></A><BR></P></DIV>
+<A NAME="Heading237"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Throwing an exception<BR><A NAME="Index434"></A><A NAME="Index435"></A></H2></FONT>
+<DIV ALIGN="LEFT"><P>If you encounter an exceptional situation in your code &#8211;
+that is, one where you don&#8217;t have enough information in the current
+context to decide what to do &#8211; you can send information about the error
+into a larger context by creating an object containing that information and
+&#8220;throwing&#8221; it out of your current context. This is called
+<I>throwing an exception</I>. Here&#8217;s what it looks like:<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">throw myerror(&#8220;something
+bad happened&#8221;);</FONT></TT><BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>myerror</B> is an ordinary class, which takes a
+<B>char*</B> as its argument. You can use any type when you throw (including
+built-in types), but often you&#8217;ll use special types created just for
+throwing exceptions.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The keyword <B>throw</B> causes a number of relatively magical
+things to happen. First it creates an object that isn&#8217;t there under normal
+program execution, and of course the constructor is called for that object. Then
+the object is, in effect, &#8220;returned&#8221; from the function, even though
+that object type isn&#8217;t normally what the function is designed to return. A
+simplistic way to think about exception handling is as an alternate return
+mechanism, although you get into trouble if you take the analogy too far &#8211;
+you can also exit from ordinary scopes by throwing an exception. But a value is
+returned, and the function or scope exits.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Any similarity to function returns ends there because
+<I>where</I> you return to is someplace completely different than for a normal
+function call. (You end up in an appropriate exception handler that may be miles
+away from where the exception was thrown.) In addition, only objects that were
+successfully created at the time of the exception are destroyed (unlike a normal
+function return that assumes all the objects in the scope must be destroyed). Of
+course, the exception object itself is also properly cleaned up at the
+appropriate point.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>In addition, you can throw as many different types of objects
+as you want. Typically, you&#8217;ll throw a different type for each different
+type of error. The idea is to store the information in the object and the
+<I>type</I> of object, so someone in the bigger context can figure out what to
+do with your
+exception.<A NAME="_Toc305593298"></A><A NAME="_Toc305628770"></A><A NAME="_Toc312374113"></A><A NAME="_Toc462393532"></A><BR></P></DIV>
+<A NAME="Heading238"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Catching an exception</H2></FONT>
+<DIV ALIGN="LEFT"><P>If a function throws an exception, it must assume that
+exception is caught and dealt with. As mentioned before, one of the advantages
+of C++ exception handling is that it allows you to concentrate on the problem
+you&#8217;re actually trying to solve in one place, and then deal with the
+errors from that code in another
+place.<A NAME="_Toc312374114"></A><A NAME="_Toc462393533"></A><BR></P></DIV>
+<A NAME="Heading239"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+The try block</H3></FONT>
+<DIV ALIGN="LEFT"><P>If you&#8217;re inside a function and you throw an exception
+(or a called function throws an exception), that function will exit in the
+process of throwing. If you don&#8217;t want a <B>throw </B>to leave a function,
+you can set up a special block within the function where you try to solve your
+actual programming problem (and potentially generate exceptions). This is called
+the <I>try</I> <I>block<A NAME="Index436"></A></I> because you try your various
+function calls there. The try block is an ordinary scope, preceded by the
+keyword <B>try</B>:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#0000ff>try</font> {
+  <font color=#009900>// Code that may generate exceptions</font></PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>If you were carefully checking for errors without using
+exception handling, you&#8217;d have to surround every function call with setup
+and test code, even if you call the same function several times. With exception
+handling, you put everything in a try block without error checking. This means
+your code is a lot easier to write and easier to read because the goal of the
+code is not confused with the error
+checking.<A NAME="_Toc312374115"></A><A NAME="_Toc462393534"></A><BR></P></DIV>
+<A NAME="Heading240"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Exception handlers</H3></FONT>
+<DIV ALIGN="LEFT"><P>Of course, the thrown exception must end up someplace. This is
+the <I>exception handler<A NAME="Index437"></A><A NAME="Index438"></A></I>, and
+there&#8217;s one for every exception type you want to catch. Exception handlers
+immediately follow the try block and are denoted by the keyword
+<B>catch<A NAME="Index439"></A><A NAME="Index440"></A></B>:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#0000ff>try</font> {
+<font color=#009900>// code that may generate exceptions</font>
+} <font color=#0000ff>catch</font>(type1 id1) {
+  <font color=#009900>// handle exceptions of type1</font>
+} <font color=#0000ff>catch</font>(type2 id2) {
+  <font color=#009900>// handle exceptions of type2</font>
+}</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">//
+etc...</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>Each catch clause (exception handler) is like a little
+function that takes a single argument of one particular type. The identifier
+(<B>id1</B>, <B>id2</B>, and so on) may be used inside the handler, just like a
+function argument, although sometimes there is no identifier because it&#8217;s
+not needed in the handler &#8211; the exception type gives you enough
+information to deal with it.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The handlers must appear directly after the try block. If an
+exception is thrown, the exception-handling mechanism goes hunting for the first
+handler with an argument that matches the type of the exception. Then it enters
+that catch clause, and the exception is considered handled. (The search for
+handlers stops once the catch clause is finished.) Only the matching catch
+clause executes; it&#8217;s not like a <B>switch</B> statement where you need a
+<B>break</B> after each <B>case</B> to prevent the remaining ones from
+executing.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Notice that, within the try block, a number of different
+function calls might generate the same exception, but you only need one
+handler.<BR></P></DIV>
+<A NAME="Heading241"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Termination vs.
+resumption<BR><A NAME="Index441"></A><A NAME="Index442"></A><A NAME="Index443"></A></H4></FONT>
+<DIV ALIGN="LEFT"><P>There are two basic models in exception-handling theory. In
+<I>termination</I> (which is what C++ supports) you assume the error is so
+critical there&#8217;s no way to get back to where the exception occurred.
+Whoever threw the exception decided there was no way to salvage the situation,
+and they don&#8217;t <I>want</I> to come back.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The alternative is called <I>resumption</I>. It means the
+exception handler is expected to do something to rectify the situation, and then
+the faulting function is retried, presuming success the second time. If you want
+resumption, you still hope to continue execution after the exception is handled,
+so your exception is more like a function call &#8211; which is how you should
+set up situations in C++ where you want resumption-like behavior (that is,
+don&#8217;t throw an exception; call a function that fixes the problem).
+Alternatively, place your <B>try</B> block inside a <B>while</B> loop that keeps
+reentering the <B>try</B> block until the result is satisfactory.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Historically, programmers using operating systems that
+supported resumptive exception handling eventually ended up using
+termination-like code and skipping resumption. So although resumption sounds
+attractive at first, it seems it isn&#8217;t quite so useful in practice. One
+reason may be the distance that can occur between the exception and its handler;
+it&#8217;s one thing to terminate to a handler that&#8217;s far away, but to
+jump to that handler and then back again may be too conceptually difficult for
+large systems where the exception can be generated from many
+points.<A NAME="_Toc312374116"></A><A NAME="_Toc462393535"></A><BR></P></DIV>
+<A NAME="Heading242"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+The exception
+specification<BR><A NAME="Index444"></A><A NAME="Index445"></A></H3></FONT>
+<DIV ALIGN="LEFT"><P>You&#8217;re not required to inform the person using your
+function what exceptions you might throw. However, this is considered very
+uncivilized because it means he cannot be sure what code to write to catch all
+potential exceptions. Of course, if he has your source code, he can hunt through
+and look for <B>throw</B> statements, but very often a library doesn&#8217;t
+come with sources. C++ provides a syntax to allow you to politely tell the user
+what exceptions this function throws, so the user may handle them. This is the
+<I>exception specification</I> and it&#8217;s part of the function declaration,
+appearing after the argument list.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The exception specification reuses the keyword <B>throw</B>,
+followed by a parenthesized list of all the potential exception types. So your
+function declaration may look like<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">void f() throw(toobig, toosmall,
+divzero);</FONT></TT><BR></P></DIV>
+<DIV ALIGN="LEFT"><P>With exceptions, the traditional function
+declaration<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">void f();</FONT></TT><BR></P></DIV>
+<DIV ALIGN="LEFT"><P>means that any type of exception may be thrown from the
+function. If you say<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">void f()
+throw();</FONT></TT><BR></P></DIV>
+<DIV ALIGN="LEFT"><P>it means that no exceptions are thrown from a
+function.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>For good coding policy, good documentation, and ease-of-use
+for the function caller, you should always use an exception specification when
+you write a function that throws exceptions.<BR></P></DIV>
+<A NAME="Heading243"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+unexpected(&#160;)</H4></FONT>
+<DIV ALIGN="LEFT"><P>If your exception specification claims you&#8217;re going to
+throw a certain set of exceptions and then you throw something that isn&#8217;t
+in that set, what&#8217;s the penalty? The special function
+<B>unexpected(&#160;)</B> is called when you throw something other than what
+appears in the exception specification.<BR></P></DIV>
+<A NAME="Heading244"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+set_unexpected(&#160;)</H4></FONT>
+<DIV ALIGN="LEFT"><P><B>unexpected(&#160;)<A NAME="Index446"></A><A NAME="Index447"></A></B>
+is implemented with a pointer to a function, so you can change its behavior. You
+do so with a function called
+<B>set_unexpected(&#160;)<A NAME="Index448"></A><A NAME="Index449"></A></B>
+which, like <B>set_new_handler(&#160;)</B>, takes the address of a function with
+no arguments and <B>void</B> return value. Also, it returns the previous value
+of the <B>unexpected(&#160;)</B> pointer so you can save it and restore it
+later. To use <B>set_unexpected(&#160;)</B>, you must include the header file
+<B>&lt;exception&gt;</B>. Here&#8217;s an example that shows a simple use of all
+the features discussed so far in the chapter:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C07:Except.cpp</font>
+<font color=#009900>// Basic exceptions</font>
+<font color=#009900>// Exception specifications &amp; unexpected()</font>
+#include &lt;exception&gt;
+#include &lt;iostream&gt;
+#include &lt;cstdlib&gt;
+#include &lt;cstring&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>class</font> Up {};
+<font color=#0000ff>class</font> Fit {};
+<font color=#0000ff>void</font> g();
+
+<font color=#0000ff>void</font> f(<font color=#0000ff>int</font> i) <font color=#0000ff>throw</font> (Up, Fit) {
+  <font color=#0000ff>switch</font>(i) {
+    <font color=#0000ff>case</font> 1: <font color=#0000ff>throw</font> Up();
+    <font color=#0000ff>case</font> 2: <font color=#0000ff>throw</font> Fit();
+  }
+  g();
+}
+
+<font color=#009900>// void g() {} // Version 1</font>
+<font color=#0000ff>void</font> g() { <font color=#0000ff>throw</font> 47; } <font color=#009900>// Version 2</font>
+<font color=#009900>// (Can throw built-in types)</font>
+
+<font color=#0000ff>void</font> my_unexpected() {
+  cout &lt;&lt; <font color=#004488>"unexpected exception thrown"</font>;
+  exit(1);
+}
+
+<font color=#0000ff>int</font> main() {
+  set_unexpected(my_unexpected);
+  <font color=#009900>// (ignores return value)</font>
+  <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 1; i &lt;=3; i++)
+    <font color=#0000ff>try</font> {
+      f(i);
+    } <font color=#0000ff>catch</font>(Up) {
+      cout &lt;&lt; <font color=#004488>"Up caught"</font> &lt;&lt; endl;
+    } <font color=#0000ff>catch</font>(Fit) {
+      cout &lt;&lt; <font color=#004488>"Fit caught"</font> &lt;&lt; endl;
+    }</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The classes <B>Up</B> and <B>Fit</B> are created solely to
+throw as exceptions. Often exception classes will be this small, but sometimes
+they contain additional information so that the handlers can query
+them.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>f(&#160;)</B> is a function that promises in its exception
+specification to throw only exceptions of type <B>Up</B> and <B>Fit</B>, and
+from looking at the function definition this seems plausible. Version one of
+<B>g(&#160;)</B>, called by <B>f(&#160;)</B>, doesn&#8217;t throw any exceptions
+so this is true. But then someone changes <B>g(&#160;)</B> so it throws
+exceptions and the new <B>g(&#160;)</B> is linked in with <B>f(&#160;)</B>. Now
+<B>f(&#160;)</B> begins to throw a new exception, unbeknown to the creator of
+<B>f(&#160;)</B>. Thus the exception specification is violated.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The <B>my_unexpected(&#160;)</B> function has no arguments or
+return value, following the proper form for a custom <B>unexpected(&#160;)</B>
+function. It simply prints a message so you can see it has been called, then
+exits the program. Your new <B>unexpected(&#160;)</B> function must not return
+(that is, you can write the code that way but it&#8217;s an error). However, it
+can throw another exception (you can even rethrow the same exception), or call
+<B>exit(&#160;)</B> or <B>abort(&#160;)</B>. If <B>unexpected(&#160;)</B> throws
+an exception, the search for the handler starts at the function call that threw
+the unexpected exception. (This behavior is unique to
+<B>unexpected(&#160;)</B>.)<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Although the <B>new_handler(&#160;)</B> function pointer can
+be null and the system will do something sensible, the <B>unexpected(&#160;)</B>
+function pointer should never be null. The default value is
+<B>terminate(&#160;)</B> (mentioned later), but whenever you use exceptions and
+specifications you should write your own <B>unexpected(&#160;)</B> to log the
+error and either rethrow it, throw something new, or terminate the
+program.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>In <B>main(&#160;)</B>, the <B>try</B> block is within a
+<B>for</B> loop so all the possibilities are exercised. Note that this is a way
+to achieve something like resumption <A NAME="Index450"></A>&#8211; nest the
+<B>try</B> block inside a <B>for</B>, <B>while</B>, <B>do</B>, or <B>if</B> and
+cause any exceptions to attempt to repair the problem; then attempt the
+<B>try</B> block again.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Only the <B>Up</B> and <B>Fit</B> exceptions are caught
+because those are the only ones the programmer of <B>f(&#160;)</B> said would be
+thrown. Version two of <B>g(&#160;)</B> causes <B>my_unexpected(&#160;)</B> to
+be called because <B>f(&#160;)</B> then throws an <B>int</B>. (You can throw any
+type, including a built-in type.)<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>In the call to <B>set_unexpected(&#160;)</B>, the return value
+is ignored, but it can also be saved in a pointer to function and restored
+later.<A NAME="_Toc312374117"></A><A NAME="_Toc462393536"></A><BR></P></DIV>
+<A NAME="Heading245"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Better exception specifications?</H3></FONT>
+<DIV ALIGN="LEFT"><P>You may feel the existing exception specification rules
+aren&#8217;t very safe, and that<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">void f();</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P><I>should</I> mean that no exceptions are thrown from this
+function. If the programmer wants to throw any type of exception, you may think
+he or she <I>should </I>have to say<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">void f() throw(...); // Not in
+C++</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>This would surely be an improvement because function
+declarations would be more explicit. Unfortunately you can&#8217;t always know
+by looking at the code in a function whether an exception will be thrown &#8211;
+it could happen because of a memory allocation, for example. Worse, existing
+functions written before exception handling was introduced may find themselves
+inadvertently throwing exceptions because of the functions they call (which may
+be linked into new, exception-throwing versions). Thus, the ambiguity,
+so<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">void f();</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>means &#8220;Maybe I&#8217;ll throw an exception, maybe I
+won&#8217;t.&#8221; This ambiguity is necessary to avoid hindering code
+evolution.<A NAME="_Toc312374118"></A><A NAME="_Toc462393537"></A><BR></P></DIV>
+<A NAME="Heading246"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Catching any exception<BR><A NAME="Index451"></A><A NAME="Index452"></A></H3></FONT>
+<DIV ALIGN="LEFT"><P>As mentioned, if your function has no exception specification,
+<I>any</I> type of exception can be thrown. One solution to this problem is to
+create a handler that <I>catches</I> any type of exception. You do this using
+the ellipses<A NAME="Index453"></A><A NAME="Index454"></A> in the argument list
+(&aacute; la C):<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#0000ff>catch</font>(...) {
+  cout &lt;&lt; <font color=#004488>"an exception was thrown"</font> &lt;&lt; endl;</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>This will catch any exception, so you&#8217;ll want to put it
+at the <I>end</I> of your list of handlers to avoid pre-empting any that follow
+it.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The ellipses give you no possibility to have an argument or to
+know anything about the type of the exception. It&#8217;s a
+catch-all.<A NAME="_Toc312374119"></A><A NAME="_Toc462393538"></A><BR></P></DIV>
+<A NAME="Heading247"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Rethrowing an exception<BR><A NAME="Index455"></A><A NAME="Index456"></A></H3></FONT>
+<DIV ALIGN="LEFT"><P>Sometimes you&#8217;ll want to rethrow the exception that you
+just caught, particularly when you use the ellipses to catch any exception
+because there&#8217;s no information available about the exception. This is
+accomplished by saying <B>throw</B> with no argument:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#0000ff>catch</font>(...) {
+  cout &lt;&lt; <font color=#004488>"an exception was thrown"</font> &lt;&lt; endl;
+  <font color=#0000ff>throw</font>;</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>Any further <B>catch</B> clauses for the same <B>try</B> block
+are still ignored &#8211; the <B>throw</B> causes the exception to go to the
+exception handlers in the next-higher context. In addition, everything about the
+exception object is preserved, so the handler at the higher context that catches
+the specific exception type is able to extract all the information from that
+object.<A NAME="_Toc312374120"></A><A NAME="_Toc462393539"></A><BR></P></DIV>
+<A NAME="Heading248"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Uncaught
+exceptions<BR><A NAME="Index457"></A><A NAME="Index458"></A><A NAME="Index459"></A></H3></FONT>
+<DIV ALIGN="LEFT"><P>If none of the exception handlers following a particular
+<B>try</B> block matches an exception, that exception moves to the next-higher
+context, that is, the function or <B>try</B> block surrounding the <B>try</B>
+block that failed to catch the exception. (The location of this higher-context
+<B>try</B> block is not always obvious at first glance.) This process continues
+until, at some level, a handler matches the exception. At that point, the
+exception is considered &#8220;caught,&#8221; and no further searching
+occurs.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>If no handler at any level catches the exception, it is
+&#8220;uncaught&#8221; or &#8220;unhandled.&#8221; An uncaught exception also
+occurs if a new exception is thrown before an existing exception reaches its
+handler &#8211; the most common reason for this is that the constructor for the
+exception object itself causes a new exception.<BR></P></DIV>
+<A NAME="Heading249"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+terminate(&#160;)</H4></FONT>
+<DIV ALIGN="LEFT"><P>If an exception is uncaught, the special function
+<B>terminate(&#160;)</B> is automatically called. Like
+<B>unexpected(&#160;)</B>, terminate is actually a pointer to a function. Its
+default value is the Standard C library function
+<B>abort(&#160;)<A NAME="Index460"></A><A NAME="Index461"></A></B>, which
+immediately exits the program with no calls to the normal termination functions
+(which means that destructors for global and static objects might not be
+called).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>No cleanups occur for an uncaught exception; that is, no
+destructors are called. If you don&#8217;t wrap your code (including, if
+necessary, all the code in <B>main(&#160;)</B>)<B> </B>in a try block followed
+by handlers and ending with a default handler (<B>catch(...)</B>) to catch all
+exceptions, then you will take your lumps. An uncaught exception should be
+thought of as a programming error.<BR></P></DIV>
+<A NAME="Heading250"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+set_terminate(&#160;)</H4></FONT>
+<DIV ALIGN="LEFT"><P>You can install your own <B>terminate(&#160;)</B> function
+using the standard <B>set_terminate(&#160;)</B>
+<A NAME="Index462"></A><A NAME="Index463"></A>function, which returns a pointer
+to the <B>terminate(&#160;)</B> function you are replacing, so you can restore
+it later if you want. Your custom <B>terminate(&#160;)</B> must take no
+arguments and have a <B>void</B> return value. In addition, any
+<B>terminate(&#160;)</B> handler you install must not return or throw an
+exception, but instead must call some sort of program-termination function. If
+<B>terminate(&#160;)</B> is called, it means the problem is
+unrecoverable.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Like <B>unexpected(&#160;)</B>, the <B>terminate(&#160;)</B>
+function pointer should never be null.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Here&#8217;s an example showing the use of
+<B>set_terminate(&#160;)</B>. Here, the return value is saved and restored so
+the <B>terminate(&#160;)</B> function can be used to help isolate the section of
+code where the uncaught exception is occurring:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C07:Terminator.cpp</font>
+<font color=#009900>// Use of set_terminate()</font>
+<font color=#009900>// Also shows uncaught exceptions</font>
+#include &lt;exception&gt;
+#include &lt;iostream&gt;
+#include &lt;cstdlib&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>void</font> terminator() {
+  cout &lt;&lt; <font color=#004488>"I'll be back!"</font> &lt;&lt; endl;
+  abort();
+}
+
+<font color=#0000ff>void</font> (*old_terminate)()
+  = set_terminate(terminator);
+
+<font color=#0000ff>class</font> Botch {
+<font color=#0000ff>public</font>:
+  <font color=#0000ff>class</font> Fruit {};
+  <font color=#0000ff>void</font> f() {
+    cout &lt;&lt; <font color=#004488>"Botch::f()"</font> &lt;&lt; endl;
+    <font color=#0000ff>throw</font> Fruit();
+  }
+  ~Botch() { <font color=#0000ff>throw</font> 'c'; }
+};
+
+<font color=#0000ff>int</font> main() {
+  <font color=#0000ff>try</font>{
+    Botch b;
+    b.f();
+  } <font color=#0000ff>catch</font>(...) {
+    cout &lt;&lt; <font color=#004488>"inside catch(...)"</font> &lt;&lt; endl;
+  }</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The definition of <B>old_terminate</B> looks a bit confusing
+at first: It not only creates a pointer to a
+function<A NAME="Index464"></A><A NAME="Index465"></A>, but it initializes that
+pointer to the return value of <B>set_terminate(&#160;)</B>. Even though you may
+be familiar with seeing a semicolon right after a pointer-to-function
+definition, it&#8217;s just another kind of variable and may be initialized when
+it is defined.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The class <B>Botch</B> not only throws an exception inside
+<B>f(&#160;)</B>, but also in its destructor. This is one of the situations that
+causes a call to <B>terminate(&#160;)</B>, as you can see in
+<B>main(&#160;)</B>. Even though the exception handler says <B>catch(...)</B>,
+which would seem to catch everything and leave no cause for
+<B>terminate(&#160;)</B> to be called, <B>terminate(&#160;) </B>is called
+anyway, because in the process of cleaning up the objects on the stack to handle
+one exception, the <B>Botch</B> destructor is called, and that generates a
+second exception, forcing a call to <B>terminate(&#160;)</B>. Thus, a
+destructor<A NAME="Index466"></A><A NAME="Index467"></A> that throws an
+exception or causes one to be thrown is a design
+error.<A NAME="_Toc305593299"></A><A NAME="_Toc305628771"></A><A NAME="_Toc312374121"></A><A NAME="_Toc462393540"></A><BR></P></DIV>
+<A NAME="Heading251"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Function-level try blocks</H3></FONT>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C07:FunctionTryBlock.cpp</font>
+<font color=#009900>// Function-level try blocks</font>
+#include &lt;iostream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main() <font color=#0000ff>try</font> {
+    <font color=#0000ff>throw</font> <font color=#004488>"main"</font>;
+} <font color=#0000ff>catch</font>(<font color=#0000ff>const</font> <font color=#0000ff>char</font>* msg) {
+  cout &lt;&lt; msg &lt;&lt; endl;</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P><A NAME="_Toc462393541"></A><BR></P></DIV>
+<A NAME="Heading252"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Cleaning up<BR><A NAME="Index468"></A><A NAME="Index469"></A></H2></FONT>
+<DIV ALIGN="LEFT"><P>Part of the magic of exception handling is that you can pop
+from normal program flow into the appropriate exception handler. This
+wouldn&#8217;t be very useful, however, if things weren&#8217;t cleaned up
+properly as the exception was thrown. C++ exception handling guarantees that as
+you leave a scope, all objects in that scope <I>whose constructors have been
+completed</I> will have destructors called.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Here&#8217;s an example that demonstrates that
+constructors<A NAME="Index470"></A><A NAME="Index471"></A> that aren&#8217;t
+completed don&#8217;t have the associated destructors called. It also shows what
+happens when an exception is thrown in the middle of the creation of an array of
+objects, and an <B>unexpected(&#160;)</B> function that rethrows the unexpected
+exception:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C07:Cleanup.cpp</font>
+<font color=#009900>// Exceptions clean up objects</font>
+#include &lt;fstream&gt;
+#include &lt;exception&gt;
+#include &lt;cstring&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+ofstream out(<font color=#004488>"cleanup.out"</font>);
+
+<font color=#0000ff>class</font> Noisy {
+  <font color=#0000ff>static</font> <font color=#0000ff>int</font> i;
+  <font color=#0000ff>int</font> objnum;
+  <font color=#0000ff>static</font> <font color=#0000ff>const</font> <font color=#0000ff>int</font> sz = 40;
+  <font color=#0000ff>char</font> name[sz];
+<font color=#0000ff>public</font>:
+  Noisy(<font color=#0000ff>const</font> <font color=#0000ff>char</font>* nm=<font color=#004488>"array elem"</font>) <font color=#0000ff>throw</font>(<font color=#0000ff>int</font>){
+    objnum = i++;
+    memset(name, 0, sz);
+    strncpy(name, nm, sz - 1);
+    out &lt;&lt; <font color=#004488>"constructing Noisy "</font> &lt;&lt; objnum
+      &lt;&lt; <font color=#004488>" name ["</font> &lt;&lt; name &lt;&lt; <font color=#004488>"]"</font> &lt;&lt; endl;
+    <font color=#0000ff>if</font>(objnum == 5) <font color=#0000ff>throw</font> <font color=#0000ff>int</font>(5);
+    <font color=#009900>// Not in exception specification:</font>
+    <font color=#0000ff>if</font>(*nm == 'z') <font color=#0000ff>throw</font> <font color=#0000ff>char</font>('z');
+  }
+  ~Noisy() {
+    out &lt;&lt; <font color=#004488>"destructing Noisy "</font> &lt;&lt; objnum
+      &lt;&lt; <font color=#004488>" name ["</font> &lt;&lt; name &lt;&lt; <font color=#004488>"]"</font> &lt;&lt; endl;
+  }
+  <font color=#0000ff>void</font>* <font color=#0000ff>operator</font> <font color=#0000ff>new</font>[](size_t sz) {
+    out &lt;&lt; <font color=#004488>"Noisy::new[]"</font> &lt;&lt; endl;
+    <font color=#0000ff>return</font> ::<font color=#0000ff>new</font> <font color=#0000ff>char</font>[sz];
+  }
+  <font color=#0000ff>void</font> <font color=#0000ff>operator</font> <font color=#0000ff>delete</font>[](<font color=#0000ff>void</font>* p) {
+    out &lt;&lt; <font color=#004488>"Noisy::delete[]"</font> &lt;&lt; endl;
+    ::<font color=#0000ff>delete</font> []p;
+  }
+};
+
+<font color=#0000ff>int</font> Noisy::i = 0;
+
+<font color=#0000ff>void</font> unexpected_rethrow() {
+  out &lt;&lt; <font color=#004488>"inside unexpected_rethrow()"</font> &lt;&lt; endl;
+  <font color=#0000ff>throw</font>; <font color=#009900>// Rethrow same exception</font>
+}
+
+<font color=#0000ff>int</font> main() {
+  set_unexpected(unexpected_rethrow);
+  <font color=#0000ff>try</font> {
+    Noisy n1(<font color=#004488>"before array"</font>);
+    <font color=#009900>// Throws exception:</font>
+    Noisy* array = <font color=#0000ff>new</font> Noisy[7];
+    Noisy n2(<font color=#004488>"after array"</font>);
+  } <font color=#0000ff>catch</font>(<font color=#0000ff>int</font> i) {
+    out &lt;&lt; <font color=#004488>"caught "</font> &lt;&lt; i &lt;&lt; endl;
+  }
+  out &lt;&lt; <font color=#004488>"testing unexpected:"</font> &lt;&lt; endl;
+  <font color=#0000ff>try</font> {
+    Noisy n3(<font color=#004488>"before unexpected"</font>);
+    Noisy n4(<font color=#004488>"z"</font>);
+    Noisy n5(<font color=#004488>"after unexpected"</font>);
+  } <font color=#0000ff>catch</font>(<font color=#0000ff>char</font> c) {
+    out &lt;&lt; <font color=#004488>"caught "</font> &lt;&lt; c &lt;&lt; endl;
+  }</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The class <B>Noisy</B> keeps track of objects so you can trace
+program progress. It keeps a count of the number of objects created with a
+<B>static</B> data member <B>i</B>, and the number of the particular object with
+<B>objnum</B>, and a character buffer called <B>name</B> to hold an identifier.
+This buffer is first set to zeroes. Then the constructor argument is copied in.
+(Note that a default argument string is used to indicate array elements, so this
+constructor also acts as a default constructor.) Because the Standard C library
+function
+<B>strncpy(&#160;)<A NAME="Index472"></A><A NAME="Index473"></A></B>stops
+copying after a null terminator <I>or</I> the number of characters specified by
+its third argument, the number of characters copied in is one minus the size of
+the buffer, so the last character is always zero, and a print statement will
+never run off the end of the buffer.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>There are two cases where a <B>throw</B> can occur in the
+constructor. The first case happens if this is the fifth object created (not a
+real exception condition, but demonstrates an exception thrown during array
+construction). The type thrown is <B>int</B>, which is the type promised in the
+exception specification. The second case, also contrived, happens if the first
+character of the argument string is <B>&#8216;z&#8217;</B>, in which case a
+<B>char</B> is thrown. Because <B>char</B> is not listed in the exception
+specification, this will cause a call to <B>unexpected(&#160;)</B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The array versions of <B>new</B> and <B>delete</B> are
+overloaded
+<A NAME="Index474"></A><A NAME="Index475"></A><A NAME="Index476"></A>for the
+class, so you can see when they&#8217;re called.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The function <B>unexpected_rethrow(&#160;)</B> prints a
+message and rethrows the same exception. It is installed as the
+<B>unexpected(&#160;)</B> function in the first line of <B>main(&#160;)</B>.
+Then some objects of type <B>Noisy</B> are created in a <B>try</B> block, but
+the array causes an exception to be thrown, so the object <B>n2</B> is never
+created. You can see the results in the output of the program:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>constructing Noisy 0 name [before array]
+Noisy::<font color=#0000ff>new</font>[]
+constructing Noisy 1 name [array elem]
+constructing Noisy 2 name [array elem]
+constructing Noisy 3 name [array elem]
+constructing Noisy 4 name [array elem]
+constructing Noisy 5 name [array elem]
+destructing Noisy 4 name [array elem]
+destructing Noisy 3 name [array elem]
+destructing Noisy 2 name [array elem]
+destructing Noisy 1 name [array elem]
+Noisy::<font color=#0000ff>delete</font>[]
+destructing Noisy 0 name [before array]
+caught 5
+testing unexpected:
+constructing Noisy 6 name [before unexpected]
+constructing Noisy 7 name [z]
+inside unexpected_rethrow()
+destructing Noisy 6 name [before unexpected]</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">caught
+z</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>Four array elements are successfully created, but in the
+middle of the constructor for the fifth one, an exception is thrown. Because the
+fifth constructor never completes, only the destructors for objects 1&#8211;4
+are called. <BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The storage for the array is allocated separately with a
+single call to the global <B>new</B>. Notice that even though <B>delete</B> is
+never explicitly called anywhere in the program, the exception-handling system
+knows it must call <B>delete</B> to properly release the storage. This behavior
+happens only with &#8220;normal&#8221; versions of <B>operator new</B>. If you
+use the placement syntax<A NAME="Index477"></A><A NAME="Index478"></A> described
+in Chapter XX, the exception-handling mechanism will not call <B>delete</B> for
+that object because then it might release memory that was not allocated on the
+heap.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Finally, object <B>n1</B> is destroyed, but not object
+<B>n2</B> because it was never created.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>In the section testing <B>unexpected_rethrow(&#160;)</B>, the
+<B>n3</B> object is created, and the constructor of <B>n4</B> is begun. But
+before it can complete, an exception is thrown. This exception is of type
+<B>char</B>, which violates the exception specification, so the
+<B>unexpected(&#160;)</B> function is called (which is
+<B>unexpected_rethrow(&#160;)</B>, in this case). This rethrows the same
+exception, which is expected this time, because
+<B>unexpected_rethrow(&#160;)</B> can throw any type of exception. The search
+begins right after the constructor for <B>n4</B>, and the <B>char</B> exception
+handler catches it (after destroying <B>n3</B>, the only successfully created
+object). Thus, the effect of <B>unexpected_rethrow(&#160;)</B> is to take any
+unexpected exception and make it expected; used this way it provides a filter to
+allow you to track the appearance of unexpected
+exceptions<A NAME="Index479"></A><A NAME="Index480"></A> and pass them
+through.<A NAME="_Toc305593300"></A><A NAME="_Toc305628772"></A><A NAME="_Toc312374122"></A><A NAME="_Toc462393542"></A><BR></P></DIV>
+<A NAME="Heading253"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Constructors<BR><A NAME="Index481"></A><A NAME="Index482"></A></H2></FONT>
+<DIV ALIGN="LEFT"><P>When writing code with exceptions, it&#8217;s particularly
+important that you always be asking, &#8220;If an exception occurs, will this be
+properly cleaned up?&#8221; Most of the time you&#8217;re fairly safe, but in
+constructors there&#8217;s a problem: If an exception is thrown before a
+constructor is completed, the associated destructor will not be called for that
+object. This means you must be especially diligent while writing your
+constructor.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The general difficulty is allocating resources in
+constructors. If an exception occurs in the constructor, the destructor
+doesn&#8217;t get a chance to deallocate the resource. This problem occurs most
+often with &#8220;naked&#8221;
+pointers<A NAME="Index483"></A><A NAME="Index484"></A>. For example,<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C07:Nudep.cpp</font>
+<font color=#009900>// Naked pointers</font>
+#include &lt;fstream&gt;
+#include &lt;cstdlib&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+ofstream out(<font color=#004488>"nudep.out"</font>);
+
+<font color=#0000ff>class</font> Cat {
+<font color=#0000ff>public</font>:
+  Cat() { out &lt;&lt; <font color=#004488>"Cat()"</font> &lt;&lt; endl; }
+  ~Cat() { out &lt;&lt; <font color=#004488>"~Cat()"</font> &lt;&lt; endl; }
+};
+
+<font color=#0000ff>class</font> Dog {
+<font color=#0000ff>public</font>:
+  <font color=#0000ff>void</font>* <font color=#0000ff>operator</font> <font color=#0000ff>new</font>(size_t sz) {
+    out &lt;&lt; <font color=#004488>"allocating a Dog"</font> &lt;&lt; endl;
+    <font color=#0000ff>throw</font> <font color=#0000ff>int</font>(47);
+  }
+  <font color=#0000ff>void</font> <font color=#0000ff>operator</font> <font color=#0000ff>delete</font>(<font color=#0000ff>void</font>* p) {
+    out &lt;&lt; <font color=#004488>"deallocating a Dog"</font> &lt;&lt; endl;
+    ::<font color=#0000ff>delete</font> p;
+  }
+};
+
+<font color=#0000ff>class</font> UseResources {
+  Cat* bp;
+  Dog* op;
+<font color=#0000ff>public</font>:
+  UseResources(<font color=#0000ff>int</font> count = 1) {
+    out &lt;&lt; <font color=#004488>"UseResources()"</font> &lt;&lt; endl;
+    bp = <font color=#0000ff>new</font> Cat[count];
+    op = <font color=#0000ff>new</font> Dog;
+  }
+  ~UseResources() {
+    out &lt;&lt; <font color=#004488>"~UseResources()"</font> &lt;&lt; endl;
+    <font color=#0000ff>delete</font> []bp; <font color=#009900>// Array delete</font>
+    <font color=#0000ff>delete</font> op;
+  }
+};
+
+<font color=#0000ff>int</font> main() {
+  <font color=#0000ff>try</font> {
+    UseResources ur(3);
+  } <font color=#0000ff>catch</font>(<font color=#0000ff>int</font>) {
+    out &lt;&lt; <font color=#004488>"inside handler"</font> &lt;&lt; endl;
+  }</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The output is the following:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>UseResources()
+Cat()
+Cat()
+Cat()
+allocating a Dog</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">inside
+handler</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The <B>UseResources</B> constructor is entered, and the
+<B>Cat</B> constructor is successfully completed for the array objects. However,
+inside <B>Dog::operator new</B>, an exception is thrown (as an example of an
+out-of-memory error). Suddenly, you end up inside the handler, <I>without</I>
+the <B>UseResources</B> destructor being called. This is correct because the
+<B>UseResources</B> constructor was unable to finish, but it means the
+<B>Cat</B> object that was successfully created on the heap is never
+destroyed.<A NAME="_Toc312374123"></A><A NAME="_Toc462393543"></A><BR></P></DIV>
+<A NAME="Heading254"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Making everything an object</H3></FONT>
+<DIV ALIGN="LEFT"><P>To prevent this, guard against these &#8220;raw&#8221;
+resource allocations by placing the allocations inside their own objects with
+their own constructors and destructors. This way, each allocation becomes
+atomic<A NAME="Index485"></A>, as an object, and if it fails, the other resource
+allocation objects are properly cleaned up. Templates are an excellent way to
+modify the above example:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C07:Wrapped.cpp</font>
+<font color=#009900>// Safe, atomic pointers</font>
+#include &lt;fstream&gt;
+#include &lt;cstdlib&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+ofstream out(<font color=#004488>"wrapped.out"</font>);
+
+<font color=#009900>// Simplified. Yours may have other arguments.</font>
+<font color=#0000ff>template</font>&lt;<font color=#0000ff>class</font> T, <font color=#0000ff>int</font> sz = 1&gt; <font color=#0000ff>class</font> PWrap {
+  T* ptr;
+<font color=#0000ff>public</font>:
+  <font color=#0000ff>class</font> RangeError {}; <font color=#009900>// Exception class</font>
+  PWrap() {
+    ptr = <font color=#0000ff>new</font> T[sz];
+    out &lt;&lt; <font color=#004488>"PWrap constructor"</font> &lt;&lt; endl;
+  }
+  ~PWrap() {
+    <font color=#0000ff>delete</font> []ptr;
+    out &lt;&lt; <font color=#004488>"PWrap destructor"</font> &lt;&lt; endl;
+  }
+  T&amp; <font color=#0000ff>operator</font>[](<font color=#0000ff>int</font> i) <font color=#0000ff>throw</font>(RangeError) {
+    <font color=#0000ff>if</font>(i &gt;= 0 &amp;&amp; i &lt; sz) <font color=#0000ff>return</font> ptr[i];
+    <font color=#0000ff>throw</font> RangeError();
+  }
+};
+
+<font color=#0000ff>class</font> Cat {
+<font color=#0000ff>public</font>:
+  Cat() { out &lt;&lt; <font color=#004488>"Cat()"</font> &lt;&lt; endl; }
+  ~Cat() { out &lt;&lt; <font color=#004488>"~Cat()"</font> &lt;&lt; endl; }
+  <font color=#0000ff>void</font> g() {}
+};
+
+<font color=#0000ff>class</font> Dog {
+<font color=#0000ff>public</font>:
+  <font color=#0000ff>void</font>* <font color=#0000ff>operator</font> <font color=#0000ff>new</font>[](size_t sz) {
+    out &lt;&lt; <font color=#004488>"allocating an Dog"</font> &lt;&lt; endl;
+    <font color=#0000ff>throw</font> <font color=#0000ff>int</font>(47);
+  }
+  <font color=#0000ff>void</font> <font color=#0000ff>operator</font> <font color=#0000ff>delete</font>[](<font color=#0000ff>void</font>* p) {
+    out &lt;&lt; <font color=#004488>"deallocating an Dog"</font> &lt;&lt; endl;
+    ::<font color=#0000ff>delete</font> p;
+  }
+};
+
+<font color=#0000ff>class</font> UseResources {
+  PWrap&lt;Cat, 3&gt; Bonk;
+  PWrap&lt;Dog&gt; Og;
+<font color=#0000ff>public</font>:
+  UseResources() : Bonk(), Og() {
+    out &lt;&lt; <font color=#004488>"UseResources()"</font> &lt;&lt; endl;
+  }
+  ~UseResources() {
+    out &lt;&lt; <font color=#004488>"~UseResources()"</font> &lt;&lt; endl;
+  }
+  <font color=#0000ff>void</font> f() { Bonk[1].g(); }
+};
+
+<font color=#0000ff>int</font> main() {
+  <font color=#0000ff>try</font> {
+    UseResources ur;
+  } <font color=#0000ff>catch</font>(<font color=#0000ff>int</font>) {
+    out &lt;&lt; <font color=#004488>"inside handler"</font> &lt;&lt; endl;
+  } <font color=#0000ff>catch</font>(...) {
+    out &lt;&lt; <font color=#004488>"inside catch(...)"</font> &lt;&lt; endl;
+  }</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The difference is the use of the template to wrap the pointers
+and make them into objects. The constructors for these objects are called
+<I>before</I> the body of the <B>UseResources</B> constructor, and any of these
+constructors that complete before an exception is thrown will have their
+associated destructors called.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The <B>PWrap</B> template shows a more typical use of
+exceptions than you&#8217;ve seen so far: A nested class called
+<B>RangeError</B> is created to use in <B>operator[ ]<A NAME="Index486"></A></B>
+if its argument is out of range. Because <B>operator[ ]</B> returns a
+reference<A NAME="Index487"></A><A NAME="Index488"></A> it cannot return zero.
+(There are no null references.) This is a true exceptional condition &#8211; you
+don&#8217;t know what to do in the current context, and you can&#8217;t return
+an improbable value. In this example, <B>RangeError</B> is very simple and
+assumes all the necessary information is in the class name, but you may also
+want to add a member that contains the value of the index, if that is
+useful.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Now the output is<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>Cat()
+Cat()
+Cat()
+PWrap constructor
+allocating a Dog
+~Cat()
+~Cat()
+~Cat()
+PWrap destructor</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">inside
+handler</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>Again, the storage allocation for <B>Dog</B> throws an
+exception, but this time the array of <B>Cat</B> objects is properly cleaned up,
+so there is no memory
+leak.<A NAME="_Toc305593301"></A><A NAME="_Toc305628773"></A><A NAME="_Toc312374124"></A><A NAME="_Toc462393544"></A><BR></P></DIV>
+<A NAME="Heading255"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Exception matching<BR><A NAME="Index489"></A></H2></FONT>
+<DIV ALIGN="LEFT"><P>When an exception is thrown, the exception-handling system
+looks through the &#8220;nearest&#8221; handlers in the order they are written.
+When it finds a match, the exception is considered handled, and no further
+searching occurs. <BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Matching an exception doesn&#8217;t require a perfect match
+between the exception and its handler. An object or reference to a derived-class
+object will match a handler for the base class. (However, if the handler is for
+an object rather than a reference, the exception object is &#8220;sliced&#8221;
+<A NAME="Index490"></A><A NAME="Index491"></A><A NAME="Index492"></A>as it is
+passed to the handler; this does no damage but loses all the derived-type
+information.) If a pointer is thrown, standard pointer conversions are used to
+match the exception. However, no automatic type conversions
+<A NAME="Index493"></A><A NAME="Index494"></A><A NAME="Index495"></A><A NAME="Index496"></A>are
+used to convert one exception type to another in the process of matching. For
+example,<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C07:Autoexcp.cpp</font>
+<font color=#009900>// No matching conversions</font>
+#include &lt;iostream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>class</font> Except1 {};
+<font color=#0000ff>class</font> Except2 {
+<font color=#0000ff>public</font>:
+  Except2(Except1&amp;) {}
+};
+
+<font color=#0000ff>void</font> f() { <font color=#0000ff>throw</font> Except1(); }
+
+<font color=#0000ff>int</font> main() {
+  <font color=#0000ff>try</font> { f();
+  } <font color=#0000ff>catch</font> (Except2) {
+    cout &lt;&lt; <font color=#004488>"inside catch(Except2)"</font> &lt;&lt; endl;
+  } <font color=#0000ff>catch</font> (Except1) {
+    cout &lt;&lt; <font color=#004488>"inside catch(Except1)"</font> &lt;&lt; endl;
+  }</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>Even though you might think the first handler could be used by
+converting an <B>Except1</B> object into an <B>Except2</B> using the constructor
+conversion, the system will not perform such a conversion during exception
+handling, and you&#8217;ll end up at the <B>Except1</B> handler.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><A NAME="Index497"></A><A NAME="Index498"></A>The following
+example shows how a base-class handler can catch a derived-class
+exception:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C07:Basexcpt.cpp</font>
+<font color=#009900>// Exception hierarchies</font>
+#include &lt;iostream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>class</font> X {
+<font color=#0000ff>public</font>:
+  <font color=#0000ff>class</font> Trouble {};
+  <font color=#0000ff>class</font> Small : <font color=#0000ff>public</font> Trouble {};
+  <font color=#0000ff>class</font> Big : <font color=#0000ff>public</font> Trouble {};
+  <font color=#0000ff>void</font> f() { <font color=#0000ff>throw</font> Big(); }
+};
+
+<font color=#0000ff>int</font> main() {
+  X x;
+  <font color=#0000ff>try</font> {
+    x.f();
+  } <font color=#0000ff>catch</font>(X::Trouble) {
+    cout &lt;&lt; <font color=#004488>"caught Trouble"</font> &lt;&lt; endl;
+  <font color=#009900>// Hidden by previous handler:</font>
+  } <font color=#0000ff>catch</font>(X::Small) {
+    cout &lt;&lt; <font color=#004488>"caught Small Trouble"</font> &lt;&lt; endl;
+  } <font color=#0000ff>catch</font>(X::Big) {
+    cout &lt;&lt; <font color=#004488>"caught Big Trouble"</font> &lt;&lt; endl;
+  }</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>Here, the exception-handling mechanism will always match a
+<B>Trouble</B> object, <I>or anything derived from</I> <B>Trouble</B>, to the
+first handler. That means the second and third handlers are never called because
+the first one captures them all. It makes more sense to catch the derived types
+first and put the base type at the end to catch anything less specific (or a
+derived class introduced later in the development cycle).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>In addition, if <B>Small</B> and <B>Big</B> represent larger
+objects than the base class <B>Trouble</B> (which is often true because you
+regularly add data members to derived classes), then those objects are sliced
+<A NAME="Index499"></A><A NAME="Index500"></A><A NAME="Index501"></A>to fit into
+the first handler. Of course, in this example it isn&#8217;t important because
+there are no additional members in the derived classes and there are no argument
+identifiers in the handlers anyway. You&#8217;ll usually want to use reference
+arguments rather than objects in your handlers to avoid slicing off
+information.<A NAME="_Toc305593302"></A><A NAME="_Toc305628774"></A><A NAME="_Toc312374125"></A><A NAME="_Toc462393545"></A><BR></P></DIV>
+<A NAME="Heading256"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Standard exceptions</H2></FONT>
+<DIV ALIGN="LEFT"><P>The set of
+exceptions<A NAME="Index502"></A><A NAME="Index503"></A> used with the Standard
+C++ library are also available for your own use. Generally it&#8217;s easier and
+faster to start with a standard exception class than to try to define your own.
+If the standard class doesn&#8217;t do what you need, you can derive from
+it.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The following tables describe the standard
+exceptions:<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TABLE BORDER>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>exception</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>The base class for all the exceptions thrown by the C++
+standard library. You can ask <B>what(&#160;)</B> and get a result that can be
+displayed as a character representation.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>logic_error</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Derived from <B>exception</B>. Reports program logic errors,
+which could presumably be detected before the program executes.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>runtime_error</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Derived from <B>exception</B>.<B> </B>Reports runtime errors,
+which can presumably be detected only when the program executes.<BR></P></DIV>
+</TD>
+</TR>
+</TABLE></P></DIV>
+<DIV ALIGN="LEFT"><P>The iostream exception class <B>ios::failure</B> is also
+derived from <B>exception</B>, but it has no further subclasses.
+<A NAME="Index504"></A><A NAME="Index505"></A><A NAME="Index506"></A><A NAME="Index507"></A><A NAME="Index508"></A><A NAME="Index509"></A>
+<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The classes in both of the following tables can be used as
+they are, or they can act as base classes to derive your own more specific types
+of exceptions.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TABLE BORDER>
+<TR VALIGN="TOP">
+<TH WIDTH=275 COLSPAN=2 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P>Exception classes derived from <B>logic_error</B><BR></P></DIV>
+</TH>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>domain_error</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Reports violations of a precondition.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>invalid_argument</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Indicates an invalid argument to the function it&#8217;s
+thrown from.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>length_error</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Indicates an attempt to produce an object whose length is
+greater than or equal to NPOS (the largest representable value of type
+<B>size_t</B>).<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>out_of_range</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Reports an out-of-range argument.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>bad_cast</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Thrown for executing an invalid <B>dynamic_cast</B> expression
+in run-time type identification (see Chapter XX).<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>bad_typeid</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Reports a null pointer <B>p</B> in an expression
+<B>typeid(*p)</B>. (Again, a run-time type identification feature in Chapter
+XX).<BR></P></DIV>
+</TD>
+</TR>
+<A NAME="Index510"></A><A NAME="Index511"></A><A NAME="Index512"></A><A NAME="Index513"></A><A NAME="Index514"></A><A NAME="Index515"></A><A NAME="Index516"></A><A NAME="Index517"></A><A NAME="Index518"></A><A NAME="Index519"></A><A NAME="Index520"></A><A NAME="Index521"></A></TABLE></P></DIV>
+
+<DIV ALIGN="LEFT"><P><TABLE BORDER>
+<TR VALIGN="TOP">
+<TH WIDTH=275 COLSPAN=2 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="CENTER">Exception classes derived from
+<B>runtime_error</B><BR></P></DIV>
+</TH>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>range_error</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Reports violation of a postcondition.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>overflow_error</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Reports an arithmetic overflow.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>bad_alloc</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Reports a failure to allocate storage.<BR></P></DIV>
+</TD>
+</TR>
+<A NAME="Index522"></A><A NAME="Index523"></A><A NAME="Index524"></A><A NAME="Index525"></A><A NAME="Index526"></A><A NAME="Index527"></A></TABLE></P></DIV>
+<DIV ALIGN="LEFT"><P><A NAME="_Toc305593303"></A><A NAME="_Toc305628775"></A><A NAME="_Toc312374126"></A><A NAME="_Toc462393546"></A><BR></P></DIV>
+<A NAME="Heading257"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Programming with exceptions</H2></FONT>
+<DIV ALIGN="LEFT"><P>For most programmers, especially C programmers, exceptions are
+not available in their existing language and take a bit of adjustment. Here are
+some guidelines<A NAME="Index528"></A> for programming with
+exceptions.<A NAME="_Toc312374127"></A><A NAME="_Toc462393547"></A><BR></P></DIV>
+<A NAME="Heading258"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+When to avoid exceptions</H3></FONT>
+<DIV ALIGN="LEFT"><P>Exceptions aren&#8217;t the answer to all problems. In fact,
+if you simply go looking for something to pound with your new hammer,
+you&#8217;ll cause trouble. The following sections point out situations where
+exceptions are <I>not</I> warranted.<BR></P></DIV>
+<A NAME="Heading259"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Not for asynchronous events<BR><A NAME="Index529"></A></H4></FONT>
+<DIV ALIGN="LEFT"><P>The Standard C <B>signal(&#160;)<A NAME="Index530"></A>
+</B>system, and any similar system, handles asynchronous events: events that
+happen outside the scope of the program, and thus events the program cannot
+anticipate. C++ exceptions cannot be used to handle asynchronous events because
+the exception and its handler are on the same call stack. That is, exceptions
+rely on scoping, whereas asynchronous events must be handled by completely
+separate code that is not part of the normal program flow (typically, interrupt
+service routines or event loops).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>This is not to say that asynchronous events cannot be
+<I>associated</I> with exceptions. But the interrupt handler should do its job
+as quickly as possible and then return. Later, at some well-defined point in the
+program, an exception might be thrown <I>based on</I> the interrupt.<BR></P></DIV>
+<A NAME="Heading260"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Not for ordinary error conditions</H4></FONT>
+<DIV ALIGN="LEFT"><P>If you have enough information to handle an error, it&#8217;s
+not an exception. You should take care of it in the current context rather than
+throwing an exception to a larger context.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Also, C++ exceptions are not thrown for machine-level events
+like divide-by-zero. It&#8217;s assumed these are dealt with by some other
+mechanism, like the operating system or hardware. That way, C++ exceptions can
+be reasonably efficient, and their use is isolated to program-level exceptional
+conditions.<BR></P></DIV>
+<A NAME="Heading261"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Not for flow-of-control</H4></FONT>
+<DIV ALIGN="LEFT"><P>An exception looks somewhat like an alternate return mechanism
+and somewhat like a <B>switch</B> statement, so you can be tempted to use them
+for other than their original intent. This is a bad idea, partly because the
+exception-handling system is significantly less efficient than normal program
+execution; exceptions are a rare event, so the normal program shouldn&#8217;t
+pay for them. Also, exceptions from anything other than error conditions are
+quite confusing to the user of your class or function.<BR></P></DIV>
+<A NAME="Heading262"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+You&#8217;re not forced to use exceptions</H4></FONT>
+<DIV ALIGN="LEFT"><P>Some programs are quite simple, many utilities, for example.
+You may only need to take input and perform some processing. In these programs
+you might attempt to allocate memory and fail, or try to open a file and fail,
+and so on. It is acceptable in these programs to use
+<B>assert(&#160;)<A NAME="Index531"></A></B> or to print a message and
+<B>abort(&#160;)<A NAME="Index532"></A></B> the program, allowing the system to
+clean up the mess, rather than to work very hard to catch all exceptions and
+recover all the resources yourself. Basically, if you don&#8217;t need to use
+exceptions, you don&#8217;t have to.<BR></P></DIV>
+<A NAME="Heading263"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+New exceptions, old code</H4></FONT>
+<DIV ALIGN="LEFT"><P>Another situation that arises is the modification of an
+existing program that doesn&#8217;t use exceptions. You may introduce a library
+that <I>does</I> use exceptions and wonder if you need to modify all your code
+throughout the program. Assuming you have an acceptable error-handling scheme
+already in place, the most sensible thing to do here is surround the largest
+block that uses the new library (this may be all the code in
+<B>main(&#160;)</B>)<B> </B>with a <B>try</B> block, followed by a
+<B>catch(...)</B> and basic error message. You can refine this to whatever
+degree necessary by adding more specific handlers, but, in any case, the code
+you&#8217;re forced to add can be minimal.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>You can also isolate your exception-generating code in a try
+block and write handlers to convert the exceptions into your existing
+error-handling scheme.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>It&#8217;s truly important to think about exceptions when
+you&#8217;re creating a library for someone else to use, and you can&#8217;t
+know how they need to respond to critical error
+conditions.<A NAME="_Toc312374128"></A><A NAME="_Toc462393548"></A><BR></P></DIV>
+<A NAME="Heading264"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Typical uses of exceptions<BR><A NAME="Index533"></A></H3></FONT>
+<DIV ALIGN="LEFT"><P>Do use exceptions to<BR></P></DIV>
+<OL>
+<LI>	Fix the problem and call the function (which caused the exception)
+again.<LI>	Patch things up and continue without retrying the
+function.<LI>	Calculate some alternative result instead of what the function was
+supposed to produce.<LI>	Do whatever you can in the current context and rethrow
+the <I>same</I> exception to a higher context.<LI>	Do whatever you can in the
+current context and throw a <I>different</I> exception to a higher
+context.<LI>	Terminate the program.<LI>	Wrap functions (especially C library
+functions) that use ordinary error schemes so they produce exceptions
+instead.<LI>	Simplify. If your exception scheme makes things more complicated,
+then it is painful and annoying to use.<LI>	Make your library and program safer.
+This is a short-term investment (for debugging) and a long-term investment (for
+application robustness).</OL><A NAME="Heading265"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Always use exception specifications</H4></FONT>
+<DIV ALIGN="LEFT"><P>The exception specification is like a function prototype: It
+tells the user to write exception-handling code and what exceptions to handle.
+It tells the compiler the exceptions that may come out of this
+function.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Of course, you can&#8217;t always anticipate by looking at the
+code what exceptions will arise from a particular function. Sometimes the
+functions it calls produce an unexpected exception, and sometimes an old
+function that didn&#8217;t throw an exception is replaced with a new one that
+does, and you&#8217;ll get a call to <B>unexpected(&#160;)</B>. Anytime you use
+exception specifications or call functions that do, you should create your own
+<B>unexpected(&#160;)</B> function that logs a message and rethrows the same
+exception.<BR></P></DIV>
+<A NAME="Heading266"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Start with standard exceptions</H4></FONT>
+<DIV ALIGN="LEFT"><P>Check out the Standard C++ library exceptions before creating
+your own. If a standard exception does what you need, chances are it&#8217;s a
+lot easier for your user to understand and handle.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>If the exception type you want isn&#8217;t part of the
+standard library, try to derive one from an existing standard <B>exception</B>.
+It&#8217;s nice for your users if they can always write their code to expect the
+<B>what(&#160;) </B>function defined in the <B>exception(&#160;)</B> class
+interface.<BR></P></DIV>
+<A NAME="Heading267"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Nest your own exceptions</H4></FONT>
+<DIV ALIGN="LEFT"><P>If you create exceptions for your particular class, it&#8217;s
+a very good idea to nest the exception classes inside your class to provide a
+clear message to the reader that this exception is used only for your class. In
+addition, it prevents the pollution of the namespace.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>You can nest your exceptions even if you&#8217;re deriving
+them from C++ standard exceptions.<BR></P></DIV>
+<A NAME="Heading268"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Use exception hierarchies</H4></FONT>
+<DIV ALIGN="LEFT"><P>Exception hierarchies <A NAME="Index534"></A>provide a
+valuable way to classify the different types of critical errors that may be
+encountered with your class or library. This gives helpful information to users,
+assists them in organizing their code, and gives them the option of ignoring all
+the specific types of exceptions and just catching the base-class type. Also,
+any exceptions added later by inheriting from the same base class will not force
+all existing code to be rewritten &#8211; the base-class handler will catch the
+new exception.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Of course, the Standard C++ exceptions are a good example of
+an exception hierarchy, and one that you can use to build upon.<BR></P></DIV>
+<A NAME="Heading269"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Multiple inheritance<BR><A NAME="Index535"></A><A NAME="Index536"></A></H4></FONT>
+<DIV ALIGN="LEFT"><P>You&#8217;ll remember from Chapter XX that the only
+<I>essential </I>place for MI is if you need to upcast a pointer to your object
+into two different base classes &#8211; that is, if you need polymorphic
+behavior with both of those base classes. It turns out that exception
+hierarchies are a useful place for multiple inheritance because a base-class
+handler from any of the root<A NAME="Index537"></A>s of the multiply inherited
+exception class can handle the exception.<BR></P></DIV>
+<A NAME="Heading270"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Catch by reference, not by
+value<BR><A NAME="Index538"></A><A NAME="Index539"></A></H4></FONT>
+<DIV ALIGN="LEFT"><P>If you throw an object of a derived class and it is caught
+<I>by value</I> in a handler for an object of the base class, that object is
+&#8220;sliced&#8221; &#8211; that is, the derived-class elements are cut off and
+you&#8217;ll end up with the base-class object being passed. Chances are this is
+not what you want because the object will behave like a base-class object and
+not the derived class object it really is (or rather, was &#8211; before it was
+sliced). Here&#8217;s an example:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C07:Catchref.cpp</font>
+<font color=#009900>// Why catch by reference?</font>
+#include &lt;iostream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>class</font> Base {
+<font color=#0000ff>public</font>:
+  <font color=#0000ff>virtual</font> <font color=#0000ff>void</font> what() {
+    cout &lt;&lt; <font color=#004488>"Base"</font> &lt;&lt; endl;
+  }
+};
+
+<font color=#0000ff>class</font> Derived : <font color=#0000ff>public</font> Base {
+<font color=#0000ff>public</font>:
+  <font color=#0000ff>void</font> what() {
+    cout &lt;&lt; <font color=#004488>"Derived"</font> &lt;&lt; endl;
+  }
+};
+
+<font color=#0000ff>void</font> f() { <font color=#0000ff>throw</font> Derived(); }
+
+<font color=#0000ff>int</font> main() {
+  <font color=#0000ff>try</font> {
+    f();
+  } <font color=#0000ff>catch</font>(Base b) {
+    b.what();
+  }
+  <font color=#0000ff>try</font> {
+    f();
+  } <font color=#0000ff>catch</font>(Base&amp; b) {
+    b.what();
+  }</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The output is<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>Base</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">Derived</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>because, when the object is caught by value, it is <I>turned
+into</I> a <B>Base</B> object (by the copy-constructor) and must behave that way
+in all situations, whereas when it&#8217;s caught by reference, only the address
+is passed and the object isn&#8217;t truncated, so it behaves like what it
+really is, a <B>Derived</B> in this case.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Although you can also throw and catch
+pointers<A NAME="Index540"></A>, by doing so you introduce more coupling &#8211;
+the thrower and the catcher must agree on how the exception object is allocated
+and cleaned up. This is a problem because the exception itself may have occurred
+from heap exhaustion. If you throw exception objects, the exception-handling
+system takes care of all storage.<BR></P></DIV>
+<A NAME="Heading271"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Throw exceptions in constructors</H4></FONT>
+<DIV ALIGN="LEFT"><P>Because a
+constructor<A NAME="Index541"></A><A NAME="Index542"></A> has no return value,
+you&#8217;ve previously had two choices to report an error during
+construction:<BR></P></DIV>
+<OL>
+<LI>	Set a nonlocal flag and hope the user checks it.<LI>	Return an incompletely
+created object and hope the user checks it.</OL><DIV ALIGN="LEFT"><P>This is a
+serious problem because C programmers have come to rely on an implied guarantee
+that object creation is always successful, which is not unreasonable in C where
+types are so primitive. But continuing execution after construction
+fails<A NAME="Index543"></A> in a C++ program is a guaranteed disaster, so
+constructors are one of the most important places to throw exceptions &#8211;
+now you have a safe, effective way to handle constructor errors. However, you
+must also pay attention to pointers inside objects and the way cleanup occurs
+when an exception is thrown inside a constructor.<BR></P></DIV>
+<A NAME="Heading272"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Don&#8217;t cause exceptions in destructors</H4></FONT>
+<DIV ALIGN="LEFT"><P>Because destructors
+<A NAME="Index544"></A><A NAME="Index545"></A>are called in the process of
+throwing other exceptions, you&#8217;ll never want to throw an exception in a
+destructor or cause another exception to be thrown by some action you perform in
+the destructor. If this happens, it means that a new exception may be thrown
+<I>before</I> the catch-clause for an existing exception is reached, which will
+cause a call to <B>terminate(&#160;)</B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>This means that if you call any functions inside a destructor
+that may throw exceptions, those calls should be within a <B>try</B> block in
+the destructor, and the destructor must handle all exceptions itself. None must
+escape from the destructor.<BR></P></DIV>
+<A NAME="Heading273"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Avoid naked pointers</H4></FONT>
+<DIV ALIGN="LEFT"><P>See <B>Wrapped.cpp</B>. A naked pointer usually means
+vulnerability in the constructor if resources are allocated for that pointer. A
+pointer doesn&#8217;t have a destructor, so those resources won&#8217;t be
+released if an exception is thrown in the
+constructor.<A NAME="_Toc305593304"></A><A NAME="_Toc305628776"></A><A NAME="_Toc312374129"></A><A NAME="_Toc462393549"></A><BR></P></DIV>
+<A NAME="Heading274"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Overhead<BR><A NAME="Index546"></A><A NAME="Index547"></A></H2></FONT>
+<DIV ALIGN="LEFT"><P>Of course it costs something for this new feature; when an
+exception is thrown there&#8217;s considerable runtime overhead. This is the
+reason you never want to use exceptions as part of your normal flow-of-control,
+no matter how tempting and clever it may seem. Exceptions should occur only
+rarely, so the overhead is piled on the exception and not on the normally
+executing code. One of the important design goals for exception handling was
+that it could be implemented with no impact on execution speed when it
+<I>wasn&#8217;t</I> used; that is, as long as you don&#8217;t throw an
+exception, your code runs as fast as it would without exception handling.
+Whether or not this is actually true depends on the particular compiler
+implementation you&#8217;re using.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Exception handling also causes extra information to be put on
+the stack by the compiler, to aid in stack unwinding.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Exception objects are properly passed around like any other
+objects, except that they can be passed into and out of what can be thought of
+as a special &#8220;exception scope&#8221; (which may just be the global scope).
+That&#8217;s how they go from one place to another. When the exception handler
+is finished, the exception objects are properly
+destroyed.<A NAME="_Toc305593305"></A><A NAME="_Toc305628777"></A><A NAME="_Toc312374130"></A><A NAME="_Toc462393550"></A><BR></P></DIV>
+<A NAME="Heading275"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Summary</H2></FONT>
+<DIV ALIGN="LEFT"><P>Error recovery is a fundamental concern for every program you
+write, and it&#8217;s especially important in C++, where one of the goals is to
+create program components for others to use. To create a robust system, each
+component must be robust.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The goals for exception handling in C++ are to simplify the
+creation of large, reliable programs using less code than currently possible,
+with more confidence that your application doesn&#8217;t have an unhandled
+error. This is accomplished with little or no performance penalty, and with low
+impact on existing code.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Basic exceptions are not terribly difficult to learn, and you
+should begin using them in your programs as soon as you can. Exceptions are one
+of those features that provide immediate and significant benefits to your
+project.<A NAME="_Toc312374131"></A><A NAME="_Toc462393551"></A><BR></P></DIV>
+<A NAME="Heading276"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Exercises</H2></FONT>
+<OL>
+<LI>	Create a class with member functions that throw exceptions. Within this
+class, make a nested class to use as an exception object. It takes a single
+<B>char*</B> as its argument; this represents a description string. Create a
+member function that throws this exception. (State this in the function&#8217;s
+exception specification.) Write a try block that calls this function and a catch
+clause that handles the exception by printing out its description
+string.<LI>	Rewrite the <B>Stash</B> class from Chapter XX so it throws
+out-of-range exceptions for <B>operator[]</B>.<LI>	Write a generic
+<B>main(&#160;)</B> that takes all exceptions and reports them as
+errors.<LI>	Create a class with its own <B>operator new</B>. This operator
+should allocate 10 objects, and on the 11th &#8220;run out of memory&#8221; and
+throw an exception. Also add a static member function that reclaims this memory.
+Now create a <B>main(&#160;)</B> with a <B>try</B> block and a <B>catch</B>
+clause that calls the memory-restoration routine. Put these inside a
+<B>while</B> loop, to demonstrate recovering from an exception and continuing
+execution.<LI>	Create a destructor that throws an exception, and write code to
+prove to yourself that this is a bad idea by showing that if a new exception is
+thrown before the handler for the existing one is reached,
+<B>terminate(&#160;)</B> is called.<LI>	Prove to yourself that all exception
+objects (the ones that are thrown) are properly destroyed.<LI>	Prove to yourself
+that if you create an exception object on the heap and throw the pointer to that
+object, it will <I>not</I> be cleaned up.<LI>	(Advanced). Track the creation and
+passing of an exception using a class with a constructor and copy-constructor
+that announce themselves and provide as much information as possible about how
+the object is being created (and in the case of the copy-constructor, what
+object it&#8217;s being created from). Set up an interesting situation, throw an
+object of your new type, and analyze the
+result.</OL>
+<HR><DIV ALIGN="LEFT"><P><A NAME="fn23" HREF="#fnB23">[23]</A><FONT SIZE=2> You may be
+surprised when you run the example &#8211; some C++ compilers have extended
+<B>longjmp(&#160;)</B> to clean up objects on the stack. This is nonportable
+behavior.</FONT><BR></P></DIV>
+
+<DIV ALIGN="CENTER">
+    <FONT FACE="Verdana" size = "-1">
+     [ <a href="Chapter06.html">Previous Chapter</a> ] 
+    [ <a href="SimpleContents.html">Short TOC</a> ] 
+    [ <a href="Contents.html">Table of Contents</a> ] 
+    [ <a href="DocIndex.html">Index</a> ]
+     [ <a href="Chapter08.html">Next Chapter</a> ] 
+    </FONT>
+    <BR>
+ Last Update:05/23/2000</P></DIV>
+
+</BODY>
+
+</HTML>

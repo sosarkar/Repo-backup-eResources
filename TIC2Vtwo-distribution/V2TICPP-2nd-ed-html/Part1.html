@@ -1,0 +1,217 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<!--
+This document was converted from RTF source: 
+By rtftohtml 4.19
+See http://www.sunpack.com/RTF
+Filename:TicV2.rtf
+Application Directory:c:\TOOLS\RTF2HTML\
+Subject:
+Author:Bruce Eckel
+Operator:Bruce Eckel
+Document Comments:
+Version Comments:
+Comments:
+Keywords:
+Translation Date:05/23/2000
+Translation Time:06:43:46
+Translation Platform:Win32
+Number of Output files:19
+This File:Part1.html
+SplitDepth=1
+SkipNavPanel=1
+SkipLeadingToc=1
+SkipTrailingToc=1
+GenContents=1
+GenFrames=1
+GenIndex=1
+-->
+<HEAD lang="en"><META http-equiv="Content-Type" content="text/html">
+<TITLE>Part 1: The Standard C++ Library</TITLE>
+</HEAD>
+
+<BODY  BGCOLOR="#FFFFFF"><DIV ALIGN="CENTER">
+  <a href="http://www.MindView.net">
+  <img src="mindview-head.gif" alt="MindView Inc." BORDER = "0"></a>
+  <CENTER>
+    <FONT FACE="Verdana" size = "-1">
+    [ <a href="README-HTML.txt">Viewing Hints</a> ]
+    [ <a href="RevisionHistory.html">Revision History</a> ]
+    [ <a href="http://www.mindview.net/MailingList.html">Free Newsletter</a> ] <br>
+    [ <a href="http://www.mindview.net/CPPServices/#PublicSeminars">Seminars</a> ]
+    [ <a href="http://www.mindview.net/CPPServices/#SeminarsOnCD">Seminars on CD ROM</a> ]
+    [ <a href="http://www.mindview.net/CPPServices/#ConsultingServices">Consulting</a> ]
+    </FONT>
+  <H2><FONT FACE="Verdana">
+  Thinking in C++, 2nd ed., Volume 2, Revision 3</FONT></H2>
+  <H3><FONT FACE="Verdana">&copy;2000 by Bruce Eckel</FONT></H3>
+  
+    <FONT FACE="Verdana" size = "-1">
+     [ <a href="Preface.html">Previous Chapter</a> ] 
+    [ <a href="SimpleContents.html">Short TOC</a> ] 
+    [ <a href="Contents.html">Table of Contents</a> ] 
+    [ <a href="DocIndex.html">Index</a> ]
+     [ <a href="Chapter01.html">Next Chapter</a> ] 
+    </FONT>
+    
+  </CENTER>
+  </P></DIV><A NAME="_Toc462393364"></A><A NAME="Heading19"></A><FONT FACE = "Verdana"><H1 ALIGN="LEFT">
+Part 1: The Standard C++ Library</H1></FONT>
+<DIV ALIGN="LEFT"><P><FONT SIZE=4>Standard C++ not only incorporates all the
+Standard C libraries, with small additions and changes to support type safety,
+it also adds libraries of its own. These libraries are far more powerful than
+those in Standard C; the leverage you get from them is analogous to the leverage
+you get from changing from C to C++.</FONT><BR></P></DIV>
+<DIV ALIGN="LEFT"><P>This section of the book gives you an in-depth introduction to
+the most important portions of the Standard C++ library.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The most complete and also the most obscure reference to the
+full libraries is the Standard itself. Somewhat more readable (and yet still a
+self-described &#8220;expert&#8217;s guide&#8221;) is Bjarne Stroustrup&#8217;s
+3<SUP>rd</SUP> Edition of <I>The C++ Programming Language</I> (Addison-Wesley,
+1997). Another valuable reference is the 3<SUP>rd</SUP> edition of  <I>C++
+Primer</I>, by Lippman &amp; Lajoie.<I> </I>The goal of the chapters in this
+book that cover the libraries is to provide you with an encyclopedia of
+descriptions and examples so you&#8217;ll have a good starting point for solving
+any problem that requires the use of the Standard libraries. However, there are
+some techniques and topics that are used rarely enough that they are not covered
+here, so if you can&#8217;t find it in these chapters you should reach for the
+other two books; this book is not intended to replace those but rather to
+complement them. In particular, I hope that after going through the material in
+the following chapters you&#8217;ll have a much easier time understanding those
+books.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>You will notice that this section does not contain exhaustive
+documentation describing every function and class in the Standard C++ library.
+I&#8217;ve left the full descriptions to others; in particular there a
+particularly good on-line sources of standard library documentation in HTML
+format that you can keep resident on your computer and view with a Web browser
+whenever you need to look something up. This is PJ Plauger&#8217;s Dinkumware
+C/C++ Library reference at http://www.dinkumware.com. You can view this on-line,
+and purchase it for local viewing. It contains complete reference pages for the
+both the C and C++ libraries (so it&#8217;s good to use for all your Standard
+C/C++ programming questions). I am particularly fond of electronic documentation
+not only because you can always have it with you, but also because you can do an
+electronic search for what you&#8217;re seeking.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>When you&#8217;re actively programming, these resources should
+adequately satisfy your reference needs (and you can use them to look up
+anything in this chapter that isn&#8217;t clear to you). Appendix XX lists
+additional references.<A NAME="_Toc462393365"></A><BR></P></DIV>
+<A NAME="Heading20"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Library overview</H2></FONT>
+<DIV ALIGN="LEFT"><P>[[ Still needs work ]]<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The first chapter in this section introduces the Standard C++
+<B>string</B> class, which is a powerful tool that simplifies most of the text
+processing chores you might have to do. The <B>string</B> class may be the most
+thorough string manipulation tool you&#8217;ve ever seen. Chances are, anything
+you&#8217;ve done to character strings with lines of code in C can be done with
+a member function call in the string class, including <B>append(&#160;)</B>,
+<B>assign(&#160;)</B>, <B>insert(&#160;)</B>, <B>remove(&#160;)</B>,
+<B>replace(&#160;)</B>, <B>resize(&#160;)</B>, <B>copy(&#160;)</B>,
+<B>find(&#160;)</B>, <B>rfind(&#160;)</B>, <B>find_first_of(&#160;)</B>,
+<B>find_last_of(&#160;)</B>, <B>find_first_not_of(&#160;)</B>,
+<B>find_last_not_of(&#160;)</B>, <B>substr(&#160;)</B>, and
+<B>compare(&#160;)</B>. The operators <B>=</B>, <B>+=</B>, and <B>[ ]</B> are
+also overloaded to perform the intuitive operations. In addition, there&#8217;s
+a &#8220;wide&#8221; <B>wstring</B> class designed to support international
+character sets. Both <B>string</B> and <B>wstring</B> (declared in
+<B>&lt;string&gt;</B>, not to be confused with C&#8217;s
+<B>&lt;string.h&gt;</B>, which is, in strict C++, <B>&lt;cstring&gt;</B>) are
+created from a common template class called <B>basic_string</B>. Note that the
+string classes are seamlessly integrated with iostreams<A NAME="Index13"></A>,
+virtually eliminating the need for you to ever use <B>strstream</B>. <BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The next chapter covers the <B>iostream</B> library.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>Language Support<A NAME="Index14"></A></B>. Elements
+inherent to the language itself, like implementation
+limits<A NAME="Index15"></A><A NAME="Index16"></A> in <B>&lt;climits&gt;</B> and
+<B>&lt;cfloat&gt;</B>; dynamic memory declarations in <B>&lt;new&gt;</B> like
+<B>bad_alloc<A NAME="Index17"></A></B> (the exception thrown when you&#8217;re
+out of memory) and <B>set_new_handler<A NAME="Index18"></A></B>; the
+<B>&lt;typeinfo&gt;</B> header for RTTI<A NAME="Index19"></A> and the
+<B>&lt;exception&gt;</B> header that declares the
+<B>terminate(&#160;)<A NAME="Index20"></A></B> and
+<B>unexpected(&#160;)<A NAME="Index21"></A></B> functions.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>Diagnostics Library<A NAME="Index22"></A></B>. Components
+C++ programs can use to detect and report errors. The <B>&lt;exception&gt;</B>
+header declares the standard exception classes
+<A NAME="Index23"></A><A NAME="Index24"></A>and <B>&lt;cassert&gt;</B> declares
+the same thing as C&#8217;s <B>assert.h</B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>General Utilities Library<A NAME="Index25"></A></B>. These
+components are used by other parts of the Standard C++ library, but you can also
+use them in your own programs. Included are templatized versions of operators
+<B>!=</B>, <B>&gt;</B>, <B>&lt;=</B>, and <B>&gt;=</B> (to prevent redundant
+definitions), a <B>pair</B> template class<A NAME="Index26"></A> with a
+<B>tuple</B>-making template function<A NAME="Index27"></A>, a set of
+<I>function objects<A NAME="Index28"></A></I> for support of the STL, and
+storage allocation functions for use with the STL<A NAME="Index29"></A> so you
+can easily modify the storage allocation mechanism.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>Localization Library<A NAME="Index30"></A></B>. This allows
+you to localize strings in your program to adapt to usage in different
+countries<A NAME="Index31"></A>, including money, numbers, date, time, and so
+on.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>Containers Library<A NAME="Index32"></A></B>. This includes
+the Standard Template Library (described in the next section of this appendix)
+and also the <B>bits</B> <A NAME="Index33"></A><A NAME="Index34"></A>and
+<B>bit_string</B> <A NAME="Index35"></A><A NAME="Index36"></A>classes in
+<B>&lt;bits&gt;</B> and <B>&lt;bitstring&gt;</B>, respectively. Both <B>bits</B>
+and <B>bit_string</B> are more complete implementations of the bitvector concept
+introduced in Chapter XX. The <B>bits</B> template creates a fixed-sized array
+of bits that can be manipulated with all the bitwise operators, as well as
+member functions like <B>set(&#160;)</B>, <B>reset(&#160;)</B>,
+<B>count(&#160;)</B>, <B>length(&#160;)</B>, <B>test(&#160;)</B>,
+<B>any(&#160;)</B>, and <B>none(&#160;)</B>. There are also conversion operators
+<B>to_ushort(&#160;)</B>, <B>to_ulong(&#160;)</B>, and <B>to_string(&#160;)</B>.
+<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The <B>bit_string</B> class is, by contrast, a dynamically
+sized array of bits, with similar operations to <B>bits</B>, but also with
+additional operations that make it act somewhat like a <B>string</B>.
+There&#8217;s a fundamental difference in bit weighting: With <B>bits</B>, the
+right-most bit (bit zero) is the least significant bit, but with
+<B>bit_string</B>, the right-most bit is the <I>most</I> significant bit. There
+are no conversions between <B>bits</B> and <B>bit_string</B>. You&#8217;ll use
+<B>bits</B> for a space-efficient set of on-off flags and <B>bit_string</B> for
+manipulating arrays of binary values (like pixels).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>Iterators Library<A NAME="Index37"></A></B>. Includes
+iterators that are tools for the STL (described in the next section of this
+appendix), streams, and stream buffers.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>Algorithms Library<A NAME="Index38"></A></B>. These are the
+template functions that perform operations on the STL<A NAME="Index39"></A>
+containers using iterators. The algorithms include: <B>adjacent_find</B>,<B>
+prev_permutation</B>,<B> binary_search</B>,<B> push_heap</B>,<B> copy</B>,<B>
+random_shuffle</B>,<B> copy_backward</B>,<B> remove</B>,<B> count</B>,<B>
+remove_copy</B>,<B> count_if</B>,<B> remove_copy_if</B>,<B> equal</B>,<B>
+remove_if</B>,<B> equal_range</B>,<B> replace</B>,<B> fill</B>,<B>
+replace_copy</B>,<B> fill_n</B>,<B> replace_copy_if</B>,<B> find</B>,<B>
+replace_if</B>,<B> find_if</B>,<B> reverse</B>,<B> for_each</B>,<B>
+reverse_copy</B>,<B> generate</B>,<B> rotate</B>,<B> generate_n</B>,<B>
+rotate_copy</B>,<B> includes</B>,<B> search</B>,<B> inplace_merge</B>,<B>
+set_difference</B>,<B> lexicographical_compare</B>,<B> set_intersection</B>,<B>
+lower_bound</B>,<B> set_symmetric_difference</B>,<B> make_heap</B>,<B>
+set_union</B>,<B> max</B>,<B> sort</B>,<B> max_element</B>,<B> sort_heap</B>,<B>
+merge</B>,<B> stable_partition</B>,<B> min</B>,<B> stable_sort</B>,<B>
+min_element</B>,<B> swap</B>,<B> mismatch</B>,<B> swap_ranges</B>,<B>
+next_permutation</B>,<B> transform</B>,<B> nth_element</B>,<B> unique</B>,<B>
+partial_sort</B>,<B> unique_copy</B>,<B> partial_sort_copy</B>,<B>
+upper_bound</B>, and<B> partition</B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>Numerics Library<A NAME="Index40"></A></B>. The goal of
+this library is to allow the compiler implementer to take advantage of the
+architecture of the underlying machine when used for numerical
+operations<A NAME="Index41"></A>. This way, creators of higher level numerical
+libraries can write to the numerics library and produce efficient algorithms
+without having to customize to every possible machine. The numerics library also
+includes the complex number class<A NAME="Index42"></A><A NAME="Index43"></A>
+(which appeared in the first version of C++ as an example, and has become an
+expected part of the library) in <B>float</B>, <B>double</B>, and <B>long
+double</B> forms.<BR></P></DIV>
+<DIV ALIGN="CENTER">
+    <FONT FACE="Verdana" size = "-1">
+     [ <a href="Preface.html">Previous Chapter</a> ] 
+    [ <a href="SimpleContents.html">Short TOC</a> ] 
+    [ <a href="Contents.html">Table of Contents</a> ] 
+    [ <a href="DocIndex.html">Index</a> ]
+     [ <a href="Chapter01.html">Next Chapter</a> ] 
+    </FONT>
+    <BR>
+ Last Update:05/23/2000</P></DIV>
+
+</BODY>
+
+</HTML>

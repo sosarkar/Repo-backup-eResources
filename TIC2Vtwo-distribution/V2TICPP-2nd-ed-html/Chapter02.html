@@ -1,0 +1,3222 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<!--
+This document was converted from RTF source: 
+By rtftohtml 4.19
+See http://www.sunpack.com/RTF
+Filename:TicV2.rtf
+Application Directory:c:\TOOLS\RTF2HTML\
+Subject:
+Author:Bruce Eckel
+Operator:Bruce Eckel
+Document Comments:
+Version Comments:
+Comments:
+Keywords:
+Translation Date:05/23/2000
+Translation Time:06:43:52
+Translation Platform:Win32
+Number of Output files:19
+This File:Chapter02.html
+SplitDepth=1
+SkipNavPanel=1
+SkipLeadingToc=1
+SkipTrailingToc=1
+GenContents=1
+GenFrames=1
+GenIndex=1
+-->
+<HEAD lang="en"><META http-equiv="Content-Type" content="text/html">
+<TITLE>2: Iostreams</TITLE>
+</HEAD>
+
+<BODY  BGCOLOR="#FFFFFF"><DIV ALIGN="CENTER">
+  <a href="http://www.MindView.net">
+  <img src="mindview-head.gif" alt="MindView Inc." BORDER = "0"></a>
+  <CENTER>
+    <FONT FACE="Verdana" size = "-1">
+    [ <a href="README-HTML.txt">Viewing Hints</a> ]
+    [ <a href="RevisionHistory.html">Revision History</a> ]
+    [ <a href="http://www.mindview.net/MailingList.html">Free Newsletter</a> ] <br>
+    [ <a href="http://www.mindview.net/CPPServices/#PublicSeminars">Seminars</a> ]
+    [ <a href="http://www.mindview.net/CPPServices/#SeminarsOnCD">Seminars on CD ROM</a> ]
+    [ <a href="http://www.mindview.net/CPPServices/#ConsultingServices">Consulting</a> ]
+    </FONT>
+  <H2><FONT FACE="Verdana">
+  Thinking in C++, 2nd ed., Volume 2, Revision 3</FONT></H2>
+  <H3><FONT FACE="Verdana">&copy;2000 by Bruce Eckel</FONT></H3>
+  
+    <FONT FACE="Verdana" size = "-1">
+     [ <a href="Chapter01.html">Previous Chapter</a> ] 
+    [ <a href="SimpleContents.html">Short TOC</a> ] 
+    [ <a href="Contents.html">Table of Contents</a> ] 
+    [ <a href="DocIndex.html">Index</a> ]
+     [ <a href="Chapter03.html">Next Chapter</a> ] 
+    </FONT>
+    
+  </CENTER>
+  </P></DIV><A NAME="_Toc305628662"></A><A NAME="_Toc312373873"></A><A NAME="_Toc462393383"></A><A NAME="Heading43"></A><FONT FACE = "Verdana"><H1 ALIGN="LEFT">
+2: Iostreams</H1></FONT>
+<DIV ALIGN="LEFT"><P><FONT SIZE=4>There&#8217;s much more you can do with the
+general I/O problem than just take standard I/O and turn it into a class.
+</FONT><BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Wouldn&#8217;t it be nice if you could make all the usual
+&#8220;receptacles&#8221; &#8211; standard I/O, files and even blocks of memory
+&#8211; look the same, so you need to remember only one interface? That&#8217;s
+the idea behind iostreams. They&#8217;re much easier, safer, and often more
+efficient than the assorted functions from the Standard C stdio
+library.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Iostream is usually the first class library that new C++
+programmers learn to use. This chapter explores the <I>use</I> of iostreams, so
+they can replace the C I/O functions through the rest of the book. In future
+chapters, you&#8217;ll see how to set up your own classes so they&#8217;re
+compatible with
+iostreams.<A NAME="_Toc305628663"></A><A NAME="_Toc312373874"></A><A NAME="_Toc462393384"></A><BR></P></DIV>
+<A NAME="Heading44"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Why iostreams?</H2></FONT>
+<DIV ALIGN="LEFT"><P>You may wonder what&#8217;s wrong with the good old C library.
+And why not &#8220;wrap&#8221; the C library in a class
+<A NAME="Index44"></A><A NAME="Index45"></A>and be done with it? Indeed, there
+are situations when this is the perfect thing to do, when you want to make a C
+library a bit safer and easier to use. For example, suppose you want to make
+sure a stdio <A NAME="Index46"></A>file is always safely opened and properly
+closed, without relying on the user to remember to call the <B>close(&#160;)</B>
+function:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:FileClass.h</font>
+<font color=#009900>// Stdio files wrapped</font>
+#ifndef FILECLAS_H
+#define FILECLAS_H
+#include &lt;cstdio&gt;
+
+<font color=#0000ff>class</font> FileClass {
+  std::FILE* f;
+<font color=#0000ff>public</font>:
+  FileClass(<font color=#0000ff>const</font> <font color=#0000ff>char</font>* fname, <font color=#0000ff>const</font> <font color=#0000ff>char</font>* mode=<font color=#004488>"r"</font>);
+  ~FileClass();
+  std::FILE* fp();
+};</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">#endif // FILECLAS_H
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>In C when you perform file I/O, you work with a naked pointer
+to a FILE <A NAME="Index47"></A><B>struct</B>, but this class wraps around the
+pointer and guarantees it is properly initialized and cleaned up using the
+constructor and destructor. The second constructor argument is the file mode,
+which defaults to &#8220;r&#8221; for &#8220;read.&#8221;<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>To fetch the value of the pointer to use in the file I/O
+functions, you use the <B>fp(&#160;)</B> access function. Here are the member
+function definitions:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:FileClass.cpp {O}</font>
+<font color=#009900>// Implementation</font>
+#include <font color=#004488>"FileClass.h"</font>
+#include &lt;cstdlib&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+FileClass::FileClass(<font color=#0000ff>const</font> <font color=#0000ff>char</font>* fname, <font color=#0000ff>const</font> <font color=#0000ff>char</font>* mode){
+  f = fopen(fname, mode);
+  <font color=#0000ff>if</font>(f == NULL) {
+    printf(<font color=#004488>"%s: file not found\n"</font>, fname);
+    exit(1);
+  }
+}
+
+FileClass::~FileClass() { fclose(f); }
+</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">FILE* FileClass::fp() {
+return f; } ///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The constructor calls <B>fopen(&#160;)</B>,as you would
+normally do, but it also checks to ensure the result isn&#8217;t zero, which
+indicates a failure upon opening the file. If there&#8217;s a failure, the name
+of the file is printed and <B>exit(&#160;)</B> is called.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The destructor closes the file, and the access function
+<B>fp(&#160;)</B>returns <B>f</B>. Here&#8217;s a simple example using <B>class
+FileClass</B>:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:FileClassTest.cpp</font>
+<font color=#009900>//{L} FileClass</font>
+<font color=#009900>// Testing class File</font>
+#include <font color=#004488>"FileClass.h"</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main(<font color=#0000ff>int</font> argc, <font color=#0000ff>char</font>* argv[]) {
+  requireArgs(argc, 1);
+  FileClass f(argv[1]); <font color=#009900>// Opens and tests</font>
+  <font color=#0000ff>const</font> <font color=#0000ff>int</font> bsize = 100;
+  <font color=#0000ff>char</font> buf[bsize];
+  <font color=#0000ff>while</font>(fgets(buf, bsize, f.fp()))
+    puts(buf);
+} <font color=#009900>// File automatically closed by destructor</font></PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>You create the <B>FileClass</B> object and use it in normal C
+file I/O function calls by calling <B>fp(&#160;)</B>. When you&#8217;re done
+with it, just forget about it, and the file is closed by the destructor at the
+end of the
+scope.<A NAME="_Toc312373875"></A><A NAME="_Toc462393385"></A><BR></P></DIV>
+<A NAME="Heading45"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+True wrapping</H3></FONT>
+<DIV ALIGN="LEFT"><P>Even though the FILE pointer is private, it isn&#8217;t
+particularly safe because <B>fp(&#160;)</B> retrieves it. The only effect seems
+to be guaranteed initialization and cleanup, so why not make it public, or use a
+<B>struct</B> instead? Notice that while you can get a copy of <B>f</B> using
+<B>fp(&#160;)</B>, you cannot assign to <B>f</B> &#8211; that&#8217;s completely
+under the control of the class. Of course, after capturing the pointer returned
+by <B>fp(&#160;)</B>, the client programmer can still assign to the structure
+elements, so the safety is in guaranteeing a valid FILE pointer rather than
+proper contents of the structure.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>If you want complete safety, you have to prevent the user from
+direct access to the FILE pointer. This means some version of all the normal
+file I/O functions will have to show up as class members, so everything you can
+do with the C approach is available in the C++ class:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Fullwrap.h</font>
+<font color=#009900>// Completely hidden file IO</font>
+#ifndef FULLWRAP_H
+#define FULLWRAP_H
+
+<font color=#0000ff>class</font> File {
+  std::FILE* f;
+  std::FILE* F(); <font color=#009900>// Produces checked pointer to f</font>
+<font color=#0000ff>public</font>:
+  File(); <font color=#009900>// Create object but don't open file</font>
+  File(<font color=#0000ff>const</font> <font color=#0000ff>char</font>* path,
+       <font color=#0000ff>const</font> <font color=#0000ff>char</font>* mode = <font color=#004488>"r"</font>);
+  ~File();
+  <font color=#0000ff>int</font> open(<font color=#0000ff>const</font> <font color=#0000ff>char</font>* path,
+           <font color=#0000ff>const</font> <font color=#0000ff>char</font>* mode = <font color=#004488>"r"</font>);
+  <font color=#0000ff>int</font> reopen(<font color=#0000ff>const</font> <font color=#0000ff>char</font>* path,
+             <font color=#0000ff>const</font> <font color=#0000ff>char</font>* mode);
+  <font color=#0000ff>int</font> getc();
+  <font color=#0000ff>int</font> ungetc(<font color=#0000ff>int</font> c);
+  <font color=#0000ff>int</font> putc(<font color=#0000ff>int</font> c);
+  <font color=#0000ff>int</font> puts(<font color=#0000ff>const</font> <font color=#0000ff>char</font>* s);
+  <font color=#0000ff>char</font>* gets(<font color=#0000ff>char</font>* s, <font color=#0000ff>int</font> n);
+  <font color=#0000ff>int</font> printf(<font color=#0000ff>const</font> <font color=#0000ff>char</font>* format, ...);
+  size_t read(<font color=#0000ff>void</font>* ptr, size_t size,
+              size_t n);
+  size_t write(<font color=#0000ff>const</font> <font color=#0000ff>void</font>* ptr,
+                size_t size, size_t n);
+  <font color=#0000ff>int</font> eof();
+  <font color=#0000ff>int</font> close();
+  <font color=#0000ff>int</font> flush();
+  <font color=#0000ff>int</font> seek(<font color=#0000ff>long</font> offset, <font color=#0000ff>int</font> whence);
+  <font color=#0000ff>int</font> getpos(fpos_t* pos);
+  <font color=#0000ff>int</font> setpos(<font color=#0000ff>const</font> fpos_t* pos);
+  <font color=#0000ff>long</font> tell();
+  <font color=#0000ff>void</font> rewind();
+  <font color=#0000ff>void</font> setbuf(<font color=#0000ff>char</font>* buf);
+  <font color=#0000ff>int</font> setvbuf(<font color=#0000ff>char</font>* buf, <font color=#0000ff>int</font> type, size_t sz);
+  <font color=#0000ff>int</font> error();
+  <font color=#0000ff>void</font> clearErr();
+};</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">#endif // FULLWRAP_H
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>This class contains almost all the file I/O functions from
+<B>cstdio</B>. <B>vfprintf(&#160;)</B> is missing; it is used to implement the
+<B>printf(&#160;)</B> <A NAME="Index48"></A>member function.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>File</B> has the same constructor as in the previous
+example, and it also has a default constructor. The default constructor is
+important if you want to create an array of <B>File</B> objects or use a
+<B>File</B> object as a member of another class where the initialization
+doesn&#8217;t happen in the constructor (but sometime after the enclosing object
+is created).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The default constructor sets the private <B>FILE</B> pointer
+<B>f</B> to zero. But now, before any reference to <B>f</B>, its value must be
+checked to ensure it isn&#8217;t zero. This is accomplished with the last member
+function in the class, <B>F(&#160;)</B>, which is <B>private</B> because it is
+intended to be used only by other member functions. (We don&#8217;t want to give
+the user direct access to the <B>FILE</B> structure in this
+class.)<A NAME="fnB6" HREF="#fn6">[6]</A><BR></P></DIV>
+<DIV ALIGN="LEFT"><P>This is not a terrible solution by any means. It&#8217;s quite
+functional, and you could imagine making similar classes for standard (console)
+I/O and for in-core formatting (reading/writing a piece of memory rather than a
+file or the console).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The big stumbling block is the runtime
+interpreter<A NAME="Index49"></A>
+<A NAME="Index50"></A><A NAME="Index51"></A>used for the variable-argument list
+functions. This is the code that parses through your format string at runtime
+and grabs and interprets arguments from the variable argument list. It&#8217;s a
+problem for four reasons.<BR></P></DIV>
+<OL>
+<LI>	Even if you use only a fraction of the functionality of the interpreter,
+the whole thing gets loaded. So if you
+say:<BR><TT><FONT FACE="Courier New">printf("%c",
+'x');</FONT></TT><BR>you&#8217;ll get the whole package, including the parts
+that print out floating-point numbers and strings. There&#8217;s no option for
+reducing the amount of space used by the program.<LI>	Because the interpretation
+happens at runtime there&#8217;s a performance overhead you can&#8217;t get rid
+of. It&#8217;s frustrating because all the information is <I>there</I> in the
+format string at compile time, but it&#8217;s not evaluated until runtime.
+However, if you could parse the arguments in the format string at compile time
+you could make hard function calls that have the potential to be much faster
+than a runtime interpreter (although the <B>printf(&#160;)</B> family of
+functions is usually quite well optimized).<LI>	A worse problem occurs because
+the evaluation of the format string doesn&#8217;t happen until runtime: there
+can be no compile-time error
+checkin</OL><DIV ALIGN="LEFT"><P>g<A NAME="Index52"></A><A NAME="Index53"></A>.
+You&#8217;re probably very familiar with this problem if you&#8217;ve tried to
+find bugs that came from using the wrong number or type of arguments in a
+<B>printf(&#160;)</B> statement. C++ makes a big deal out of compile-time error
+checking to find errors early and make your life easier. It seems a shame to
+throw it away for an I/O library, especially because I/O is used a
+lot.<BR></P></DIV>
+<OL>
+<LI>	For C++, the most important problem is that the <B>printf(&#160;)</B>
+family of functions is not particularly
+extensibl</OL><DIV ALIGN="LEFT"><P>e<A NAME="Index54"></A>. They&#8217;re really
+designed to handle the four basic data types <A NAME="Index55"></A>in C
+<A NAME="Index56"></A>(<B>char</B>, <B>int</B>, <B>float</B>, <B>double</B> and
+their variations). You might think that every time you add a new class, you
+could add an overloaded <B>printf(&#160;)</B> and <B>scanf(&#160;)</B> function
+(and their variants for files and strings) but remember, overloaded functions
+must have different types in their argument lists and the <B>printf(&#160;)</B>
+family hides its type information in the format string and in the variable
+argument list<A NAME="Index57"></A><A NAME="Index58"></A>. For a language like
+C++, whose goal is to be able to easily add new data types, this is an ungainly
+restriction.<A NAME="_Toc305628664"></A><A NAME="_Toc312373876"></A><A NAME="_Toc462393386"></A><BR></P></DIV>
+<A NAME="Heading46"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Iostreams to the rescue</H2></FONT>
+<DIV ALIGN="LEFT"><P>All these issues make it clear that one of the first standard
+class libraries for C++ should handle I/O. Because &#8220;hello, world&#8221; is
+the first program just about everyone writes in a new language, and because I/O
+is part of virtually every program, the I/O library in C++ must be particularly
+easy to use. It also has the much greater challenge that it can never know all
+the classes it must accommodate, but it must nevertheless be adaptable to use
+any new class. Thus its constraints required that this first class be a truly
+inspired design.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>This chapter won&#8217;t look at the details of the design and
+how to add iostream functionality to your own classes (you&#8217;ll learn that
+in a later chapter). First, you need to learn to use iostreams. In addition to
+gaining a great deal of leverage and clarity in your dealings with I/O and
+formatting, you&#8217;ll also see how a really powerful C++ library can
+work.<A NAME="_Toc312373877"></A><A NAME="_Toc462393387"></A><BR></P></DIV>
+<A NAME="Heading47"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Sneak preview of operator overloading<BR><A NAME="Index59"></A></H3></FONT>
+<DIV ALIGN="LEFT"><P>Before you can use the iostreams library, you must understand
+one new feature of the language that won&#8217;t be covered in detail until a
+later chapter. To use iostreams, you need to know that in C++ all the operators
+can take on different meanings. In this chapter, we&#8217;re particularly
+interested in <B>&lt;&lt;</B> and <B>&gt;&gt;</B>. The statement
+&#8220;operators can take on different meanings&#8221; deserves some extra
+insight.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>In Chapter XX, you learned how function overloading allows you
+to use the same function name with different argument lists. Now imagine that
+when the compiler sees an expression consisting of an argument followed by an
+operator followed by an argument, it simply calls a function. That is, an
+operator is simply a function call with a different syntax.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Of course, this is C++, which is very particular about data
+types. So there must be a previously declared function to match that operator
+and those particular argument types, or the compiler will not accept the
+expression.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>What most people find immediately disturbing about operator
+overloading is the thought that maybe everything they know about operators in C
+is suddenly wrong. This is absolutely false. Here are two of the sacred design
+goals of C++<A NAME="Index60"></A><A NAME="Index61"></A>:<BR></P></DIV>
+<OL>
+<LI>	A program that compiles in C will compile in C++. The only compilation
+errors and warnings from the C++ compiler will result from the
+&#8220;holes&#8221; in the C language, and fixing these will require only local
+editing. (Indeed, the complaints by the C++ compiler usually lead you directly
+to undiscovered bugs in the C program.)<LI>	The C++ compiler will not secretly
+change the behavior of a C program by recompiling it under
+C++.</OL><DIV ALIGN="LEFT"><P>Keeping these goals in mind will help answer a lot of
+questions; knowing there are no capricious changes to C when moving to C++ helps
+make the transition easy. In particular, operators for built-in types
+won&#8217;t suddenly start working differently &#8211; you cannot change their
+meaning. Overloaded operators can be created only where new data types are
+involved. So you can create a new overloaded operator for a new class, but the
+expression<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">1 &lt;&lt;
+4;</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>won&#8217;t suddenly change its meaning, and the illegal
+code<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">1.414 &lt;&lt;
+1;</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>won&#8217;t suddenly start
+working.<A NAME="_Toc312373878"></A><A NAME="_Toc462393388"></A><BR></P></DIV>
+<A NAME="Heading48"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Inserters and extractors</H3></FONT>
+<DIV ALIGN="LEFT"><P>In the iostreams library, two operators have been overloaded
+to make the use of iostreams easy. The operator <B>&lt;&lt;</B>
+<A NAME="Index62"></A>is often referred to as an <I>inserter</I>
+<A NAME="Index63"></A>for iostreams, and the operator <B>&gt;&gt;</B>
+<A NAME="Index64"></A>is often referred to as an
+<I>extractor<A NAME="Index65"></A></I>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>A <I>stream</I> <A NAME="Index66"></A>is an object that
+formats and holds bytes. You can have an input stream
+(<I>istream<A NAME="Index67"></A></I>) or an output stream
+(<I>ostream<A NAME="Index68"></A></I>). There are different types of istreams
+and ostreams: <I>ifstreams <A NAME="Index69"></A></I>and <I>ofstreams</I>
+<A NAME="Index70"></A>for files<A NAME="Index71"></A>, <I>istrstreams
+<A NAME="Index72"></A></I>, and <I>ostrstreams</I> <A NAME="Index73"></A>for
+<B>char*</B> <A NAME="Index74"></A>memory (in-core formatting), and
+<I>istringstreams</I> <A NAME="Index75"></A>&amp; <I>ostringstreams</I>
+<A NAME="Index76"></A>for interfacing with the Standard C++ <B>string</B>
+class<A NAME="Index77"></A><A NAME="Index78"></A><A NAME="Index79"></A><A NAME="Index80"></A>.
+All these stream objects have the same interface, regardless of whether
+you&#8217;re working with a file, standard I/O, a piece of memory or a
+<B>string</B> object. The single interface you learn also works for extensions
+added to support new classes.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>If a stream is capable of producing bytes (an istream), you
+can get information from the stream using an extractor. The extractor produces
+and formats the type of information that&#8217;s expected by the destination
+object. To see an example of this, you can use the <B>cin</B> object, which is
+the iostream equivalent of <B>stdin</B> in C, that is, redirectable standard
+input. This object is pre-defined whenever you include the <B>iostream.h
+</B>header file. (Thus, the iostream library is automatically linked with most
+compilers.)<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>  <font color=#0000ff>int</font> i;
+  cin &gt;&gt; i;
+
+  <font color=#0000ff>float</font> f;
+  cin &gt;&gt; f;
+
+  <font color=#0000ff>char</font> c;
+  cin &gt;&gt; c;
+
+  <font color=#0000ff>char</font> buf[100];</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">  cin
+&gt;&gt; buf;</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>There&#8217;s an overloaded <B>operator &gt;&gt;</B> for every
+data type you can use as the right-hand argument of <B>&gt;&gt;</B> in an
+iostream statement. (You can also overload your own, which you&#8217;ll see in a
+later chapter.)<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>To find out what you have in the various variables, you can
+use the <B>cout</B> object (corresponding to standard output; there&#8217;s also
+a <B>cerr</B> object corresponding to standard error) with the inserter
+<B>&lt;&lt;</B>:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>  cout &lt;&lt; <font color=#004488>"i = "</font>;
+  cout &lt;&lt; i;
+  cout &lt;&lt; <font color=#004488>"\n"</font>;
+  cout &lt;&lt; <font color=#004488>"f = "</font>;
+  cout &lt;&lt; f;
+  cout &lt;&lt; <font color=#004488>"\n"</font>;
+  cout &lt;&lt; <font color=#004488>"c = "</font>;
+  cout &lt;&lt; c;
+  cout &lt;&lt; <font color=#004488>"\n"</font>;
+  cout &lt;&lt; <font color=#004488>"buf = "</font>;
+  cout &lt;&lt; buf;</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">  cout
+&lt;&lt; "\n";</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>This is notably tedious, and doesn&#8217;t seem like much of
+an improvement over <B>printf(&#160;)</B>, type checking or no. Fortunately, the
+overloaded inserters and extractors in iostreams are designed to be chained
+<A NAME="Index81"></A>together into a complex expression that is much easier to
+write:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>  cout &lt;&lt; <font color=#004488>"i = "</font> &lt;&lt; i &lt;&lt; endl;
+  cout &lt;&lt; <font color=#004488>"f = "</font> &lt;&lt; f &lt;&lt; endl;
+  cout &lt;&lt; <font color=#004488>"c = "</font> &lt;&lt; c &lt;&lt; endl;</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">
+cout &lt;&lt; "buf = " &lt;&lt; buf &lt;&lt; endl;</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>You&#8217;ll understand how this can happen in a later
+chapter, but for now it&#8217;s sufficient to take the attitude of a class user
+and just know it works that way.<BR></P></DIV>
+<A NAME="Heading49"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Manipulators</H4></FONT>
+<DIV ALIGN="LEFT"><P>One new element has been added here: a <I>manipulator</I>
+<A NAME="Index82"></A>called <B>endl<A NAME="Index83"></A></B>. A manipulator
+acts on the stream itself; in this case it inserts a newline and <I>flushes</I>
+the stream (puts out all pending characters that have been stored in the
+internal stream buffer but not yet output). You can also just flush
+<A NAME="Index84"></A><A NAME="Index85"></A>the stream:<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New"> cout &lt;&lt;
+flush;</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>There are additional basic manipulators that will change the
+number base to <B>oct</B> (octal)<A NAME="Index86"></A>, <B>dec</B>
+(decimal)<A NAME="Index87"></A><A NAME="Index88"></A> or <B>hex</B>
+(hexadecimal)<A NAME="Index89"></A><A NAME="Index90"></A>:<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New"> cout &lt;&lt; hex &lt;&lt; "0x"
+&lt;&lt; i &lt;&lt; endl;</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>There&#8217;s a manipulator for extraction that
+&#8220;eats&#8221; white space:<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">cin &gt;&gt;
+ws;</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>and a manipulator called <B>ends<A NAME="Index91"></A></B>,
+<A NAME="Index92"></A>which is like <B>endl</B>, only for strstreams (covered in
+a while). These are all the manipulators in <B>&lt;iostream&gt;</B>, but there
+are more in <B>&lt;iomanip&gt; </B>you&#8217;ll see later in the
+chapter.<A NAME="_Toc312373879"></A><A NAME="_Toc462393389"></A><BR></P></DIV>
+<A NAME="Heading50"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Common usage</H3></FONT>
+<DIV ALIGN="LEFT"><P>Although <B>cin</B> and the extractor <B>&gt;&gt;</B> provide
+a nice balance to <B>cout</B> and the inserter <B>&lt;&lt;</B>, in practice
+using formatted input routines, especially with standard input, has the same
+problems you run into with <B>scanf(&#160;)</B>. If the input produces an
+unexpected value, the process is skewed, and it&#8217;s very difficult to
+recover. In addition, formatted input defaults to whitespace delimiters. So if
+you collect the above code fragments into a program<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Iosexamp.cpp</font>
+<font color=#009900>// Iostream examples</font>
+#include &lt;iostream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main() {
+  <font color=#0000ff>int</font> i;
+  cin &gt;&gt; i;
+
+  <font color=#0000ff>float</font> f;
+  cin &gt;&gt; f;
+
+  <font color=#0000ff>char</font> c;
+  cin &gt;&gt; c;
+
+  <font color=#0000ff>char</font> buf[100];
+  cin &gt;&gt; buf;
+
+  cout &lt;&lt; <font color=#004488>"i = "</font> &lt;&lt; i &lt;&lt; endl;
+  cout &lt;&lt; <font color=#004488>"f = "</font> &lt;&lt; f &lt;&lt; endl;
+  cout &lt;&lt; <font color=#004488>"c = "</font> &lt;&lt; c &lt;&lt; endl;
+  cout &lt;&lt; <font color=#004488>"buf = "</font> &lt;&lt; buf &lt;&lt; endl;
+
+  cout &lt;&lt; flush;
+  cout &lt;&lt; hex &lt;&lt; <font color=#004488>"0x"</font> &lt;&lt; i &lt;&lt; endl;</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>and give it the following input,<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">12 1.4 c this is a
+test</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>you&#8217;ll get the same output as if you give it<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>12
+1.4
+c</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">this is a
+test</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>and the output is, somewhat unexpectedly,<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>i = 12
+f = 1.4
+c = c
+buf = <font color=#0000ff>this</font></PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">0xc</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>Notice that <B>buf</B> got only the first word because the
+input routine looked for a space to delimit the input, which it saw after
+&#8220;this.&#8221; In addition, if the continuous input string is longer than
+the storage allocated for <B>buf</B>, you&#8217;ll overrun the buffer.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>It seems <B>cin</B> and the extractor are provided only for
+completeness, and this is probably a good way to look at it. In practice,
+you&#8217;ll usually want to get your input a line at a time
+<A NAME="Index93"></A><A NAME="Index94"></A>as a sequence of characters and then
+scan them and perform conversions once they&#8217;re safely in a buffer. This
+way you don&#8217;t have to worry about the input routine choking on unexpected
+data.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Another thing to consider is the whole concept of a
+command-line interface<A NAME="Index95"></A><A NAME="Index96"></A>. This has
+made sense in the past when the console was little more than a glass typewriter,
+but the world is rapidly changing to one where the graphical user interface
+(GUI)
+<A NAME="Index97"></A><A NAME="Index98"></A><A NAME="Index99"></A>dominates.
+What is the meaning of console I/O
+<A NAME="Index100"></A><A NAME="Index101"></A>in such a world? It makes much
+more sense to ignore <B>cin</B> altogether other than for very simple examples
+or tests, and take the following approaches:<BR></P></DIV>
+<OL>
+<LI>	If your program requires input, read that input from a file &#8211;
+you&#8217;ll soon see it&#8217;s remarkably easy to use files with iostreams.
+Iostreams</OL><DIV ALIGN="LEFT"><P>
+<A NAME="Index102"></A><A NAME="Index103"></A>for files still works fine with a
+GUI.<BR></P></DIV>
+<OL>
+<LI>	Read the input without attempting to convert it. Once the input is
+someplace where it can&#8217;t foul things up during conversion, then you can
+safely scan it.<LI>	Output is different. If you&#8217;re using a GUI,
+<B>cout</B> doesn&#8217;t work and you must send it to a file (which is
+identical to sending it to <B>cout</B>) or use the GUI facilities for data
+display. Otherwise it often makes sense to send it to <B>cout</B>. In both
+cases, the output formatting functions of iostreams are highly
+useful.<A NAME="_Toc312373880"></A><A NAME="_Toc462393390"></A></OL><A NAME="Heading51"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Line-oriented input</H3></FONT>
+<DIV ALIGN="LEFT"><P>To grab input a line at a time, you have two choices: the
+member functions <B>get(&#160;)</B> <A NAME="Index104"></A>and
+<B>getline(&#160;)<A NAME="Index105"></A></B>. Both functions take three
+arguments: a pointer to a character buffer in which to store the result, the
+size of that buffer (so they don&#8217;t overrun it), and the terminating
+character, to know when to stop reading input. The terminating character has a
+default value of <B>&#8216;\n&#8217;</B>, which is what you&#8217;ll usually
+use. Both functions store a zero in the result buffer when they encounter the
+terminating character in the input.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>So what&#8217;s the difference? Subtle, but important:
+<B>get(&#160;)</B> stops when it <I>sees</I> the delimiter in the input stream,
+but it doesn&#8217;t extract it from the input stream. Thus, if you did another
+<B>get(&#160;)</B> using the same delimiter it would immediately return with no
+fetched input. (Presumably, you either use a different delimiter in the next
+<B>get(&#160;)</B> statement or a different input function.)
+<B>getline(&#160;)</B>, on the other hand, extracts the delimiter from the input
+stream, but still doesn&#8217;t store it in the result buffer.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Generally, when you&#8217;re processing a text file that you
+read a line at a time, you&#8217;ll want to use
+<B>getline(&#160;)</B>.<BR></P></DIV>
+<A NAME="Heading52"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Overloaded versions of get( )</H4></FONT>
+<DIV ALIGN="LEFT"><P><B>get(&#160;)</B> also comes in three other overloaded
+versions<A NAME="Index106"></A>: one with no arguments that returns the next
+character, using an <B>int</B> return value; one that stuffs a character into
+its <B>char</B> argument, using a <I>reference</I> (You&#8217;ll have to jump
+forward to Chapter XX if you want to understand it right this minute . . . .);
+and one that stores directly into the underlying buffer structure of another
+iostream object. That is explored later in the chapter.<BR></P></DIV>
+<A NAME="Heading53"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Reading raw
+bytes<BR><A NAME="Index107"></A><A NAME="Index108"></A><A NAME="Index109"></A></H4></FONT>
+<DIV ALIGN="LEFT"><P>If you know exactly what you&#8217;re dealing with and want to
+move the bytes directly into a variable, array, or structure in memory, you can
+use <B>read(&#160;)<A NAME="Index110"></A></B>. The first argument is a pointer
+to the destination memory, and the second is the number of bytes to read. This
+is especially useful if you&#8217;ve previously stored the information to a
+file, for example, in binary form using the complementary
+<B>write(&#160;)<A NAME="Index111"></A></B> member function for an output
+stream. You&#8217;ll see examples of all these functions later.<BR></P></DIV>
+<A NAME="Heading54"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Error handling<BR><A NAME="Index112"></A><A NAME="Index113"></A></H4></FONT>
+<DIV ALIGN="LEFT"><P>All the versions of <B>get(&#160;)</B> and
+<B>getline(&#160;)</B> return the input stream from which the characters came
+<I>except</I> for <B>get(&#160;)</B> with no arguments, which returns the next
+character or EOF. If you get the input stream object back, you can ask it if
+it&#8217;s still OK. In fact, you can ask <I>any</I> iostream object if
+it&#8217;s OK using the member functions
+<B>good(&#160;)<A NAME="Index114"></A><A NAME="Index115"></A></B>,
+<B>eof(&#160;)<A NAME="Index116"></A><A NAME="Index117"></A></B>,
+<B>fail(&#160;)<A NAME="Index118"></A><A NAME="Index119"></A></B>, and
+<B>bad(&#160;)<A NAME="Index120"></A><A NAME="Index121"></A></B>. These return
+state information based on the <B>eofbit<A NAME="Index122"></A></B>
+<A NAME="Index123"></A>(indicates the buffer is at the end of sequence), the
+<B>failbit<A NAME="Index124"></A></B> <A NAME="Index125"></A>(indicates some
+operation has failed because of formatting issues or some other problem that
+does not affect the buffer) and the
+<B>badbit<A NAME="Index126"></A><A NAME="Index127"></A></B> (indicates something
+has gone wrong with the buffer).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>However, as mentioned earlier, the state of an input stream
+generally gets corrupted in weird ways only when you&#8217;re trying to do input
+to specific types and the type read from the input is inconsistent with what is
+expected. Then of course you have the problem of what to do with the input
+stream to correct the problem. If you follow my advice and read input a line at
+a time or as a big glob of characters (with <B>read(&#160;)</B>) and don&#8217;t
+attempt to use the input formatting functions except in simple cases, then all
+you&#8217;re concerned with is whether you&#8217;re at the end of the input
+(EOF). Fortunately, testing for this turns out to be simple and can be done
+inside of conditionals, such as <B>while(cin)</B> or <B>if(cin)</B>. For now
+you&#8217;ll have to accept that when you use an input stream object in this
+context, the right value is safely, correctly and magically produced to indicate
+whether the object has reached the end of the input. You can also use the
+Boolean NOT operator <B>!</B>, as in <B>if(!cin)</B>, to indicate the stream is
+<I>not</I> OK; that is, you&#8217;ve probably reached the end of input and
+should quit trying to read the stream.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>There are times when the stream becomes not-OK, but you
+understand this condition and want to go on using it. For example, if you reach
+the end of an input file, the <B>eofbit</B> and <B>failbit</B> are set, so a
+conditional on that stream object will indicate the stream is no longer good.
+However, you may want to continue using the file, by seeking to an earlier
+position and reading more data. To correct the condition, simply call the
+<B>clear(&#160;)<A NAME="Index128"></A></B> member
+function.<A NAME="fnB7" HREF="#fn7">[7]</A><A NAME="_Toc305628665"></A><A NAME="_Toc312373881"></A><A NAME="_Toc462393391"></A><BR></P></DIV>
+<A NAME="Heading55"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+File iostreams</H2></FONT>
+<DIV ALIGN="LEFT"><P>Manipulating files with iostreams is much easier and safer
+than using <B>cstdio <A NAME="Index129"></A></B>in C. All you do to open a file
+is create an object; the constructor does the work. You don&#8217;t have to
+explicitly close a file (although you can, using the <B>close(&#160;)</B> member
+function) because the destructor will close it when the object goes out of
+scope.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>To create a file that defaults to input, make an
+<B>ifstream</B> <A NAME="Index130"></A>object. To create one that defaults to
+output, make an <B>ofstream</B> <A NAME="Index131"></A>object.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Here&#8217;s an example that shows many of the features
+discussed so far. Note the inclusion of <B>&lt;fstream&gt;
+<A NAME="Index132"></A></B>to declare the file I/O classes; this also includes
+<B>&lt;iostream&gt;<A NAME="Index133"></A></B>.<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Strfile.cpp</font>
+<font color=#009900>// Stream I/O with files</font>
+<font color=#009900>// The difference between get() &amp; getline()</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;fstream&gt;  
+#include &lt;iostream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main() {
+  <font color=#0000ff>const</font> <font color=#0000ff>int</font> sz = 100; <font color=#009900>// Buffer size;</font>
+  <font color=#0000ff>char</font> buf[sz];
+  {
+    ifstream in(<font color=#004488>"Strfile.cpp"</font>); <font color=#009900>// Read</font>
+    assure(in, <font color=#004488>"Strfile.cpp"</font>); <font color=#009900>// Verify open</font>
+    ofstream out(<font color=#004488>"Strfile.out"</font>); <font color=#009900>// Write</font>
+    assure(out, <font color=#004488>"Strfile.out"</font>);
+    <font color=#0000ff>int</font> i = 1; <font color=#009900>// Line counter</font>
+
+    <font color=#009900>// A less-convenient approach for line input:</font>
+    <font color=#0000ff>while</font>(in.get(buf, sz)) { <font color=#009900>// Leaves \n in input</font>
+      in.get(); <font color=#009900>// Throw away next character (\n)</font>
+      cout &lt;&lt; buf &lt;&lt; endl; <font color=#009900>// Must add \n</font>
+      <font color=#009900>// File output just like standard I/O:</font>
+      out &lt;&lt; i++ &lt;&lt; <font color=#004488>": "</font> &lt;&lt; buf &lt;&lt; endl;
+    }
+  } <font color=#009900>// Destructors close in &amp; out</font>
+
+  ifstream in(<font color=#004488>"Strfile.out"</font>);
+  assure(in, <font color=#004488>"Strfile.out"</font>);
+  <font color=#009900>// More convenient line input:</font>
+  <font color=#0000ff>while</font>(in.getline(buf, sz)) { <font color=#009900>// Removes \n</font>
+    <font color=#0000ff>char</font>* cp = buf;
+    <font color=#0000ff>while</font>(*cp != ':')
+      cp++;
+    cp += 2; <font color=#009900>// Past ": "</font>
+    cout &lt;&lt; cp &lt;&lt; endl; <font color=#009900>// Must still add \n</font>
+  }</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The creation of both the <B>ifstream</B> and <B>ofstream</B>
+are followed by an <B>assure(&#160;)</B> to guarantee the file has been
+successfully opened. Here again the object, used in a situation where the
+compiler expects an integral result, produces a value that indicates success or
+failure. (To do this, an automatic type conversion member function is called.
+These are discussed in Chapter XX.)<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The first <B>while</B> loop demonstrates the use of two forms
+of the <B>get(&#160;)</B>
+<A NAME="Index134"></A><A NAME="Index135"></A>function. The first gets
+characters into a buffer and puts a zero terminator in the buffer when either
+<B>sz &#8211; 1</B> characters have been read or the third argument (defaulted
+to <B>&#8216;\n&#8217;</B>) is encountered. <B>get(&#160;)</B> leaves the
+terminator character in the input stream, so this terminator must be thrown away
+via <B>in.get(&#160;)</B> using the form of <B>get(&#160;)</B> with no argument,
+which fetches a single byte and returns it as an <B>int</B>. You can also use
+the <B>ignore(&#160;)</B> <A NAME="Index136"></A><A NAME="Index137"></A>member
+function, which has two defaulted arguments. The first is the number of
+characters to throw away, and defaults to one. The second is the character at
+which the <B>ignore(&#160;)</B> function quits (after extracting it) and
+defaults to EOF.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Next you see two output statements that look very similar: one
+to <B>cout </B>and one to the file <B>out</B>. Notice the convenience here; you
+don&#8217;t need to worry about what kind of object you&#8217;re dealing with
+because the formatting statements work the same with all <B>ostream</B>
+<A NAME="Index138"></A>objects. The first one echoes the line to standard
+output, and the second writes the line out to the new file and includes a line
+number.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>To demonstrate
+<B>getline(&#160;)<A NAME="Index139"></A><A NAME="Index140"></A></B>, it&#8217;s
+interesting to open the file we just created and strip off the line numbers. To
+ensure the file is properly closed before opening it to read, you have two
+choices. You can surround the first part of the program in braces to force the
+<B>out</B> object out of scope, thus calling the destructor and closing the
+file, which is done here. You can also call <B>close(&#160;)</B> for both files;
+if you want, you can even reuse the <B>in</B> object by calling the
+<B>open(&#160;)</B> member function (you can also create and destroy the object
+dynamically on the heap as is in Chapter XX).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The second <B>while</B> loop shows how <B>getline(&#160;)</B>
+removes the terminator character (its third argument, which defaults to
+<B>&#8216;\n&#8217;</B>) from the input stream when it&#8217;s encountered.
+Although <B>getline(&#160;)</B>, like <B>get(&#160;)</B>, puts a zero in the
+buffer, it still doesn&#8217;t insert the terminating
+character.<A NAME="_Toc312373882"></A><A NAME="_Toc462393392"></A><BR></P></DIV>
+<A NAME="Heading56"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Open
+modes<BR><A NAME="Index141"></A><A NAME="Index142"></A><A NAME="Index143"></A></H3></FONT>
+<DIV ALIGN="LEFT"><P>You can control the way a file is opened by changing a default
+argument. The following table shows the flags that control the mode of the
+file:<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TABLE BORDER>
+<TR VALIGN="TOP">
+<TH WIDTH=92 COLSPAN=1 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P><B>Flag</B><BR></P></DIV>
+</TH>
+<TH WIDTH=176 COLSPAN=1 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P><B>Function</B><BR></P></DIV>
+</TH>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>ios::in</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Opens an input file. Use this as an open mode for an
+<B>ofstream</B> to prevent truncating an existing file.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>ios::out</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Opens an output file. When used for an <B>ofstream</B> without
+<B>ios::app</B>, <B>ios::ate</B> or <B>ios::in</B>, <B>ios::trunc</B> is
+implied.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>ios::app</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Opens an output file for appending.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>ios::ate</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Opens an existing file (either input or output) and seeks the
+end.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>ios::nocreate</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Opens a file only if it already exists. (Otherwise it
+fails.)<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>ios::noreplace</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Opens a file only if it does not exist. (Otherwise it
+fails.)<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>ios::trunc</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Opens a file and deletes the old file, if it already
+exists.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P><B>ios::binary</B><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Opens a file in binary mode. Default is text mode.<BR></P></DIV>
+</TD>
+</TR>
+</TABLE></P></DIV>
+<DIV ALIGN="LEFT"><P>These flags can be combined using a bitwise
+<I>or</I>.<A NAME="_Toc305628666"></A><A NAME="_Toc312373883"></A><A NAME="_Toc462393393"></A><BR></P></DIV>
+<A NAME="Heading57"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Iostream buffering<BR><A NAME="Index144"></A><A NAME="Index145"></A></H2></FONT>
+<DIV ALIGN="LEFT"><P>Whenever you create a new class, you should endeavor to hide
+the details of the underlying implementation as possible from the user of the
+class. Try to show them only what they need to know and make the rest <B>private
+</B>to avoid confusion. Normally when using iostreams you don&#8217;t know or
+care where the bytes are being produced or consumed; indeed, this is different
+depending on whether you&#8217;re dealing with standard I/O, files, memory, or
+some newly created class or device.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>There comes a time, however, when it becomes important to be
+able to send messages to the part of the iostream that produces and consumes
+bytes. To provide this part with a common interface and still hide its
+underlying implementation, it is abstracted into its own class, called
+<B>streambuf<A NAME="Index146"></A></B>. Each iostream object contains a pointer
+to some kind of <B>streambuf</B>. (The kind depends on whether it deals with
+standard I/O, files, memory, etc.) You can access the <B>streambuf </B>directly;
+for example, you can move raw bytes into and out of the <B>streambuf</B>,
+without formatting them through the enclosing iostream. This is accomplished, of
+course, by calling member functions for the <B>streambuf</B> object.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Currently, the most important thing for you to know is that
+every iostream object contains a pointer to a <B>streambuf</B> object, and the
+<B>streambuf</B> has some member functions you can call if you need
+to.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>To allow you to access the <B>streambuf</B>, every iostream
+object has a member function called
+<B>rdbuf(&#160;)<A NAME="Index147"></A><A NAME="Index148"></A></B> that returns
+the pointer to the object&#8217;s <B>streambuf</B>. This way you can call any
+member function for the underlying <B>streambuf</B>. However, one of the most
+interesting things you can do with the <B>streambuf</B> pointer is to connect it
+to another iostream object using the <B>&lt;&lt;</B> operator. This drains all
+the bytes from your object into the one on the left-hand side of the
+<B>&lt;&lt;</B>. This means if you want to move all the bytes from one iostream
+to another, you don&#8217;t have to go through the tedium (and potential coding
+errors) of reading them one byte or one line at a time. It&#8217;s a much more
+elegant approach.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>For example, here&#8217;s a very simple program that opens a
+file and sends the contents out to standard output (similar to the previous
+example):<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Stype.cpp</font>
+<font color=#009900>// Type a file to standard output</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;fstream&gt;
+#include &lt;iostream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main(<font color=#0000ff>int</font> argc, <font color=#0000ff>char</font>* argv[]) {
+  requireArgs(argc, 1); <font color=#009900>// Must have a command line</font>
+  ifstream in(argv[1]);
+  assure(in, argv[1]); <font color=#009900>// Ensure file exists</font>
+  cout &lt;&lt; in.rdbuf(); <font color=#009900>// Outputs entire file</font></PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>After making sure there is an argument on the command line, an
+<B>ifstream</B> <A NAME="Index149"></A>is created using this argument. The open
+will fail if the file doesn&#8217;t exist, and this failure is caught by the
+<B>assert(in)</B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>All the work really happens in the statement<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">cout &lt;&lt;
+in.rdbuf();</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>which causes the entire contents of the file to be sent to
+<B>cout</B>. This is not only more succinct to code, it is often more efficient
+than moving the bytes one at a
+time.<A NAME="_Toc312373884"></A><A NAME="_Toc462393394"></A><BR></P></DIV>
+<A NAME="Heading58"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Using get(&#160;) with a streambuf</H3></FONT>
+<DIV ALIGN="LEFT"><P>There is a form of
+<B>get(&#160;)<A NAME="Index150"></A><A NAME="Index151"></A></B> that allows you
+to write directly into the <B>streambuf</B> of another object. The first
+argument is the destination <B>streambuf</B> (whose address is mysteriously
+taken using a <I>reference</I>, discussed in Chapter XX), and the second is the
+terminating character, which stops the <B>get(&#160;)</B> function. So yet
+another way to print a file to standard output is<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Sbufget.cpp</font>
+<font color=#009900>// Get directly into a streambuf</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;fstream&gt;
+#include &lt;iostream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main() {
+  ifstream in(<font color=#004488>"Sbufget.cpp"</font>);
+  assure(in, <font color=#004488>"Sbufget.cpp"</font>);
+  <font color=#0000ff>while</font>(in.get(*cout.rdbuf()))
+    in.ignore();</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P><B>rdbuf(&#160;)</B> returns a pointer, so it must be
+dereferenced to satisfy the function&#8217;s need to see an object. The
+<B>get(&#160;)</B> function, remember, doesn&#8217;t pull the terminating
+character from the input stream, so it must be removed using
+<B>ignore(&#160;)</B> so <B>get(&#160;)</B> doesn&#8217;t just bonk up against
+the newline forever (which it will, otherwise).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>You probably won&#8217;t need to use a technique like this
+very often, but it may be useful to know it
+exists.<A NAME="_Toc305628667"></A><A NAME="_Toc312373885"></A><A NAME="_Toc462393395"></A><BR></P></DIV>
+<A NAME="Heading59"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Seeking in iostreams<BR><A NAME="Index152"></A><A NAME="Index153"></A></H2></FONT>
+<DIV ALIGN="LEFT"><P>Each type of iostream has a concept of where its
+&#8220;next&#8221; character will come from (if it&#8217;s an <B>istream</B>) or
+go (if it&#8217;s an <B>ostream</B>). In some situations you may want to move
+this stream position. You can do it using two models: One uses an absolute
+location in the stream called the <B>streampos<A NAME="Index154"></A></B>; the
+second works like the Standard C library functions
+<B>fseek(&#160;)<A NAME="Index155"></A><A NAME="Index156"></A></B> for a file
+and moves a given number of bytes from the beginning, end, or current position
+in the file.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The <B>streampos</B> approach requires that you first call a
+&#8220;tell&#8221; function:
+<B>tellp(&#160;)<A NAME="Index157"></A><A NAME="Index158"></A></B> for an
+<B>ostream</B> or
+<B>tellg(&#160;)<A NAME="Index159"></A><A NAME="Index160"></A></B> for an
+<B>istream</B>. (The &#8220;p&#8221; refers to the &#8220;put
+pointer&#8221;<A NAME="Index161"></A> and the &#8220;g&#8221; refers to the
+&#8220;get pointer.&#8221;) This function returns a <B>streampos</B> you can
+later use in the single-argument version of
+<B>seekp(&#160;)<A NAME="Index162"></A><A NAME="Index163"></A></B> for an
+<B>ostream</B> or
+<B>seekg(&#160;)<A NAME="Index164"></A><A NAME="Index165"></A></B> for an
+<B>istream</B>, when you want to return to that position in the
+stream.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The second approach is a relative seek and uses overloaded
+versions of <B>seekp(&#160;)</B> and <B>seekg(&#160;)</B>. The first argument is
+the number of bytes to move: it may be positive or negative. The second argument
+is the seek direction:<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TABLE BORDER>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="CENTER">ios::beg<BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="CENTER">From beginning of stream<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="CENTER">ios::cur<BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="CENTER">Current position in stream<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="CENTER">ios::end<BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="CENTER">From end of stream<BR></P></DIV>
+</TD>
+</TR>
+<A NAME="Index166"></A><A NAME="Index167"></A><A NAME="Index168"></A></TABLE></P></DIV>
+<DIV ALIGN="LEFT"><P>Here&#8217;s an example that shows the movement through a
+file, but remember, you&#8217;re not limited to seeking within files, as you are
+with C and <B>cstdio</B>. With C++, you can seek in any type of iostream
+(although the behavior of <B>cin</B> &amp; <B>cout</B> when seeking is
+undefined):<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Seeking.cpp</font>
+<font color=#009900>// Seeking in iostreams</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main(<font color=#0000ff>int</font> argc, <font color=#0000ff>char</font>* argv[]) {
+  requireArgs(argc, 1);
+  ifstream in(argv[1]);
+  assure(in, argv[1]); <font color=#009900>// File must already exist</font>
+  in.seekg(0, ios::end); <font color=#009900>// End of file</font>
+  streampos sp = in.tellg(); <font color=#009900>// Size of file</font>
+  cout &lt;&lt; <font color=#004488>"file size = "</font> &lt;&lt; sp &lt;&lt; endl;
+  in.seekg(-sp/10, ios::end);
+  streampos sp2 = in.tellg();
+  in.seekg(0, ios::beg); <font color=#009900>// Start of file</font>
+  cout &lt;&lt; in.rdbuf(); <font color=#009900>// Print whole file</font>
+  in.seekg(sp2); <font color=#009900>// Move to streampos</font>
+  <font color=#009900>// Prints the last 1/10th of the file:</font>
+  cout &lt;&lt; endl &lt;&lt; endl &lt;&lt; in.rdbuf() &lt;&lt; endl;</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>This program picks a file name off the command line and opens
+it as an <B>ifstream</B>. <B>assert(&#160;) </B>detects an open failure. Because
+this is a type of <B>istream</B>, <B>seekg(&#160;)</B> is used to position the
+&#8220;get pointer<A NAME="Index169"></A>.&#8221; The first call seeks zero
+bytes off the end of the file, that is, to the end. Because a <B>streampos</B>
+is a <B>typedef</B> for a <B>long</B>, calling <B>tellg(&#160;)</B> at that
+point also returns the size of the file, which is printed out. Then a seek is
+performed moving the get pointer 1/10 the size of the file &#8211; notice
+it&#8217;s a negative seek from the end of the file, so it backs up from the
+end. If you try to seek positively from the end of the file, the get pointer
+will just stay at the end. The <B>streampos</B> at that point is captured into
+<B>sp2</B>, then a <B>seekg(&#160;)</B> is performed back to the beginning of
+the file so the whole thing can be printed out using the <B>streambuf</B>
+pointer produced with <B>rdbuf(&#160;)</B>. Finally, the overloaded version of
+<B>seekg(&#160;)</B> is used with the <B>streampos</B> <B>sp2</B> to move to the
+previous position, and the last portion of the file is printed
+out.<A NAME="_Toc312373886"></A><A NAME="_Toc462393396"></A><BR></P></DIV>
+<A NAME="Heading60"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Creating read/write files</H3></FONT>
+<DIV ALIGN="LEFT"><P>Now that you know about the <B>streambuf</B> and how to seek,
+you can understand how to create a stream object that will both read and write a
+file. The following code first creates an <B>ifstream</B> with flags that say
+it&#8217;s both an input and an output file. The compiler won&#8217;t let you
+write to an <B>ifstream</B>, however, so you need to create an <B>ostream</B>
+with the underlying stream buffer:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>      ifstream in(<font color=#004488>"filename"</font>, ios::in|ios::out);</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">
+ostream out(in.rdbuf());</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>You may wonder what happens when you write to one of these
+objects. Here&#8217;s an example:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Iofile.cpp</font>
+<font color=#009900>// Reading &amp; writing one file</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main() {
+  ifstream in(<font color=#004488>"Iofile.cpp"</font>);
+  assure(in, <font color=#004488>"Iofile.cpp"</font>);
+  ofstream out(<font color=#004488>"Iofile.out"</font>);
+  assure(out, <font color=#004488>"Iofile.out"</font>);
+  out &lt;&lt; in.rdbuf(); <font color=#009900>// Copy file</font>
+  in.close();
+  out.close();
+  <font color=#009900>// Open for reading and writing:</font>
+  ifstream in2(<font color=#004488>"Iofile.out"</font>, ios::in | ios::out);
+  assure(in2, <font color=#004488>"Iofile.out"</font>);
+  ostream out2(in2.rdbuf());
+  cout &lt;&lt; in2.rdbuf();  <font color=#009900>// Print whole file</font>
+  out2 &lt;&lt; <font color=#004488>"Where does this end up?"</font>;
+  out2.seekp(0, ios::beg);
+  out2 &lt;&lt; <font color=#004488>"And what about this?"</font>;
+  in2.seekg(0, ios::beg);
+  cout &lt;&lt; in2.rdbuf();</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The first five lines copy the source code for this program
+into a file called <B>iofile.out</B>, and then close the files. This gives us a
+safe text file to play around with. Then the aforementioned technique is used to
+create two objects that read and write to the same file. In <B>cout &lt;&lt;
+in2.rdbuf(&#160;)</B>, you can see the &#8220;get&#8221; pointer is initialized
+to the beginning of the file. The &#8220;put&#8221; pointer, however, is set to
+the end of the file because &#8220;Where does this end up?&#8221; appears
+appended to the file. However, if the put pointer is moved to the beginning with
+a <B>seekp(&#160;)</B>, all the inserted text <I>overwrites </I>the existing
+text. Both writes are seen when the get pointer is moved back to the beginning
+with a <B>seekg(&#160;)</B>, and the file is printed out. Of course, the file is
+automatically saved and closed when <B>out2</B> goes out of scope and its
+destructor is
+called.<A NAME="_Toc305628668"></A><A NAME="_Toc312373887"></A><A NAME="_Toc462393397"></A><BR></P></DIV>
+<A NAME="Heading61"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+stringstreams<A NAME="_Toc462393398"></A></H2></FONT>
+<A NAME="Heading62"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+strstreams</H2></FONT>
+<DIV ALIGN="LEFT"><P>Before there were <B>stringstream</B>s, there were the more
+primitive <B>strstream</B>s. Although these are not an official part of Standard
+C++, they have been around a long time so compilers will no doubt leave in the
+<B>strstream</B> support in perpetuity, to compile legacy code. You should
+always use <B>stringstream</B>s, but it&#8217;s certainly likely that
+you&#8217;ll come across code that uses <B>strstream</B>s and at that point this
+section should come in handy. In addition, this section should make it fairly
+clear why <B>stringstream</B>s have replace<B> strstream</B>s.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><A NAME="Index170"></A>A <B>strstream</B> works directly with
+memory instead of a file or standard output. It allows you to use the same
+reading and formatting functions to manipulate bytes in memory. On old computers
+the memory was referred to as <I>core</I> so this type of functionality is often
+called <I>in-core
+formatting<A NAME="Index171"></A><A NAME="Index172"></A></I>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The class names for strstreams echo those for file streams. If
+you want to create a strstream to extract characters from, you create an
+<B>istrstream<A NAME="Index173"></A></B>. If you want to put characters into a
+strstream, you create an <B>ostrstream<A NAME="Index174"></A></B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>String streams work with memory, so you must deal with the
+issue of where the memory comes from and where it goes. This isn&#8217;t
+terribly complicated, but you must understand it and pay attention (it turned
+out is was too easy to lose track of this particular issue, thus the birth of
+<B>stringstream</B>s).<A NAME="_Toc312373888"></A><A NAME="_Toc462393399"></A><BR></P></DIV>
+<A NAME="Heading63"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+User-allocated storage<BR><A NAME="Index175"></A></H3></FONT>
+<DIV ALIGN="LEFT"><P>The easiest approach to understand is when the user is
+responsible for allocating the storage. With <B>istrstream</B>s this is the only
+allowed approach. There are two constructors:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>istrstream::istrstream(<font color=#0000ff>char</font>* buf);</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">istrstream::istrstream(char*
+buf, int size);</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The first constructor takes a pointer to a zero-terminated
+character array; you can extract bytes until the zero. The second constructor
+additionally requires the size of the array, which doesn&#8217;t have to be
+zero-terminated. You can extract bytes all the way to <B>buf[size]</B>, whether
+or not you encounter a zero along the way.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>When you hand an <B>istrstream</B> constructor the address of
+an array, that array must already be filled with the characters you want to
+extract and presumably format into some other data type. Here&#8217;s a simple
+example:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Istring.cpp</font>
+<font color=#009900>// Input strstreams</font>
+#include &lt;iostream&gt;
+#include &lt;strstream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main() {
+  istrstream s(<font color=#004488>"47 1.414 This is a test"</font>);
+  <font color=#0000ff>int</font> i;
+  <font color=#0000ff>float</font> f;
+  s &gt;&gt; i &gt;&gt; f; <font color=#009900>// Whitespace-delimited input</font>
+  <font color=#0000ff>char</font> buf2[100];
+  s &gt;&gt; buf2;
+  cout &lt;&lt; <font color=#004488>"i = "</font> &lt;&lt; i &lt;&lt; <font color=#004488>", f = "</font> &lt;&lt; f;
+  cout &lt;&lt; <font color=#004488>" buf2 = "</font> &lt;&lt; buf2 &lt;&lt; endl;
+  cout &lt;&lt; s.rdbuf(); <font color=#009900>// Get the rest...</font></PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>You can see that this is a more flexible and general approach
+to transforming character strings to typed
+values<A NAME="Index176"></A><A NAME="Index177"></A><A NAME="Index178"></A><A NAME="Index179"></A>
+than the Standard C Library functions like
+<B>atof(&#160;)<A NAME="Index180"></A></B>,
+<B>atoi(&#160;)<A NAME="Index181"></A></B>, and so on.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The compiler handles the static storage allocation of the
+string in<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">  istrstream s("47 1.414 This is
+a test");</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>You can also hand it a pointer to a zero-terminated string
+allocated on the stack or the heap.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>In <B>s &gt;&gt; i &gt;&gt; f</B>, the first number is
+extracted into <B>i</B> and the second into <B>f</B>. This isn&#8217;t
+&#8220;the first whitespace-delimited set of characters&#8221; because it
+depends on the data type it&#8217;s being extracted into. For example, if the
+string were instead, &#8220;<B>1.414 47 This is a test</B>,&#8221; then <B>i</B>
+would get the value one because the input routine would stop at the decimal
+point. Then <B>f</B> would get <B>0.414</B>. This could be useful if you want to
+break a floating-point number into a whole number and a fraction part. Otherwise
+it would seem to be an error.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>As you may already have guessed, <B>buf2</B> doesn&#8217;t get
+the rest of the string, just the next whitespace-delimited word. In general, it
+seems the best place to use the extractor in iostreams is when you know the
+exact sequence of data in the input stream and you&#8217;re converting to some
+type other than a character string. However, if you want to extract the rest of
+the string all at once and send it to another iostream, you can use
+<B>rdbuf(&#160;)</B> as shown.<BR></P></DIV>
+<A NAME="Heading64"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Output strstreams<BR><A NAME="Index182"></A><A NAME="Index183"></A></H4></FONT>
+<DIV ALIGN="LEFT"><P>Output strstreams also allow you to provide your own storage;
+in this case it&#8217;s the place in memory the bytes are formatted <I>into</I>.
+The appropriate constructor is<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">ostrstream::ostrstream(char*,
+int, int = ios::out);</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The first argument is the preallocated buffer where the
+characters will end up, the second is the size of the buffer, and the third is
+the mode. If the mode is left as the default, characters are formatted into the
+starting address of the buffer. <A NAME="Index184"></A> If the mode is either
+<B>ios::ate</B> <A NAME="Index185"></A>or <B>ios::app</B>
+<A NAME="Index186"></A>(same effect), the character buffer is assumed to already
+contain a zero-terminated string, and any new characters are added starting at
+the zero terminator.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The second constructor argument is the size of the array and
+is used by the object to ensure it doesn&#8217;t overwrite the end of the array.
+If you fill the array up and try to add more bytes, they won&#8217;t go
+in.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>An important thing to remember about <B>ostrstream</B>s is
+that the zero terminator
+<A NAME="Index187"></A><A NAME="Index188"></A><A NAME="Index189"></A>you
+normally need at the end of a character array <I>is not</I> inserted for you.
+When you&#8217;re ready to zero-terminate the string, use the special
+manipulator <B>ends<A NAME="Index190"></A><A NAME="Index191"></A></B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Once you&#8217;ve created an <B>ostrstream</B> you can insert
+anything you want, and it will magically end up formatted in the memory buffer.
+Here&#8217;s an example:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Ostring.cpp</font>
+<font color=#009900>// Output strstreams</font>
+#include &lt;iostream&gt;
+#include &lt;strstream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main() {
+  <font color=#0000ff>const</font> <font color=#0000ff>int</font> sz = 100;
+  cout &lt;&lt; <font color=#004488>"type an int, a float and a string:"</font>;
+  <font color=#0000ff>int</font> i;
+  <font color=#0000ff>float</font> f;
+  cin &gt;&gt; i &gt;&gt; f;
+  cin &gt;&gt; ws; <font color=#009900>// Throw away white space</font>
+  <font color=#0000ff>char</font> buf[sz];
+  cin.getline(buf, sz); <font color=#009900>// Get rest of the line</font>
+  <font color=#009900>// (cin.rdbuf() would be awkward)</font>
+  ostrstream os(buf, sz, ios::app);
+  os &lt;&lt; endl;
+  os &lt;&lt; <font color=#004488>"integer = "</font> &lt;&lt; i &lt;&lt; endl;
+  os &lt;&lt; <font color=#004488>"float = "</font> &lt;&lt; f &lt;&lt; endl;
+  os &lt;&lt; ends;
+  cout &lt;&lt; buf;
+  cout &lt;&lt; os.rdbuf(); <font color=#009900>// Same effect</font>
+  cout &lt;&lt; os.rdbuf(); <font color=#009900>// NOT the same effect</font></PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>This is similar to the previous example in fetching the
+<B>int</B> and <B>float</B>. You might think the logical way to get the rest of
+the line is to use <B>rdbuf(&#160;)</B>; this works, but it&#8217;s awkward
+because all the input including newlines is collected until the user presses
+control-Z (control-D on Unix) to indicate the end of the input. The approach
+shown, using <B>getline(&#160;)<A NAME="Index192"></A></B>, gets the input until
+the user presses the carriage return. This input is fetched into <B>buf</B>,
+which is subsequently used to construct the <B>ostrstream os</B>. If the third
+argument <B>ios::app</B> weren&#8217;t supplied, the constructor would default
+to writing at the beginning of <B>buf</B>, overwriting the line that was just
+collected. However, the &#8220;append&#8221; flag causes it to put the rest of
+the formatted information at the end of the string.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>You can see that, like the other output streams, you can use
+the ordinary formatting tools for sending bytes to the <B>ostrstream</B>. The
+only difference is that you&#8217;re responsible for inserting the zero at the
+end with <B>ends</B>. Note that <B>endl</B> inserts a newline in the strstream,
+but no zero.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Now the information is formatted in <B>buf</B>, and you can
+send it out directly with <B>cout &lt;&lt; buf</B>. However, it&#8217;s also
+possible to send the information out with <B>os.rdbuf(&#160;)</B>. When you do
+this, the get pointer <A NAME="Index193"></A>inside the <B>streambuf</B> is
+moved forward as the characters are output. For this reason, if you say <B>cout
+&lt;&lt; os.rdbuf(&#160;)</B> a second time, nothing happens &#8211; the get
+pointer is already at the
+end.<A NAME="_Toc312373889"></A><A NAME="_Toc462393400"></A><BR></P></DIV>
+<A NAME="Heading65"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Automatic storage allocation<BR><A NAME="Index194"></A></H3></FONT>
+<DIV ALIGN="LEFT"><P>Output strstreams (but <I>not</I> <B>istrstream</B>s) give you
+a second option for memory allocation: they can do it themselves. All you do is
+create an <B>ostrstream</B> with no constructor arguments:<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">ostrstream
+a;</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>Now <B>a</B> takes care of all its own storage allocation on
+the heap. You can put as many bytes into <B>a</B> as you want, and if it runs
+out of storage, it will allocate more, moving the block of memory, if
+necessary.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>This is a very nice solution if you don&#8217;t know how much
+space you&#8217;ll need, because it&#8217;s completely flexible. And if you
+simply format data into the strstream and then hand its <B>streambuf</B> off to
+another iostream, things work perfectly:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>a &lt;&lt; <font color=#004488>"hello, world. i = "</font> &lt;&lt; i &lt;&lt; endl &lt;&lt; ends;</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">cout
+&lt;&lt; a.rdbuf();</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>This is the best of all possible solutions. But what happens
+if you want the physical address of the memory that <B>a</B>&#8217;s characters
+have been formatted into? It&#8217;s readily available &#8211; you simply call
+the <B>str(&#160;)</B> member function:<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">char* cp =
+a.str();</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>There&#8217;s a problem now. What if you want to put more
+characters into <B>a</B>? It would be OK if you knew <B>a</B> had already
+allocated enough storage for all the characters you want to give it, but
+that&#8217;s not true. Generally, <B>a</B> will run out of storage when you give
+it more characters, and ordinarily it would try to allocate more storage on the
+heap. This would usually require moving the block of memory. But the stream
+objects has just handed you the address of its memory block, so it can&#8217;t
+very well move that block, because you&#8217;re expecting it to be at a
+particular location.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The way an <B>ostrstream</B> handles this problem is by
+&#8220;freezing&#8221;<A NAME="Index195"></A><A NAME="Index196"></A> itself. As
+long as you don&#8217;t use <B>str(&#160;)</B> to ask for the internal
+<B>char*</B>, you can add as many characters as you want to the
+<B>ostrstream</B>. It will allocate all the necessary storage from the heap, and
+when the object goes out of scope, that heap storage is automatically
+released.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>However, if you call
+<B>str(&#160;)<A NAME="Index197"></A><A NAME="Index198"></A></B>, the
+<B>ostrstream</B> becomes &#8220;frozen.&#8221; You can&#8217;t add any more
+characters to it. Rather, you aren&#8217;t <I>supposed</I> to &#8211;
+implementations are not required to detect the error. Adding characters to a
+frozen <B>ostrstream</B> results in undefined behavior. In addition, the
+<B>ostrstream</B> is no longer responsible for cleaning up the storage. You took
+over that responsibility when you asked for the <B>char*</B> with
+<B>str(&#160;)</B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>To prevent a memory leak, the storage must be cleaned up
+somehow. There are two approaches. The more common one is to directly release
+the memory when you&#8217;re done. To understand this, you need a sneak preview
+of two new keywords in C++: <B>new</B> <A NAME="Index199"></A>and
+<B>delete<A NAME="Index200"></A></B>. As you&#8217;ll see in Chapter XX, these
+do quite a bit, but for now you can think of them as replacements for
+<B>malloc(&#160;)<A NAME="Index201"></A></B> and
+<B>free(&#160;)<A NAME="Index202"></A></B> in C. The operator <B>new</B> returns
+a chunk of memory, and <B>delete</B> frees it. It&#8217;s important to know
+about them here because virtually all memory allocation in C++ is performed with
+<B>new</B>, and this is also true with <B>ostrstream</B>. If it&#8217;s
+allocated with <B>new</B>, it must be released with <B>delete</B>, so if you
+have an <B>ostrstream a</B> and you get the <B>char*</B> using
+<B>str(&#160;)</B>, the typical way to clean up the storage is<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">delete
+[]a.str();</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>This satisfies most needs, but there&#8217;s a second, much
+less common way to release the storage: You can unfreeze the <B>ostrstream</B>.
+You do this by calling <B>freeze(&#160;)<A NAME="Index203"></A></B>, which is a
+member function of the <B>ostrstream</B>&#8217;s <B>streambuf</B>.
+<B>freeze(&#160;)</B> has a default argument of one, which freezes the stream,
+but an argument of zero will unfreeze it:<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">a.rdbuf()-&gt;freeze(0);</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>Now the storage is deallocated when <B>a</B> goes out of scope
+and its destructor is called. In addition, you can add more bytes to <B>a</B>.
+However, this may cause the storage to move, so you better not use any pointer
+you previously got by calling <B>str(&#160;)</B> &#8211; it won&#8217;t be
+reliable after adding more characters.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The following example tests the ability to add more characters
+after a stream has been unfrozen:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Walrus.cpp</font>
+<font color=#009900>// Freezing a strstream</font>
+#include &lt;iostream&gt;
+#include &lt;strstream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main() {
+  ostrstream s;
+  s &lt;&lt; <font color=#004488>"'The time has come', the walrus said,"</font>;
+  s &lt;&lt; ends;
+  cout &lt;&lt; s.str() &lt;&lt; endl; <font color=#009900>// String is frozen</font>
+  <font color=#009900>// s is frozen; destructor won't delete</font>
+  <font color=#009900>// the streambuf storage on the heap</font>
+  s.seekp(-1, ios::cur); <font color=#009900>// Back up before NULL</font>
+  s.rdbuf()-&gt;freeze(0); <font color=#009900>// Unfreeze it</font>
+  <font color=#009900>// Now destructor releases memory, and</font>
+  <font color=#009900>// you can add more characters (but you</font>
+  <font color=#009900>// better not use the previous str() value)</font>
+  s &lt;&lt; <font color=#004488>" 'To speak of many things'"</font> &lt;&lt; ends;
+  cout &lt;&lt; s.rdbuf();</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>After putting the first string into <B>s</B>, an <B>ends</B>
+is added so the string can be printed using the <B>char*</B> produced by
+<B>str(&#160;)</B>. At that point, <B>s</B> is frozen. We want to add more
+characters to <B>s</B>, but for it to have any effect, the put pointer must be
+backed up one so the next character is placed on top of the zero inserted by
+<B>ends</B>. (Otherwise the string would be printed only up to the original
+zero.) This is accomplished with <B>seekp(&#160;)</B>. Then <B>s</B> is unfrozen
+by fetching the underlying <B>streambuf</B> pointer using <B>rdbuf(&#160;)</B>
+and calling <B>freeze(0)</B>. At this point <B>s</B> is like it was before
+calling <B>str(&#160;)</B>: We can add more characters, and cleanup will occur
+automatically, with the destructor.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>It is <I>possible</I> to unfreeze an <B>ostrstream</B> and
+continue adding characters, but it is not common practice. Normally, if you want
+to add more characters once you&#8217;ve gotten the <B>char*</B> of a
+<B>ostrstream</B>, you create a new one, pour the old stream into the new one
+using <B>rdbuf(&#160;)</B> and continue adding new characters to the new
+<B>ostrstream</B>.<BR></P></DIV>
+<A NAME="Heading66"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Proving movement</H4></FONT>
+<DIV ALIGN="LEFT"><P>If you&#8217;re still not convinced you should be responsible
+for the storage of a <B>ostrstream</B> if you call <B>str(&#160;)</B>,
+here&#8217;s an example that demonstrates the storage location is moved,
+therefore the old pointer returned by <B>str(&#160;)</B> is invalid:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Strmove.cpp</font>
+<font color=#009900>// ostrstream memory movement</font>
+#include &lt;iostream&gt;
+#include &lt;strstream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main() {
+  ostrstream s;
+  s &lt;&lt; <font color=#004488>"hi"</font>;
+  <font color=#0000ff>char</font>* old = s.str(); <font color=#009900>// Freezes s</font>
+  s.rdbuf()-&gt;freeze(0); <font color=#009900>// Unfreeze</font>
+  <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; 100; i++)
+    s &lt;&lt; <font color=#004488>"howdy"</font>; <font color=#009900>// Should force reallocation</font>
+  cout &lt;&lt; <font color=#004488>"old = "</font> &lt;&lt; (<font color=#0000ff>void</font>*)old &lt;&lt; endl;
+  cout &lt;&lt; <font color=#004488>"new = "</font> &lt;&lt; (<font color=#0000ff>void</font>*)s.str(); <font color=#009900>// Freezes</font>
+  <font color=#0000ff>delete</font> s.str(); <font color=#009900>// Release storage</font></PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>After inserting a string to <B>s</B> and capturing the
+<B>char*</B> with <B>str(&#160;)</B>, the string is unfrozen and enough new
+bytes are inserted to virtually assure the memory is reallocated and most likely
+moved. After printing out the old and new <B>char*</B> values, the storage is
+explicitly released with <B>delete</B> because the second call to
+<B>str(&#160;)</B> froze the string again.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>To print out addresses instead of the strings they point to,
+you must cast the <B>char*</B> to a <B>void*</B>. The operator <B>&lt;&lt;</B>
+for <B>char*</B> prints out the string it is pointing to, while the operator
+<B>&lt;&lt;</B> for <B>void*</B> prints out the hex representation of the
+pointer.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>It&#8217;s interesting to note that if you don&#8217;t insert
+a string to <B>s</B> before calling <B>str(&#160;)</B>, the result is zero. This
+means no storage is allocated until the first time you try to insert bytes to
+the <B>ostrstream</B>.<BR></P></DIV>
+<A NAME="Heading67"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+A better way</H4></FONT>
+<DIV ALIGN="LEFT"><P>Again, remember that this section was only left in to support
+legacy code. You should always use <B>string</B> and <B>stringstream</B> rather
+than character arrays and <B>strstream</B>. The former is much safer and easier
+to use and will help ensure your projects get finished
+faster.<A NAME="_Toc305628669"></A><A NAME="_Toc312373890"></A><A NAME="_Toc462393401"></A><BR></P></DIV>
+<A NAME="Heading68"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Output stream
+formatting<BR><A NAME="Index204"></A><A NAME="Index205"></A><A NAME="Index206"></A></H2></FONT>
+<DIV ALIGN="LEFT"><P>The whole goal of this effort, and all these different types
+of iostreams, is to allow you to easily move and translate bytes from one place
+to another. It certainly wouldn&#8217;t be very useful if you couldn&#8217;t do
+all the formatting with the <B>printf(&#160;)<A NAME="Index207"></A></B> family
+of functions. In this section, you&#8217;ll learn all the output formatting
+functions that are available for iostreams, so you can get your bytes the way
+you want them.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The formatting functions in iostreams can be somewhat
+confusing at first because there&#8217;s often more than one way to control the
+formatting: through both member functions and manipulators. To further confuse
+things, there is a generic member function to set state flags to control
+formatting, such as left- or right-justification, whether to use uppercase
+letters for hex notation, whether to always use a decimal point for
+floating-point values, and so on. On the other hand, there are specific member
+functions to set and read values for the fill character, the field width, and
+the precision.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>In an attempt to clarify all this, the internal formatting
+data of an iostream is examined first, along with the member functions that can
+modify that data. (Everything can be controlled through the member functions.)
+The manipulators are covered
+separately.<A NAME="_Toc312373891"></A><A NAME="_Toc462393402"></A><BR></P></DIV>
+<A NAME="Heading69"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Internal formatting data<BR><A NAME="Index208"></A><A NAME="Index209"></A></H3></FONT>
+<DIV ALIGN="LEFT"><P>The class <B>ios</B> (which you can see in the header file
+<B>&lt;iostream&gt;</B>) contains data members to store all the formatting data
+pertaining to that stream. Some of this data has a range of values and is stored
+in variables: the floating-point precision, the output field width, and the
+character used to pad the output (normally a space). The rest of the formatting
+is determined by flags, which are usually combined to save space and are
+referred to collectively as the <I>format
+flags<A NAME="Index210"></A><A NAME="Index211"></A><A NAME="Index212"></A></I>.
+You can find out the value of the format flags with the
+<B>ios::flags(&#160;)<A NAME="Index213"></A></B> member function, which takes no
+arguments and returns a <B>long</B> (<B>typedef</B>ed to <B>fmtflags</B>) that
+contains the current format flags. All the rest of the functions make changes to
+the format flags and return the previous value of the format flags.<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>fmtflags ios::flags(fmtflags newflags);
+fmtflags ios::setf(fmtflags ored_flag);</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">fmtflags
+ios::unsetf(fmtflags clear_flag);</FONT></TT><BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">fmtflags ios::setf(fmtflags bits,
+fmtflags field);</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The first function forces <I>all</I> the flags to change,
+which you do sometimes. More often, you change one flag at a time using the
+remaining three functions. <BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The use of <B>setf(&#160;)<A NAME="Index214"></A></B>
+<A NAME="Index215"></A>can seem more confusing: To know which overloaded version
+to use, you must know what type of flag you&#8217;re changing. There are two
+types of flags: ones that are simply on or off, and ones that work in a group
+with other flags. The on/off flags are the simplest to understand because you
+turn them on with <B>setf(fmtflags)</B> and off with <B>unsetf(fmtflags)</B>.
+These flags are<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TABLE BORDER>
+<TR VALIGN="TOP">
+<TH WIDTH=90 COLSPAN=1 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P><B>on/off flag</B><BR></P></DIV>
+</TH>
+<TH WIDTH=176 COLSPAN=1 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P><B>effect</B><BR></P></DIV>
+</TH>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>ios::skipws<A NAME="Index216"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Skip white space. (For input; this is the default.)<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>ios::showbase<A NAME="Index217"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Indicate the numeric base (dec, oct, or hex) when printing an
+integral value. The format used can be read by the C++ compiler.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>ios::showpoint<A NAME="Index218"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Show decimal point and trailing zeros for floating-point
+values.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>ios::uppercase<A NAME="Index219"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Display uppercase A-F for hexadecimal values and E for
+scientific values.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>ios::showpos<A NAME="Index220"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Show plus sign (+) for positive values.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>ios::unitbuf<A NAME="Index221"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>&#8220;Unit buffering.&#8221; The stream is flushed after each
+insertion.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>ios::stdio<A NAME="Index222"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Synchronizes the stream with the C standard I/O
+system.<BR></P></DIV>
+</TD>
+</TR>
+</TABLE></P></DIV>
+
+<DIV ALIGN="LEFT"><P>For example, to show the plus sign for <B>cout</B>, you say
+<B>cout.setf(ios::showpos)</B>. To stop showing the plus sign, you say
+<B>cout.unsetf(ios::showpos)</B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The last two flags deserve some explanation. You turn on unit
+buffering <A NAME="Index223"></A><A NAME="Index224"></A>when you want to make
+sure each character is output as soon as it is inserted into an output stream.
+You could also use unbuffered output, but unit buffering provides better
+performance.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The <B>ios::stdio</B> <A NAME="Index225"></A>flag is used when
+you have a program that uses both iostreams and the C standard I/O library
+<A NAME="Index226"></A><A NAME="Index227"></A><A NAME="Index228"></A>(not
+unlikely if you&#8217;re using C libraries). If you discover your iostream
+output and <B>printf(&#160;)</B> output are occurring in the wrong order, try
+setting this flag.<BR></P></DIV>
+<A NAME="Heading70"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Format fields</H4></FONT>
+<DIV ALIGN="LEFT"><P>The second type of formatting flags work in a group. You can
+have only one of these flags on at a time, like the buttons on old car radios
+&#8211; you push one in, the rest pop out. Unfortunately this doesn&#8217;t
+happen automatically, and you have to pay attention to what flags you&#8217;re
+setting so you don&#8217;t accidentally call the wrong <B>setf(&#160;)</B>
+function. For example, there&#8217;s a flag for each of the number bases:
+hexadecimal<A NAME="Index229"></A>, decimal, <A NAME="Index230"></A>and octal.
+Collectively, these flags are referred to as the
+<B>ios::basefield<A NAME="Index231"></A></B>. If the <B>ios::dec</B> flag is set
+and you call <B>setf(ios::hex)</B>, you&#8217;ll set the <B>ios::hex</B> flag,
+but you <I>won&#8217;t</I> clear the <B>ios::dec</B> bit, resulting in undefined
+behavior. The proper thing to do is call the second form of <B>setf(&#160;)</B>
+like this: <B>setf(ios::hex, ios::basefield)</B>. This function first clears all
+the bits in the <B>ios::basefield</B>, <I>then</I> sets <B>ios::hex</B>. Thus,
+this form of <B>setf(&#160;)</B> ensures that the other flags in the group
+&#8220;pop out&#8221; whenever you set one. Of course, the
+<B>hex(&#160;)<A NAME="Index232"></A></B> manipulator does all this for you,
+automatically, so you don&#8217;t have to concern yourself with the internal
+details of the implementation of this class or to even <I>care</I> that
+it&#8217;s a set of binary flags. Later you&#8217;ll see there are manipulators
+to provide equivalent functionality in all the places you would use
+<B>setf(&#160;)</B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Here are the flag groups and their effects:<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TABLE BORDER>
+<TR VALIGN="TOP">
+<TH WIDTH=119 COLSPAN=1 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P><B>ios::basefield</B><BR></P></DIV>
+</TH>
+<TH WIDTH=162 COLSPAN=1 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P><B>effect</B><BR></P></DIV>
+</TH>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>ios::dec<A NAME="Index233"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Format integral values in base 10 (decimal) (default
+radix).<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>ios::hex<A NAME="Index234"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Format integral values in base 16 (hexadecimal).<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>ios::oct<A NAME="Index235"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Format integral values in base 8 (octal).<BR></P></DIV>
+</TD>
+</TR>
+</TABLE></P></DIV>
+
+<DIV ALIGN="LEFT"><P><TABLE BORDER>
+<TR VALIGN="TOP">
+<TH WIDTH=119 COLSPAN=1 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P><B>ios::floatfield</B><BR></P></DIV>
+</TH>
+<TH WIDTH=162 COLSPAN=1 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P><B>effect</B><BR></P></DIV>
+</TH>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>ios::scientific<A NAME="Index236"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Display floating-point numbers in scientific format. Precision
+field indicates number of digits after the decimal point.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>ios::fixed<A NAME="Index237"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Display floating-point numbers in fixed format. Precision
+field indicates number of digits after the decimal point.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>&#8220;automatic<A NAME="Index238"></A>&#8221; (Neither bit is
+set.)<BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Precision field indicates the total number of significant
+digits.<BR></P></DIV>
+</TD>
+</TR>
+</TABLE></P></DIV>
+
+<DIV ALIGN="LEFT"><P><TABLE BORDER>
+<TR VALIGN="TOP">
+<TH WIDTH=119 COLSPAN=1 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P><B>ios::adjustfield</B><BR></P></DIV>
+</TH>
+<TH WIDTH=162 COLSPAN=1 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P><B>effect</B><BR></P></DIV>
+</TH>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>ios::left<A NAME="Index239"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Left-align values; pad on the right with the fill
+character.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>ios::right<A NAME="Index240"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Right-align values. Pad on the left with the fill character.
+This is the default alignment.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>ios::internal<A NAME="Index241"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Add fill characters after any leading sign or base indicator,
+but before the value.<BR></P></DIV>
+</TD>
+</TR>
+</TABLE></P></DIV>
+
+<A NAME="Heading71"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Width, fill and
+precision<BR><A NAME="Index242"></A><A NAME="Index243"></A><A NAME="Index244"></A></H4></FONT>
+<DIV ALIGN="LEFT"><P>The internal variables that control the width of the output
+field, the fill character used when the data doesn&#8217;t fill the output
+field, and the precision for printing floating-point numbers are read and
+written by member functions of the same name.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TABLE BORDER>
+<TR VALIGN="TOP">
+<TH WIDTH=119 COLSPAN=1 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P><B>function</B><BR></P></DIV>
+</TH>
+<TH WIDTH=162 COLSPAN=1 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P><B>effect</B><BR></P></DIV>
+</TH>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>int ios::width(<B>&#160;</B>)<A NAME="Index245"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Reads the current width. (Default is 0.) Used for both
+insertion and extraction.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>int ios::width(int n)<BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Sets the width, returns the previous width.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>int ios::fill(<B>&#160;</B>)<A NAME="Index246"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Reads the current fill character. (Default is
+space.)<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>int ios::fill(int n)<BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Sets the fill character, returns the previous fill
+character.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>int
+ios::precision(<B>&#160;</B>)<A NAME="Index247"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Reads current floating-point precision. (Default is 6.)
+<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>int ios::precision(int n)<BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Sets floating-point precision, returns previous precision. See
+<B>ios::floatfield</B> table for the meaning of
+&#8220;precision.&#8221;<BR></P></DIV>
+</TD>
+</TR>
+</TABLE></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The fill and precision values are fairly straightforward, but
+width requires some explanation. When the width is zero, inserting a value will
+produce the minimum number of characters necessary to represent that value. A
+positive width means that inserting a value will produce at least as many
+characters as the width; if the value has less than width characters, the fill
+character is used to pad the field. However, the value will never be truncated,
+so if you try to print 123 with a width of two, you&#8217;ll still get 123. The
+field width specifies a <I>minimum</I> number of characters; there&#8217;s no
+way to specify a maximum number.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The width is also distinctly different because it&#8217;s
+reset to zero by each inserter or extractor that could be influenced by its
+value. It&#8217;s really not a state variable, but an implicit argument to the
+inserters and extractors. If you want to have a constant width, you have to call
+<B>width(&#160;)</B> after each insertion or
+extraction.<A NAME="_Toc312373892"></A><A NAME="_Toc462393403"></A><BR></P></DIV>
+<A NAME="Heading72"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+An exhaustive example</H3></FONT>
+<DIV ALIGN="LEFT"><P>To make sure you know how to call all the functions previously
+discussed, here&#8217;s an example that calls them all:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Format.cpp</font>
+<font color=#009900>// Formatting functions</font>
+#include &lt;fstream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+#define D(A) T &lt;&lt; #A &lt;&lt; endl; A
+ofstream T(<font color=#004488>"format.out"</font>);
+
+<font color=#0000ff>int</font> main() {
+  D(<font color=#0000ff>int</font> i = 47;)
+  D(<font color=#0000ff>float</font> f = 2300114.414159;)
+  <font color=#0000ff>char</font>* s = <font color=#004488>"Is there any more?"</font>;
+
+  D(T.setf(ios::unitbuf);)
+<font color=#009900>//  D(T.setf(ios::stdio);)  // SOMETHING MAY HAVE CHANGED</font>
+
+  D(T.setf(ios::showbase);)
+  D(T.setf(ios::uppercase);)
+  D(T.setf(ios::showpos);)
+  D(T &lt;&lt; i &lt;&lt; endl;) <font color=#009900>// Default to dec</font>
+  D(T.setf(ios::hex, ios::basefield);)
+  D(T &lt;&lt; i &lt;&lt; endl;)
+  D(T.unsetf(ios::uppercase);)
+  D(T.setf(ios::oct, ios::basefield);)
+  D(T &lt;&lt; i &lt;&lt; endl;)
+  D(T.unsetf(ios::showbase);)
+  D(T.setf(ios::dec, ios::basefield);)
+  D(T.setf(ios::left, ios::adjustfield);)
+  D(T.fill('0');)
+  D(T &lt;&lt; <font color=#004488>"fill char: "</font> &lt;&lt; T.fill() &lt;&lt; endl;)
+  D(T.width(10);)
+  T &lt;&lt; i &lt;&lt; endl;
+  D(T.setf(ios::right, ios::adjustfield);)
+  D(T.width(10);)
+  T &lt;&lt; i &lt;&lt; endl;
+  D(T.setf(ios::internal, ios::adjustfield);)
+  D(T.width(10);)
+  T &lt;&lt; i &lt;&lt; endl;
+  D(T &lt;&lt; i &lt;&lt; endl;) <font color=#009900>// Without width(10)</font>
+
+  D(T.unsetf(ios::showpos);)
+  D(T.setf(ios::showpoint);)
+  D(T &lt;&lt; <font color=#004488>"prec = "</font> &lt;&lt; T.precision() &lt;&lt; endl;)
+  D(T.setf(ios::scientific, ios::floatfield);)
+  D(T &lt;&lt; endl &lt;&lt; f &lt;&lt; endl;)
+  D(T.setf(ios::fixed, ios::floatfield);)
+  D(T &lt;&lt; f &lt;&lt; endl;)
+  D(T.setf(0, ios::floatfield);) <font color=#009900>// Automatic</font>
+  D(T &lt;&lt; f &lt;&lt; endl;)
+  D(T.precision(20);)
+  D(T &lt;&lt; <font color=#004488>"prec = "</font> &lt;&lt; T.precision() &lt;&lt; endl;)
+  D(T &lt;&lt; endl &lt;&lt; f &lt;&lt; endl;)
+  D(T.setf(ios::scientific, ios::floatfield);)
+  D(T &lt;&lt; endl &lt;&lt; f &lt;&lt; endl;)
+  D(T.setf(ios::fixed, ios::floatfield);)
+  D(T &lt;&lt; f &lt;&lt; endl;)
+  D(T.setf(0, ios::floatfield);) <font color=#009900>// Automatic</font>
+  D(T &lt;&lt; f &lt;&lt; endl;)
+
+  D(T.width(10);)
+  T &lt;&lt; s &lt;&lt; endl;
+  D(T.width(40);)
+  T &lt;&lt; s &lt;&lt; endl;
+  D(T.setf(ios::left, ios::adjustfield);)
+  D(T.width(40);)
+  T &lt;&lt; s &lt;&lt; endl;
+
+  D(T.unsetf(ios::showpoint);)
+  D(T.unsetf(ios::unitbuf);)
+<font color=#009900>//  D(T.unsetf(ios::stdio);) // SOMETHING MAY HAVE CHANGED</font></PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>This example uses a trick to create a trace file so you can
+monitor what&#8217;s happening. The macro <B>D(a)</B> uses the preprocessor
+&#8220;stringizing&#8221;<A NAME="Index248"></A><A NAME="Index249"></A> to turn
+<B>a</B> into a string to print out. Then it reiterates <B>a</B> so the
+statement takes effect. The macro sends all the information out to a file called
+<B>T</B>, which is the trace file. The output is<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#0000ff>int</font> i = 47;
+<font color=#0000ff>float</font> f = 2300114.414159;
+T.setf(ios::unitbuf);
+T.setf(ios::stdio);
+T.setf(ios::showbase);
+T.setf(ios::uppercase);
+T.setf(ios::showpos);
+T &lt;&lt; i &lt;&lt; endl;
++47
+T.setf(ios::hex, ios::basefield);
+T &lt;&lt; i &lt;&lt; endl;
++0X2F
+T.unsetf(ios::uppercase);
+T.setf(ios::oct, ios::basefield);
+T &lt;&lt; i &lt;&lt; endl;
++057
+T.unsetf(ios::showbase);
+T.setf(ios::dec, ios::basefield);
+T.setf(ios::left, ios::adjustfield);
+T.fill('0');
+T &lt;&lt; <font color=#004488>"fill char: "</font> &lt;&lt; T.fill() &lt;&lt; endl;
+fill <font color=#0000ff>char</font>: 0
+T.width(10);
++470000000
+T.setf(ios::right, ios::adjustfield);
+T.width(10);
+0000000+47
+T.setf(ios::internal, ios::adjustfield);
+T.width(10);
++000000047
+T &lt;&lt; i &lt;&lt; endl;
++47
+T.unsetf(ios::showpos);
+T.setf(ios::showpoint);
+T &lt;&lt; <font color=#004488>"prec = "</font> &lt;&lt; T.precision() &lt;&lt; endl;
+prec = 6
+T.setf(ios::scientific, ios::floatfield);
+T &lt;&lt; endl &lt;&lt; f &lt;&lt; endl;
+
+2.300115e+06
+T.setf(ios::fixed, ios::floatfield);
+T &lt;&lt; f &lt;&lt; endl;
+2300114.500000
+T.setf(0, ios::floatfield);
+T &lt;&lt; f &lt;&lt; endl;
+2.300115e+06
+T.precision(20);
+T &lt;&lt; <font color=#004488>"prec = "</font> &lt;&lt; T.precision() &lt;&lt; endl;
+prec = 20
+T &lt;&lt; endl &lt;&lt; f &lt;&lt; endl;
+
+2300114.50000000020000000000
+T.setf(ios::scientific, ios::floatfield);
+T &lt;&lt; endl &lt;&lt; f &lt;&lt; endl;
+
+2.30011450000000020000e+06
+T.setf(ios::fixed, ios::floatfield);
+T &lt;&lt; f &lt;&lt; endl;
+2300114.50000000020000000000
+T.setf(0, ios::floatfield);
+T &lt;&lt; f &lt;&lt; endl;
+2300114.50000000020000000000
+T.width(10);
+Is there any more?
+T.width(40);
+0000000000000000000000Is there any more?
+T.setf(ios::left, ios::adjustfield);
+T.width(40);
+Is there any more?0000000000000000000000
+T.unsetf(ios::showpoint);
+T.unsetf(ios::unitbuf);</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">T.unsetf(ios::stdio);</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>Studying this output should clarify your understanding of the
+iostream formatting member
+functions.<A NAME="_Toc305628670"></A><A NAME="_Toc312373893"></A><A NAME="_Toc462393404"></A><BR></P></DIV>
+<A NAME="Heading73"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Formatting
+manipulators<BR><A NAME="Index250"></A><A NAME="Index251"></A><A NAME="Index252"></A></H2></FONT>
+<DIV ALIGN="LEFT"><P>As you can see from the previous example, calling the member
+functions can get a bit tedious. To make things easier to read and write, a set
+of manipulators is supplied to duplicate the actions provided by the member
+functions.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Manipulators with no arguments are provided in
+<B>&lt;iostream&gt;</B>. These include
+<B>dec<A NAME="Index253"></A><A NAME="Index254"></A></B>, <B>oct</B>,
+<A NAME="Index255"></A> <A NAME="Index256"></A>and <B>hex</B>
+<A NAME="Index257"></A><A NAME="Index258"></A>, which perform the same action
+as, respectively, <B>setf(ios::dec, ios::basefield)</B>, <B>setf(ios::oct,
+ios::basefield)</B>, and <B>setf(ios::hex, ios::basefield)</B>, albeit more
+succinctly. <B>&lt;iostream&gt;</B><A NAME="fnB8" HREF="#fn8">[8]</A> also
+includes <B>ws<A NAME="Index259"></A><A NAME="Index260"></A></B>,
+<B>endl<A NAME="Index261"></A><A NAME="Index262"></A></B>, <B>ends</B>, and
+<B>flush<A NAME="Index263"></A><A NAME="Index264"></A></B> and the additional
+set shown here:<BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P><TABLE BORDER>
+<TR VALIGN="TOP">
+<TH WIDTH=126 COLSPAN=1 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P><B>manipulator</B><BR></P></DIV>
+</TH>
+<TH WIDTH=150 COLSPAN=1 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P><B>effect</B><BR></P></DIV>
+</TH>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>showbase<A NAME="Index265"></A><BR>noshowbase<A NAME="Index266"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Indicate the numeric base (dec, oct, or hex) when printing an
+integral value. The format used can be read by the C++ compiler.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>showpos<A NAME="Index267"></A><BR>noshowpos<A NAME="Index268"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Show plus sign (+) for positive values<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>uppercase<A NAME="Index269"></A><BR>nouppercase<A NAME="Index270"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Display uppercase A-F for hexadecimal values, and E for
+scientific values<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>showpoint<A NAME="Index271"></A><BR>noshowpoint<A NAME="Index272"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Show decimal point and trailing zeros for floating-point
+values.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>skipws<A NAME="Index273"></A><BR>noskipws<A NAME="Index274"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Skip white space on input.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>left<A NAME="Index275"></A><BR>right<A NAME="Index276"></A><BR>internal<A NAME="Index277"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Left-align, pad on right.<BR>Right-align, pad on left.<BR>Fill
+between leading sign or base indicator and value.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>scientific<A NAME="Index278"></A><BR>fixed<A NAME="Index279"></A><BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Use scientific notation<BR><B>setprecision(&#160;)</B> or
+<B>ios::precision(&#160;)</B> sets number of places after the decimal
+point.<BR></P></DIV>
+</TD>
+</TR>
+</TABLE></P></DIV>
+<DIV ALIGN="LEFT"><P><A NAME="_Toc312373894"></A><A NAME="_Toc462393405"></A><BR></P></DIV>
+<A NAME="Heading74"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Manipulators with arguments</H3></FONT>
+<DIV ALIGN="LEFT"><P>If you are using manipulators with arguments, you must also
+include the header file &lt;<B>iomanip&gt;</B>. This contains code to solve the
+general problem of creating manipulators with arguments. In addition, it has six
+predefined manipulators:<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TABLE BORDER>
+<TR VALIGN="TOP">
+<TH WIDTH=126 COLSPAN=1 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P><B>manipulator</B><BR></P></DIV>
+</TH>
+<TH WIDTH=150 COLSPAN=1 ROWSPAN=1 VALIGN="TOP">
+<DIV ALIGN="LEFT"><P><B>effect</B><BR></P></DIV>
+</TH>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>setiosflags<A NAME="Index280"></A> (fmtflags n)<BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Sets only the format flags specified by n. Setting remains in
+effect until the next change, like <B>ios::setf(&#160;)</B>.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>resetiosflags<A NAME="Index281"></A>(fmtflags n)<BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Clears only the format flags specified by n. Setting remains
+in effect until the next change, like <B>ios::unsetf(&#160;)</B>.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>setbase<A NAME="Index282"></A>(base n)<BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Changes base to n, where n is 10, 8, or 16. (Anything else
+results in 0.) If n is zero, output is base 10, but input uses the C
+conventions: 10 is 10, 010 is 8, and 0xf is 15. You might as well use
+<B>dec</B>, <B>oct</B>, and <B>hex</B> for output.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>setfill<A NAME="Index283"></A>(char n)<BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Changes the fill character to n, like
+<B>ios::fill(&#160;)</B>.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>setprecision<A NAME="Index284"></A>(int n)<BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Changes the precision to n, like
+<B>ios::precision(&#160;)</B>.<BR></P></DIV>
+</TD>
+</TR>
+<TR VALIGN="TOP">
+<TD>
+<DIV ALIGN="LEFT"><P>setw<A NAME="Index285"></A>(int n)<BR></P></DIV>
+</TD>
+<TD>
+<DIV ALIGN="LEFT"><P>Changes the field width to n, like
+<B>ios::width(&#160;)</B>.<BR></P></DIV>
+</TD>
+</TR>
+</TABLE></P></DIV>
+
+<DIV ALIGN="LEFT"><P>If you&#8217;re using a lot of inserters, you can see how this
+can clean things up. As an example, here&#8217;s the previous program rewritten
+to use the manipulators. (The macro has been removed to make it easier to
+read.)<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Manips.cpp</font>
+<font color=#009900>// Format.cpp using manipulators</font>
+#include &lt;fstream&gt;
+#include &lt;iomanip&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main() {
+  ofstream trc(<font color=#004488>"trace.out"</font>);
+  <font color=#0000ff>int</font> i = 47;
+  <font color=#0000ff>float</font> f = 2300114.414159;
+  <font color=#0000ff>char</font>* s = <font color=#004488>"Is there any more?"</font>;
+
+  trc &lt;&lt; setiosflags(
+         ios::unitbuf <font color=#009900>/*| ios::stdio */</font> <font color=#009900>/// ?????</font>
+         | ios::showbase | ios::uppercase
+         | ios::showpos);
+  trc &lt;&lt; i &lt;&lt; endl; <font color=#009900>// Default to dec</font>
+  trc &lt;&lt; hex &lt;&lt; i &lt;&lt; endl;
+  trc &lt;&lt; resetiosflags(ios::uppercase)
+    &lt;&lt; oct &lt;&lt; i &lt;&lt; endl;
+  trc.setf(ios::left, ios::adjustfield);
+  trc &lt;&lt; resetiosflags(ios::showbase)
+    &lt;&lt; dec &lt;&lt; setfill('0');
+  trc &lt;&lt; <font color=#004488>"fill char: "</font> &lt;&lt; trc.fill() &lt;&lt; endl;
+  trc &lt;&lt; setw(10) &lt;&lt; i &lt;&lt; endl;
+  trc.setf(ios::right, ios::adjustfield);
+  trc &lt;&lt; setw(10) &lt;&lt; i &lt;&lt; endl;
+  trc.setf(ios::internal, ios::adjustfield);
+  trc &lt;&lt; setw(10) &lt;&lt; i &lt;&lt; endl;
+  trc &lt;&lt; i &lt;&lt; endl; <font color=#009900>// Without setw(10)</font>
+
+  trc &lt;&lt; resetiosflags(ios::showpos)
+    &lt;&lt; setiosflags(ios::showpoint)
+    &lt;&lt; <font color=#004488>"prec = "</font> &lt;&lt; trc.precision() &lt;&lt; endl;
+  trc.setf(ios::scientific, ios::floatfield);
+  trc &lt;&lt; f &lt;&lt; endl;
+  trc.setf(ios::fixed, ios::floatfield);
+  trc &lt;&lt; f &lt;&lt; endl;
+  trc.setf(0, ios::floatfield); <font color=#009900>// Automatic</font>
+  trc &lt;&lt; f &lt;&lt; endl;
+  trc &lt;&lt; setprecision(20);
+  trc &lt;&lt; <font color=#004488>"prec = "</font> &lt;&lt; trc.precision() &lt;&lt; endl;
+  trc &lt;&lt; f &lt;&lt; endl;
+  trc.setf(ios::scientific, ios::floatfield);
+  trc &lt;&lt; f &lt;&lt; endl;
+  trc.setf(ios::fixed, ios::floatfield);
+  trc &lt;&lt; f &lt;&lt; endl;
+  trc.setf(0, ios::floatfield); <font color=#009900>// Automatic</font>
+  trc &lt;&lt; f &lt;&lt; endl;
+
+  trc &lt;&lt; setw(10) &lt;&lt; s &lt;&lt; endl;
+  trc &lt;&lt; setw(40) &lt;&lt; s &lt;&lt; endl;
+  trc.setf(ios::left, ios::adjustfield);
+  trc &lt;&lt; setw(40) &lt;&lt; s &lt;&lt; endl;
+
+  trc &lt;&lt; resetiosflags(
+         ios::showpoint | ios::unitbuf
+         <font color=#009900>// | ios::stdio // ?????????</font>
+ );</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>You can see that a lot of the multiple statements have been
+condensed into a single chained insertion. Note the calls to
+<B>setiosflags(&#160;)</B> and <B>resetiosflags(&#160;)</B>, where the flags
+have been bitwise-ORed together. This could also have been done with
+<B>setf(&#160;)</B> and <B>unsetf(&#160;)</B> in the previous
+example.<A NAME="_Toc312373895"></A><A NAME="_Toc462393406"></A><BR></P></DIV>
+<A NAME="Heading75"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Creating
+manipulators<BR><A NAME="Index286"></A><A NAME="Index287"></A><A NAME="Index288"></A></H2></FONT>
+<DIV ALIGN="LEFT"><P>(Note: This section contains some material that will not be
+introduced until later chapters.) Sometimes you&#8217;d like to create your own
+manipulators, and it turns out to be remarkably simple. A zero-argument
+manipulator like <B>endl </B>is simply a function that takes as its argument an
+<B>ostream</B> reference (references are a different way to pass arguments,
+discussed in Chapter XX). The declaration for <B>endl</B> is<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">ostream&amp;
+endl(ostream&amp;);</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>Now, when you say:<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">cout &lt;&lt; &#8220;howdy&#8221;
+&lt;&lt; endl;</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>the <B>endl</B> produces the <I>address</I> of that function.
+So the compiler says &#8220;is there a function I can call that takes the
+address of a function as its argument?&#8221; There is a pre-defined function in
+<B>Iostream.h </B>to do this; it&#8217;s called an
+<I>applicator<A NAME="Index289"></A><A NAME="Index290"></A></I>. The applicator
+calls the function, passing it the <B>ostream</B> object as an
+argument.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>You don&#8217;t need to know how the applicator works to
+create your own manipulator; you only need to know the applicator exists.
+Here&#8217;s an example that creates a manipulator called <B>nl</B> that emits a
+newline <A NAME="Index291"></A><A NAME="Index292"></A><I>without</I> flushing
+the stream:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:nl.cpp</font>
+<font color=#009900>// Creating a manipulator</font>
+#include &lt;iostream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+ostream&amp; nl(ostream&amp; os) {
+  <font color=#0000ff>return</font> os &lt;&lt; '\n';
+}
+
+<font color=#0000ff>int</font> main() {
+  cout &lt;&lt; <font color=#004488>"newlines"</font> &lt;&lt; nl &lt;&lt; <font color=#004488>"between"</font> &lt;&lt; nl
+       &lt;&lt; <font color=#004488>"each"</font> &lt;&lt; nl &lt;&lt; <font color=#004488>"word"</font> &lt;&lt; nl;</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The expression<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">os &lt;&lt;
+'\n';</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>calls a function that returns <B>os</B>, which is what is
+returned from <B>nl</B>.<A NAME="fnB9" HREF="#fn9">[9]</A><BR></P></DIV>
+<DIV ALIGN="LEFT"><P>People often argue that the <B>nl</B> approach shown above is
+preferable to using <B>endl</B> because the latter always flushes the output
+stream, which may incur a performance
+penalty.<A NAME="_Toc312373896"></A><A NAME="_Toc462393407"></A><BR></P></DIV>
+<A NAME="Heading76"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Effectors</H3></FONT>
+<DIV ALIGN="LEFT"><P>As you&#8217;ve seen, zero-argument manipulators are quite
+easy to create. But what if you want to create a manipulator that takes
+arguments? The iostream library has a rather convoluted and confusing way to do
+this, but Jerry Schwarz<A NAME="Index293"></A>, the creator of the iostream
+library, suggests<A NAME="fnB10" HREF="#fn10">[10]</A> a scheme he calls
+<I>effectors<A NAME="Index294"></A><A NAME="Index295"></A></I>. An effector is a
+simple class whose constructor performs the desired operation, along with an
+overloaded <B>operator&lt;&lt;</B> that works with the class. Here&#8217;s an
+example with two effectors. The first outputs a truncated character string, and
+the second prints a number in binary
+<A NAME="Index296"></A><A NAME="Index297"></A>(the process of defining an
+overloaded <B>operator&lt;&lt;</B> will not be discussed until Chapter
+XX):<A NAME="_Toc305628671"></A><BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>//: C02:Effector.txt
+// (Should be "cpp" but I can't get it to compile with
+// My windows compilers, so making it a txt file will
+// keep it out of the makefile for the time being)
+// Jerry Schwarz's "effectors"
+#include&lt;iostream&gt;
+#include &lt;cstdlib&gt;
+#include &lt;string&gt;
+#include &lt;climits&gt; // ULONG_MAX
+using namespace std;
+
+// Put out a portion of a string:
+class Fixw {
+  string str;
+public:
+  Fixw(const string&amp; s, int width)
+    : str(s, 0, width) {}
+  friend ostream&amp; 
+  operator&lt;&lt;(ostream&amp; os, Fixw&amp; fw) {
+    return os &lt;&lt; fw.str;
+  }
+};
+
+typedef unsigned long ulong;
+
+// Print a number in binary:
+class Bin {
+  ulong n;
+public:
+  Bin(ulong nn) { n = nn; }
+  friend ostream&amp; operator&lt;&lt;(ostream&amp;, Bin&amp;);
+};
+
+ostream&amp; operator&lt;&lt;(ostream&amp; os, Bin&amp; b) {
+  ulong bit = ~(ULONG_MAX &gt;&gt; 1); // Top bit set
+  while(bit) {
+    os &lt;&lt; (b.n &amp; bit ? '1' : '0');
+    bit &gt;&gt;= 1;
+  }
+  return os;
+}
+
+int main() {
+  char* string =
+    "Things that make us happy, make us wise";
+  for(int i = 1; i &lt;= strlen(string); i++)
+    cout &lt;&lt; Fixw(string, i) &lt;&lt; endl;
+  ulong x = 0xCAFEBABEUL;
+  ulong y = 0x76543210UL;
+  cout &lt;&lt; "x in binary: " &lt;&lt; Bin(x) &lt;&lt; endl;
+  cout &lt;&lt; "y in binary: " &lt;&lt; Bin(y) &lt;&lt; endl;</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The constructor for <B>Fixw</B> creates a shortened copy of
+its <B>char*</B> argument, and the destructor releases the memory created for
+this copy. The overloaded <B>operator&lt;&lt;</B> takes the contents of its
+second argument, the <B>Fixw</B> object, and inserts it into the first argument,
+the <B>ostream</B>, then returns the <B>ostream</B> so it can be used in a
+chained expression. When you use <B>Fixw</B> in an expression like
+this:<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">cout &lt;&lt; Fixw(string, i)
+&lt;&lt; endl;</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>a <I>temporary object</I>
+<A NAME="Index298"></A><A NAME="Index299"></A>is created by the call to the
+<B>Fixw</B> constructor, and that temporary is passed to
+<B>operator&lt;&lt;</B>. The effect is that of a manipulator with
+arguments.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The <B>Bin</B> effector relies on the fact that shifting an
+unsigned number to the right shifts zeros into the high bits. ULONG_MAX
+<A NAME="Index300"></A>(the largest <B>unsigned long</B> value, from the
+standard include file <B>&lt;climits&gt;</B> <A NAME="Index301"></A>) is used to
+produce a value with the high bit set, and this value is moved across the number
+in question (by shifting it), masking each bit.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Initially the problem with this technique was that once you
+created a class called <B>Fixw</B> for <B>char*</B> or <B>Bin </B>for
+<B>unsigned long</B>,<B> </B>no one else could create a different <B>Fixw</B> or
+<B>Bin </B>class for their type. However, with <I>namespaces</I>
+<A NAME="Index302"></A>(covered in Chapter XX), this problem is
+eliminated.<A NAME="_Toc312373897"></A><A NAME="_Toc462393408"></A><BR></P></DIV>
+<A NAME="Heading77"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Iostream examples</H2></FONT>
+<DIV ALIGN="LEFT"><P>In this section you&#8217;ll see some examples of what you can
+do with all the information you&#8217;ve learned in this chapter. Although many
+tools exist to manipulate bytes (stream editors like <B>sed</B>
+<A NAME="Index303"></A>and <B>awk</B> <A NAME="Index304"></A>from Unix
+<A NAME="Index305"></A>are perhaps the most well known, but a text editor also
+fits this category), they generally have some limitations. <B>sed</B> and
+<B>awk</B> can be slow and can only handle lines in a forward sequence, and text
+editors usually require human interaction, or at least learning a proprietary
+macro language. The programs you write with iostreams have none of these
+limitations: They&#8217;re fast, portable, and flexible. It&#8217;s a very
+useful tool to have in your
+kit.<A NAME="_Toc312373898"></A><A NAME="_Toc462393409"></A><BR></P></DIV>
+<A NAME="Heading78"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Code generation</H3></FONT>
+<DIV ALIGN="LEFT"><P>The first examples concern the generation of programs that,
+coincidentally, fit the format used in this book. This provides a little extra
+speed and consistency when developing code. The first program creates a file to
+hold <B>main(&#160;)</B> (assuming it takes no command-line arguments and uses
+the iostream library):<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Makemain.cpp</font>
+<font color=#009900>// Create a shell main() file</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;fstream&gt;
+#include &lt;strstream&gt;
+#include &lt;cstring&gt;
+#include &lt;cctype&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main(<font color=#0000ff>int</font> argc, <font color=#0000ff>char</font>* argv[]) {
+  requireArgs(argc, 1);
+  ofstream mainfile(argv[1]);
+  assure(mainfile, argv[1]);
+  istrstream name(argv[1]);
+  ostrstream CAPname;
+  <font color=#0000ff>char</font> c;
+  <font color=#0000ff>while</font>(name.get(c))
+    CAPname &lt;&lt; <font color=#0000ff>char</font>(toupper(c));
+  CAPname &lt;&lt; ends;
+  mainfile &lt;&lt; <font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/"</font> &lt;&lt; <font color=#004488>": "</font> &lt;&lt; CAPname.rdbuf()
+    &lt;&lt; <font color=#004488>" -- "</font> &lt;&lt; endl
+    &lt;&lt; <font color=#004488>"#include &lt;iostream&gt;"</font> &lt;&lt; endl
+    &lt;&lt; endl
+    &lt;&lt; <font color=#004488>"main() {"</font> &lt;&lt; endl &lt;&lt; endl
+    &lt;&lt; <font color=#004488>"}"</font> &lt;&lt; endl;</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The argument on the command line is used to create an
+<B>istrstream</B>, so the characters can be extracted one at a time and
+converted to upper case with the Standard C library macro
+<B>toupper(&#160;)<A NAME="Index306"></A><A NAME="Index307"></A></B>. This
+returns an <B>int</B> so it must be explicitly cast to a <B>char</B>. This name
+is used in the headline, followed by the remainder of the generated
+file.<BR></P></DIV>
+<A NAME="Heading79"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Maintaining class library
+source<BR><A NAME="Index308"></A><A NAME="Index309"></A><A NAME="Index310"></A></H4></FONT>
+<DIV ALIGN="LEFT"><P>The second example performs a more complex and useful task.
+Generally, when you create a class you think in library terms, and make a header
+file <B>Name.h </B>for the class declaration and a file where the member
+functions are implemented, called <B>Name.cpp</B>. These files have certain
+requirements: a particular coding standard (the program shown here will use the
+coding format for this book), and in the header file the declarations are
+generally surrounded by some preprocessor statements to prevent multiple
+declarations of classes. (Multiple declarations confuse the compiler &#8211; it
+doesn&#8217;t know which one you want to use. They could be different, so it
+throws up its hands and gives an error message.)<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>This example allows you to create a new header-implementation
+pair of files, or to modify an existing pair. If the files already exist, it
+checks and potentially modifies the files, but if they don&#8217;t exist, it
+creates them using the proper format.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>[[ This should be changed to use <B>string</B> instead of
+&lt;cstring&gt; ]]<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Cppcheck.cpp</font>
+<font color=#009900>// Configures .h &amp; .cpp files</font>
+<font color=#009900>// To conform to style standard.</font>
+<font color=#009900>// Tests existing files for conformance</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;fstream&gt;
+#include &lt;strstream&gt;
+#include &lt;cstring&gt;
+#include &lt;cctype&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main(<font color=#0000ff>int</font> argc, <font color=#0000ff>char</font>* argv[]) {
+  <font color=#0000ff>const</font> <font color=#0000ff>int</font> sz = 40;  <font color=#009900>// Buffer sizes</font>
+  <font color=#0000ff>const</font> <font color=#0000ff>int</font> bsz = 100;
+  requireArgs(argc, 1); <font color=#009900>// File set name</font>
+  <font color=#0000ff>enum</font> bufs { base, header, implement,
+    Hline1, guard1, guard2, guard3,
+    CPPline1, include, bufnum };
+  <font color=#0000ff>char</font> b[bufnum][sz];
+  ostrstream osarray[] = {
+    ostrstream(b[base], sz),
+    ostrstream(b[header], sz),
+    ostrstream(b[implement], sz),
+    ostrstream(b[Hline1], sz),
+    ostrstream(b[guard1], sz),
+    ostrstream(b[guard2], sz),
+    ostrstream(b[guard3], sz),
+    ostrstream(b[CPPline1], sz),
+    ostrstream(b[include], sz),
+  };
+  osarray[base] &lt;&lt; argv[1] &lt;&lt; ends;
+  <font color=#009900>// Find any '.' in the string using the</font>
+  <font color=#009900>// Standard C library function strchr():</font>
+  <font color=#0000ff>char</font>* period = strchr(b[base], '.');
+  <font color=#0000ff>if</font>(period) *period = 0; <font color=#009900>// Strip extension</font>
+  <font color=#009900>// Force to upper case:</font>
+  <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; b[base][i]; i++)
+    b[base][i] = toupper(b[base][i]);
+  <font color=#009900>// Create file names and internal lines:</font>
+  osarray[header] &lt;&lt; b[base] &lt;&lt; <font color=#004488>".h"</font> &lt;&lt; ends;
+  osarray[implement] &lt;&lt; b[base] &lt;&lt; <font color=#004488>".cpp"</font> &lt;&lt; ends;
+  osarray[Hline1] &lt;&lt; <font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/"</font> &lt;&lt; <font color=#004488>": "</font> &lt;&lt; b[header]
+    &lt;&lt; <font color=#004488>" -- "</font> &lt;&lt; ends;
+  osarray[guard1] &lt;&lt; <font color=#004488>"#ifndef "</font> &lt;&lt; b[base]
+                  &lt;&lt; <font color=#004488>"_H"</font> &lt;&lt; ends;
+  osarray[guard2] &lt;&lt; <font color=#004488>"#define "</font> &lt;&lt; b[base]
+                  &lt;&lt; <font color=#004488>"_H"</font> &lt;&lt; ends;
+  osarray[guard3] &lt;&lt; <font color=#004488>"#endif </font><font color=#004488>/</font><font color=#004488>/ "</font> &lt;&lt; b[base]
+                  &lt;&lt; <font color=#004488>"_H"</font> &lt;&lt; ends;
+  osarray[CPPline1] &lt;&lt; <font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/"</font> &lt;&lt; <font color=#004488>": "</font>
+                    &lt;&lt; b[implement]
+                    &lt;&lt; <font color=#004488>" -- "</font> &lt;&lt; ends;
+  osarray[include] &lt;&lt; <font color=#004488>"#include \"</font>"
+                   &lt;&lt; b[header] &lt;&lt; <font color=#004488>"\"</font>" &lt;&lt;ends;
+  <font color=#009900>// First, try to open existing files:</font>
+  ifstream existh(b[header]),
+           existcpp(b[implement]);
+  <font color=#0000ff>if</font>(!existh) { <font color=#009900>// Doesn't exist; create it</font>
+    ofstream newheader(b[header]);
+    assure(newheader, b[header]);
+    newheader &lt;&lt; b[Hline1] &lt;&lt; endl
+      &lt;&lt; b[guard1] &lt;&lt; endl
+      &lt;&lt; b[guard2] &lt;&lt; endl &lt;&lt; endl
+      &lt;&lt; b[guard3] &lt;&lt; endl;
+  }
+  <font color=#0000ff>if</font>(!existcpp) { <font color=#009900>// Create cpp file</font>
+    ofstream newcpp(b[implement]);
+    assure(newcpp, b[implement]);
+    newcpp &lt;&lt; b[CPPline1] &lt;&lt; endl
+      &lt;&lt; b[include] &lt;&lt; endl;
+  }
+  <font color=#0000ff>if</font>(existh) { <font color=#009900>// Already exists; verify it</font>
+    strstream hfile; <font color=#009900>// Write &amp; read</font>
+    ostrstream newheader; <font color=#009900>// Write</font>
+    hfile &lt;&lt; existh.rdbuf() &lt;&lt; ends;
+    <font color=#009900>// Check that first line conforms:</font>
+    <font color=#0000ff>char</font> buf[bsz];
+    <font color=#0000ff>if</font>(hfile.getline(buf, bsz)) {
+      <font color=#0000ff>if</font>(!strstr(buf, <font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/"</font> <font color=#004488>":"</font>) ||
+         !strstr(buf, b[header]))
+        newheader &lt;&lt; b[Hline1] &lt;&lt; endl;
+    }
+    <font color=#009900>// Ensure guard lines are in header:</font>
+    <font color=#0000ff>if</font>(!strstr(hfile.str(), b[guard1]) ||
+       !strstr(hfile.str(), b[guard2]) ||
+       !strstr(hfile.str(), b[guard3])) {
+       newheader &lt;&lt; b[guard1] &lt;&lt; endl
+         &lt;&lt; b[guard2] &lt;&lt; endl
+         &lt;&lt; buf
+         &lt;&lt; hfile.rdbuf() &lt;&lt; endl
+         &lt;&lt; b[guard3] &lt;&lt; endl &lt;&lt; ends;
+    } <font color=#0000ff>else</font>
+      newheader &lt;&lt; buf
+        &lt;&lt; hfile.rdbuf() &lt;&lt; ends;
+    <font color=#009900>// If there were changes, overwrite file:</font>
+    <font color=#0000ff>if</font>(strcmp(hfile.str(),newheader.str())!=0){
+      existh.close();
+      ofstream newH(b[header]);
+      assure(newH, b[header]);
+      newH &lt;&lt; <font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/@</font><font color=#004488>/</font><font color=#004488>/"</font> &lt;&lt; endl <font color=#009900>// Change marker</font>
+        &lt;&lt; newheader.rdbuf();
+    }
+    <font color=#0000ff>delete</font> hfile.str();
+    <font color=#0000ff>delete</font> newheader.str();
+  }
+  <font color=#0000ff>if</font>(existcpp) { <font color=#009900>// Already exists; verify it</font>
+    strstream cppfile;
+    ostrstream newcpp;
+    cppfile &lt;&lt; existcpp.rdbuf() &lt;&lt; ends;
+    <font color=#0000ff>char</font> buf[bsz];
+    <font color=#009900>// Check that first line conforms:</font>
+    <font color=#0000ff>if</font>(cppfile.getline(buf, bsz))
+      <font color=#0000ff>if</font>(!strstr(buf, <font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/"</font> <font color=#004488>":"</font>) ||
+         !strstr(buf, b[implement]))
+        newcpp &lt;&lt; b[CPPline1] &lt;&lt; endl;
+    <font color=#009900>// Ensure header is included:</font>
+    <font color=#0000ff>if</font>(!strstr(cppfile.str(), b[include]))
+      newcpp &lt;&lt; b[include] &lt;&lt; endl;
+    <font color=#009900>// Put in the rest of the file:</font>
+    newcpp &lt;&lt; buf &lt;&lt; endl; <font color=#009900>// First line read</font>
+    newcpp &lt;&lt; cppfile.rdbuf() &lt;&lt; ends;
+    <font color=#009900>// If there were changes, overwrite file:</font>
+    <font color=#0000ff>if</font>(strcmp(cppfile.str(),newcpp.str())!=0){
+      existcpp.close();
+      ofstream newCPP(b[implement]);
+      assure(newCPP, b[implement]);
+      newCPP &lt;&lt; <font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/@</font><font color=#004488>/</font><font color=#004488>/"</font> &lt;&lt; endl <font color=#009900>// Change marker</font>
+        &lt;&lt; newcpp.rdbuf();
+    }
+    <font color=#0000ff>delete</font> cppfile.str();
+    <font color=#0000ff>delete</font> newcpp.str();
+  }</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>This example requires a lot of string formatting in many
+different buffers. Rather than creating a lot of individually named buffers and
+<B>ostrstream</B> <A NAME="Index311"></A>objects, a single set of names is
+created in the <B>enum</B> <B>bufs</B>. Then two arrays are created: an array of
+character buffers and an array of <B>ostrstream</B> objects built from those
+character buffers. Note that in the definition for the two-dimensional array of
+<B>char</B> buffers <B>b</B>, the number of <B>char</B> arrays is determined by
+<B>bufnum</B>, the last enumerator in <B>bufs</B>. When you create an
+enumeration<A NAME="Index312"></A>, the compiler assigns integral values to all
+the <B>enum</B> labels starting at zero, so the sole purpose of <B>bufnum</B> is
+to be a counter for the number of enumerators in <B>buf</B>. The length of each
+string in <B>b</B> is <B>sz</B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The names in the enumeration are <B>base</B>, the capitalized
+base file name without extension; <B>header</B>, the header file name;
+<B>implement</B>, the implementation file (<B>cpp</B>) name; <B>Hline1</B>, the
+skeleton first line of the header file; <B>guard1</B>, <B>guard2</B>, and
+<B>guard3</B>, the &#8220;guard&#8221; lines in the header file (to prevent
+multiple inclusion); <B>CPPline1</B>, the skeleton first line of the <B>cpp</B>
+file; and <B>include</B>, the line in the <B>cpp</B> file that includes the
+header file.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>osarray</B> is an array of <B>ostrstream</B> objects
+created using aggregate initialization and automatic counting. Of course, this
+is the form of the <B>ostrstream</B> constructor that takes two arguments (the
+buffer address and buffer size), so the constructor calls must be formed
+accordingly inside the aggregate initializer list. Using the <B>bufs</B>
+enumerators, the appropriate array element of <B>b</B> is tied to the
+corresponding <B>osarray</B> object. Once the array is created, the objects in
+the array can be selected using the enumerators, and the effect is to fill the
+corresponding <B>b</B> element. You can see how each string is built in the
+lines following the <B>ostrstream</B> array definition.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Once the strings have been created, the program attempts to
+open existing versions of both the header and <B>cpp</B> file as
+<B>ifstream</B>s. If you test the object using the operator
+&#8216;<B>!</B>&#8217; and the file doesn&#8217;t exist, the test will fail. If
+the header or implementation file doesn&#8217;t exist, it is created using the
+appropriate lines of text built earlier.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>If the files <I>do</I> exist, then they are verified to ensure
+the proper format is followed. In both cases, a <B>strstream</B>
+<A NAME="Index313"></A>is created and the whole file is read in; then the first
+line is read and checked to make sure it follows the format by seeing if it
+contains both a &#8220;<B>//:</B>&#8221; and the name of the file. This is
+accomplished with the Standard C library function
+<B>strstr(&#160;)<A NAME="Index314"></A></B>. If the first line doesn&#8217;t
+conform, the one created earlier is inserted into an <B>ostrstream</B> that has
+been created to hold the edited file.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>In the header file, the whole file is searched (again using
+<B>strstr(&#160;)</B>) to ensure it contains the three &#8220;guard&#8221;
+lines; if not, they are inserted. The implementation file is checked for the
+existence of the line that includes the header file (although the compiler
+effectively guarantees its existence).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>In both cases, the original file (in its <B>strstream</B>) and
+the edited file (in the <B>ostrstream</B>) are compared to see if there are any
+changes. If there are, the existing file is closed, and a new <B>ofstream</B>
+object is created to overwrite it. The <B>ostrstream</B> is output to the file
+after a special change marker is added at the beginning, so you can use a text
+search program to rapidly find any files that need reviewing to make additional
+changes.<BR></P></DIV>
+<A NAME="Heading80"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Detecting compiler errors</H4></FONT>
+<DIV ALIGN="LEFT"><P>All the code in this book is designed to compile as shown
+without errors<A NAME="Index315"></A>. Any line of code that should generate a
+compile-time error is commented out with the special comment sequence
+&#8220;//!&#8221;. The following program will remove these special comments and
+append a numbered comment to the line, so that when you run your compiler it
+should generate error messages and you should see all the numbers appear when
+you compile all the files. It also appends the modified line to a special file
+so you can easily locate any lines that don&#8217;t generate errors:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Showerr.cpp</font>
+<font color=#009900>// Un-comment error generators</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;strstream&gt;
+#include &lt;cctype&gt;
+#include &lt;cstring&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+<font color=#0000ff>char</font>* marker = <font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/!"</font>;
+
+<font color=#0000ff>char</font>* usage =
+<font color=#004488>"usage: showerr filename chapnum\n"</font>
+<font color=#004488>"where filename is a C++ source file\n"</font>
+<font color=#004488>"and chapnum is the chapter name it's in.\n"</font>
+<font color=#004488>"Finds lines commented with </font><font color=#004488>/</font><font color=#004488>/! and removes\n"</font>
+<font color=#004488>"comment, appending </font><font color=#004488>/</font><font color=#004488>/(#) where # is unique\n"</font>
+<font color=#004488>"across all files, so you can determine\n"</font>
+<font color=#004488>"if your compiler finds the error.\n"</font>
+<font color=#004488>"showerr </font><font color=#004488>/r\n"</font>
+<font color=#004488>"resets the unique counter."</font>;
+
+<font color=#009900>// File containing error number counter:</font>
+<font color=#0000ff>char</font>* errnum = <font color=#004488>"..</font><font color=#004488>/errnum.txt"</font>;
+<font color=#009900>// File containing error lines:</font>
+<font color=#0000ff>char</font>* errfile = <font color=#004488>"..</font><font color=#004488>/errlines.txt"</font>;
+ofstream errlines(errfile,ios::app);
+
+<font color=#0000ff>int</font> main(<font color=#0000ff>int</font> argc, <font color=#0000ff>char</font>* argv[]) {
+  requireArgs(argc, 2, usage);
+  <font color=#0000ff>if</font>(argv[1][0] == '/' || argv[1][0] == '-') {
+    <font color=#009900>// Allow for other switches:</font>
+    <font color=#0000ff>switch</font>(argv[1][1]) {
+      <font color=#0000ff>case</font> 'r': <font color=#0000ff>case</font> 'R':
+        cout &lt;&lt; <font color=#004488>"reset counter"</font> &lt;&lt; endl;
+        remove(errnum); <font color=#009900>// Delete files</font>
+        remove(errfile);
+        <font color=#0000ff>return</font> 0;
+      <font color=#0000ff>default</font>:
+        cerr &lt;&lt; usage &lt;&lt; endl;
+        <font color=#0000ff>return</font> 1;
+    }
+  }
+  <font color=#0000ff>char</font>* chapter = argv[2];
+  strstream edited; <font color=#009900>// Edited file</font>
+  <font color=#0000ff>int</font> counter = 0;
+  {
+    ifstream infile(argv[1]);
+    assure(infile, argv[1]);
+    ifstream count(errnum);
+    assure(count, errnum);
+    <font color=#0000ff>if</font>(count) count &gt;&gt; counter;
+    <font color=#0000ff>int</font> linecount = 0;
+    <font color=#0000ff>const</font> <font color=#0000ff>int</font> sz = 255;
+    <font color=#0000ff>char</font> buf[sz];
+    <font color=#0000ff>while</font>(infile.getline(buf, sz)) {
+      linecount++;
+      <font color=#009900>// Eat white space:</font>
+      <font color=#0000ff>int</font> i = 0;
+      <font color=#0000ff>while</font>(isspace(buf[i]))
+        i++;
+      <font color=#009900>// Find marker at start of line:</font>
+      <font color=#0000ff>if</font>(strstr(&amp;buf[i], marker) == &amp;buf[i]) {
+        <font color=#009900>// Erase marker:</font>
+        memset(&amp;buf[i], ' ', strlen(marker));
+        <font color=#009900>// Append counter &amp; error info:</font>
+        ostrstream out(buf, sz, ios::ate);
+        out &lt;&lt; <font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/("</font> &lt;&lt; ++counter &lt;&lt; <font color=#004488>") "</font>
+            &lt;&lt; <font color=#004488>"Chapter "</font> &lt;&lt; chapter
+            &lt;&lt; <font color=#004488>" File: "</font> &lt;&lt; argv[1]
+            &lt;&lt; <font color=#004488>" Line "</font> &lt;&lt; linecount &lt;&lt; endl
+            &lt;&lt; ends;
+          edited &lt;&lt; buf;
+        errlines &lt;&lt; buf; <font color=#009900>// Append error file</font>
+      } <font color=#0000ff>else</font>
+        edited &lt;&lt; buf &lt;&lt; <font color=#004488>"\n"</font>; <font color=#009900>// Just copy</font>
+    }
+  } <font color=#009900>// Closes files</font>
+  ofstream outfile(argv[1]); <font color=#009900>// Overwrites</font>
+  assure(outfile, argv[1]);
+  outfile &lt;&lt; edited.rdbuf();
+  ofstream count(errnum); <font color=#009900>// Overwrites</font>
+  assure(count, errnum);
+  count &lt;&lt; counter; <font color=#009900>// Save new counter</font></PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The marker can be replaced with one of your choice.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Each file is read a line at a time, and each line is searched
+for the marker appearing at the head of the line; the line is modified and put
+into the error line list and into the <B>strstream</B> <B>edited</B>. When the
+whole file is processed, it is closed (by reaching the end of a scope), reopened
+as an output file and <B>edited</B> is poured into the file. Also notice the
+counter is saved in an external file, so the next time this program is invoked
+it continues to sequence the
+counter.<A NAME="_Toc312373899"></A><A NAME="_Toc462393410"></A><BR></P></DIV>
+<A NAME="Heading81"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+A simple datalogger<BR><A NAME="Index316"></A></H3></FONT>
+<DIV ALIGN="LEFT"><P>This example shows an approach you might take to log data to
+disk and later retrieve it for processing. The example is meant to produce a
+temperature-depth profile of the ocean at various points. To hold the data, a
+class is used:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:DataLogger.h</font>
+<font color=#009900>// Datalogger record layout</font>
+#ifndef DATALOG_H
+#define DATALOG_H
+#include &lt;ctime&gt;
+#include &lt;iostream&gt;
+
+<font color=#0000ff>class</font> DataPoint {
+  std::tm time; <font color=#009900>// Time &amp; day</font>
+  <font color=#0000ff>static</font> <font color=#0000ff>const</font> <font color=#0000ff>int</font> bsz = 10;
+  <font color=#009900>// Ascii degrees (*) minutes (') seconds ("):</font>
+  <font color=#0000ff>char</font> latitude[bsz], longitude[bsz];
+  <font color=#0000ff>double</font> depth, temperature;
+<font color=#0000ff>public</font>:
+  std::tm getTime();
+  <font color=#0000ff>void</font> setTime(std::tm t);
+  <font color=#0000ff>const</font> <font color=#0000ff>char</font>* getLatitude();
+  <font color=#0000ff>void</font> setLatitude(<font color=#0000ff>const</font> <font color=#0000ff>char</font>* l);
+  <font color=#0000ff>const</font> <font color=#0000ff>char</font>* getLongitude();
+  <font color=#0000ff>void</font> setLongitude(<font color=#0000ff>const</font> <font color=#0000ff>char</font>* l);
+  <font color=#0000ff>double</font> getDepth();
+  <font color=#0000ff>void</font> setDepth(<font color=#0000ff>double</font> d);
+  <font color=#0000ff>double</font> getTemperature();
+  <font color=#0000ff>void</font> setTemperature(<font color=#0000ff>double</font> t);
+  <font color=#0000ff>void</font> print(std::ostream&amp; os);
+};</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">#endif // DATALOG_H
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The access functions provide controlled reading and writing to
+each of the data members. The <B>print(&#160;)</B> function formats the
+<B>DataPoint</B> in a readable form onto an <B>ostream</B> object (the argument
+to <B>print(&#160;)</B>). Here&#8217;s the definition file:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Datalog.cpp {O}</font>
+<font color=#009900>// Datapoint member functions</font>
+#include <font color=#004488>"DataLogger.h"</font>
+#include &lt;iomanip&gt;
+#include &lt;cstring&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+tm DataPoint::getTime() { <font color=#0000ff>return</font> time; }
+
+<font color=#0000ff>void</font> DataPoint::setTime(tm t) { time = t; }
+
+<font color=#0000ff>const</font> <font color=#0000ff>char</font>* DataPoint::getLatitude() {
+  <font color=#0000ff>return</font> latitude;
+}
+
+<font color=#0000ff>void</font> DataPoint::setLatitude(<font color=#0000ff>const</font> <font color=#0000ff>char</font>* l) {
+  latitude[bsz - 1] = 0;
+  strncpy(latitude, l, bsz - 1);
+}
+
+<font color=#0000ff>const</font> <font color=#0000ff>char</font>* DataPoint::getLongitude() {
+  <font color=#0000ff>return</font> longitude;
+}
+
+<font color=#0000ff>void</font> DataPoint::setLongitude(<font color=#0000ff>const</font> <font color=#0000ff>char</font>* l) {
+  longitude[bsz - 1] = 0;
+  strncpy(longitude, l, bsz - 1);
+}
+
+<font color=#0000ff>double</font> DataPoint::getDepth() { <font color=#0000ff>return</font> depth; }
+
+<font color=#0000ff>void</font> DataPoint::setDepth(<font color=#0000ff>double</font> d) { depth = d; }
+
+<font color=#0000ff>double</font> DataPoint::getTemperature() {
+  <font color=#0000ff>return</font> temperature;
+}
+
+<font color=#0000ff>void</font> DataPoint::setTemperature(<font color=#0000ff>double</font> t) {
+  temperature = t;
+}
+
+<font color=#0000ff>void</font> DataPoint::print(ostream&amp; os) {
+  os.setf(ios::fixed, ios::floatfield);
+  os.precision(4);
+  os.fill('0'); <font color=#009900>// Pad on left with '0'</font>
+  os &lt;&lt; setw(2) &lt;&lt; getTime().tm_mon &lt;&lt; '\\'
+     &lt;&lt; setw(2) &lt;&lt; getTime().tm_mday &lt;&lt; '\\'
+     &lt;&lt; setw(2) &lt;&lt; getTime().tm_year &lt;&lt; ' '
+     &lt;&lt; setw(2) &lt;&lt; getTime().tm_hour &lt;&lt; ':'
+     &lt;&lt; setw(2) &lt;&lt; getTime().tm_min &lt;&lt; ':'
+     &lt;&lt; setw(2) &lt;&lt; getTime().tm_sec;
+  os.fill(' '); <font color=#009900>// Pad on left with ' '</font>
+  os &lt;&lt; <font color=#004488>" Lat:"</font> &lt;&lt; setw(9) &lt;&lt; getLatitude()
+     &lt;&lt; <font color=#004488>", Long:"</font> &lt;&lt; setw(9) &lt;&lt; getLongitude()
+     &lt;&lt; <font color=#004488>", depth:"</font> &lt;&lt; setw(9) &lt;&lt; getDepth()
+     &lt;&lt; <font color=#004488>", temp:"</font> &lt;&lt; setw(9) &lt;&lt; getTemperature()
+     &lt;&lt; endl;</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>In <B>print(&#160;)</B>, the call to
+<B>setf(&#160;)<A NAME="Index317"></A><A NAME="Index318"></A></B> causes the
+floating-point output to be fixed-precision, and
+<B>precision(&#160;)<A NAME="Index319"></A><A NAME="Index320"></A></B> sets the
+number of decimal places to four.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The default is to right-justify the data within the field. The
+time information consists of two digits each for the hours, minutes and seconds,
+so the width is set to two with
+<B>setw(&#160;)<A NAME="Index321"></A><A NAME="Index322"></A></B> in each case.
+(Remember that any changes to the field width affect only the next output
+operation, so <B>setw(&#160;)</B> must be given for each output.) But first, to
+put a zero in the left position if the value is less than 10, the fill character
+<A NAME="Index323"></A>is set to &#8216;0&#8217;. Afterwards, it is set back to
+a space.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The latitude and longitude are zero-terminated character
+fields, which hold the information as degrees (here, &#8216;*&#8217; denotes
+degrees), minutes (&#8216;), and seconds(&#8220;). You can certainly devise a
+more efficient storage layout for latitude and longitude if you
+desire.<BR></P></DIV>
+<A NAME="Heading82"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Generating test data</H4></FONT>
+<DIV ALIGN="LEFT"><P>Here&#8217;s a program that creates a file of test data in
+binary form (using <B>write(&#160;)</B>) and a second file in ASCII form using
+<B>DataPoint::print(&#160;)</B>. You can also print it out to the screen but
+it&#8217;s easier to inspect in file form.<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Datagen.cpp</font>
+<font color=#009900>//{L} Datalog</font>
+<font color=#009900>// Test data generator</font>
+#include <font color=#004488>"DataLogger.h"</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;fstream&gt;
+#include &lt;cstdlib&gt;
+#include &lt;cstring&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main() {
+  ofstream data(<font color=#004488>"data.txt"</font>);
+  assure(data, <font color=#004488>"data.txt"</font>);
+  ofstream bindata(<font color=#004488>"data.bin"</font>, ios::binary);
+  assure(bindata, <font color=#004488>"data.bin"</font>);
+  time_t timer;
+  <font color=#009900>// Seed random number generator:</font>
+  srand(time(&amp;timer)); 
+  <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; 100; i++) {
+    DataPoint d;
+    <font color=#009900>// Convert date/time to a structure:</font>
+    d.setTime(*localtime(&amp;timer));
+    timer += 55; <font color=#009900>// Reading each 55 seconds</font>
+    d.setLatitude(<font color=#004488>"45*20'31\"</font>");
+    d.setLongitude(<font color=#004488>"22*34'18\"</font>");
+    <font color=#009900>// Zero to 199 meters:</font>
+    <font color=#0000ff>double</font> newdepth  = rand() % 200;
+    <font color=#0000ff>double</font> fraction = rand() % 100 + 1;
+    newdepth += <font color=#0000ff>double</font>(1) / fraction;
+    d.setDepth(newdepth);
+    <font color=#0000ff>double</font> newtemp = 150 + rand()%200; <font color=#009900>// Kelvin</font>
+    fraction = rand() % 100 + 1;
+    newtemp += (<font color=#0000ff>double</font>)1 / fraction;
+    d.setTemperature(newtemp);
+    d.print(data);
+    bindata.write((<font color=#0000ff>unsigned</font> <font color=#0000ff>char</font>*)&amp;d,
+                  <font color=#0000ff>sizeof</font>(d));
+  }</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The file DATA.TXT is created in the ordinary way as an ASCII
+file, but DATA.BIN has the flag <B>ios::binary</B> to tell the constructor to
+set it up as a binary file.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The Standard C library function <B>time(&#160;)</B>, when
+called with a zero argument, returns the current time as a <B>time_t</B> value,
+which is the number of seconds elapsed since 00:00:00 GMT, January 1 1970 (the
+dawning of the age of Aquarius?). The current time is the most convenient way to
+seed the random number generator with the Standard C library function
+<B>srand(&#160;)</B>, as is done here.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Sometimes a more convenient way to store the time is as a
+<B>tm</B> structure, which has all the elements of the time and date broken up
+into their constituent parts as follows:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#0000ff>struct</font> tm {
+  <font color=#0000ff>int</font> tm_sec; <font color=#009900>// 0-59 seconds</font>
+  <font color=#0000ff>int</font> tm_min; <font color=#009900>// 0-59 minutes</font>
+  <font color=#0000ff>int</font> tm_hour; <font color=#009900>// 0-23 hours</font>
+  <font color=#0000ff>int</font> tm_mday; <font color=#009900>// Day of month</font>
+  <font color=#0000ff>int</font> tm_mon; <font color=#009900>// 0-11 months</font>
+  <font color=#0000ff>int</font> tm_year; <font color=#009900>// Calendar year</font>
+  <font color=#0000ff>int</font> tm_wday; <font color=#009900>// Sunday == 0, etc.</font>
+  <font color=#0000ff>int</font> tm_yday; <font color=#009900>// 0-365 day of year</font>
+  <font color=#0000ff>int</font> tm_isdst; <font color=#009900>// Daylight savings?</font></PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">};</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>To convert from the time in seconds to the local time in the
+<B>tm</B> format, you use the Standard C library
+<B>localtime(&#160;)<A NAME="Index324"></A><A NAME="Index325"></A></B> function,
+which takes the number of seconds and returns a pointer to the resulting
+<B>tm</B>. This <B>tm</B>, however, is a <B>static</B> structure inside the
+<B>localtime(&#160;)</B> function, which is rewritten every time
+<B>localtime(&#160;)</B> is called. To copy the contents into the <B>tm</B>
+<B>struct</B> inside <B>DataPoint</B>, you might think you must copy each
+element individually. However, all you must do is a structure assignment, and
+the compiler will take care of the rest. This means the right-hand side must be
+a structure, not a pointer, so the result of <B>localtime(&#160;)</B> is
+dereferenced. The desired result is achieved with<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">d.setTime(*localtime(&amp;timer));</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>After this, the <B>timer</B> is incremented by 55 seconds to
+give an interesting interval between readings.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The latitude and longitude used are fixed values to indicate a
+set of readings at a single location. Both the depth and the temperature are
+generated with the Standard C library <B>rand(&#160;)<A NAME="Index326"></A></B>
+<A NAME="Index327"></A>function, which returns a pseudorandom number between
+zero and the constant RAND_MAX<A NAME="Index328"></A>. To put this in a desired
+range, use the modulus operator
+<A NAME="Index329"></A><A NAME="Index330"></A><B>%</B> and the upper end of the
+range. These numbers are integral; to add a fractional part, a second call to
+<B>rand(&#160;)</B> is made, and the value is inverted after adding one (to
+prevent divide-by-zero errors).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>In effect, the DATA.BIN file is being used as a container for
+the data in the program, even though the container exists on disk and not in
+RAM. To send the data out to the disk in binary form, <B>write(&#160;)</B> is
+used. The first argument is the starting address of the source block &#8211;
+notice it must be cast to an <B>unsigned char*</B> because that&#8217;s what the
+function expects. The second argument is the number of bytes to write, which is
+the size of the <B>DataPoint</B> object. Because no pointers are contained in
+<B>DataPoint</B>, there is no problem in writing the object to disk. If the
+object is more sophisticated, you must implement a scheme for
+<I>serialization</I> <A NAME="Index331"></A>. (Most vendor class libraries have
+some sort of serialization structure built into them.)<BR></P></DIV>
+<A NAME="Heading83"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Verifying &amp; viewing the data</H4></FONT>
+<DIV ALIGN="LEFT"><P>To check the validity of the data stored in binary format, it
+is read from the disk and put in text form in DATA2.TXT, so that file can be
+compared to DATA.TXT for verification. In the following program, you can see how
+simple this data recovery is. After the test file is created, the records are
+read at the command of the user.<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Datascan.cpp</font>
+<font color=#009900>//{L} Datalog</font>
+<font color=#009900>// Verify and view logged data</font>
+#include <font color=#004488>"DataLogger.h"</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;strstream&gt;
+#include &lt;iomanip&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main() {
+  ifstream bindata(<font color=#004488>"data.bin"</font>, ios::binary);
+  assure(bindata, <font color=#004488>"data.bin"</font>);
+  <font color=#009900>// Create comparison file to verify data.txt:</font>
+  ofstream verify(<font color=#004488>"data2.txt"</font>);
+  assure(verify, <font color=#004488>"data2.txt"</font>);
+  DataPoint d;
+  <font color=#0000ff>while</font>(bindata.read(
+    (<font color=#0000ff>unsigned</font> <font color=#0000ff>char</font>*)&amp;d, <font color=#0000ff>sizeof</font> d))
+    d.print(verify);
+  bindata.clear(); <font color=#009900>// Reset state to "good"</font>
+  <font color=#009900>// Display user-selected records:</font>
+  <font color=#0000ff>int</font> recnum = 0;
+  <font color=#009900>// Left-align everything:</font>
+  cout.setf(ios::left, ios::adjustfield);
+  <font color=#009900>// Fixed precision of 4 decimal places:</font>
+  cout.setf(ios::fixed, ios::floatfield);
+  cout.precision(4);
+  <font color=#0000ff>for</font>(;;) {
+    bindata.seekg(recnum* <font color=#0000ff>sizeof</font> d, ios::beg);
+    cout &lt;&lt; <font color=#004488>"record "</font> &lt;&lt; recnum &lt;&lt; endl;
+    <font color=#0000ff>if</font>(bindata.read(
+      (<font color=#0000ff>unsigned</font> <font color=#0000ff>char</font>*)&amp;d, <font color=#0000ff>sizeof</font> d)) {
+      cout &lt;&lt; asctime(&amp;(d.getTime()));
+      cout &lt;&lt; setw(11) &lt;&lt; <font color=#004488>"Latitude"</font>
+           &lt;&lt; setw(11) &lt;&lt; <font color=#004488>"Longitude"</font>
+           &lt;&lt; setw(10) &lt;&lt; <font color=#004488>"Depth"</font>
+           &lt;&lt; setw(12) &lt;&lt; <font color=#004488>"Temperature"</font>
+           &lt;&lt; endl;
+      <font color=#009900>// Put a line after the description:</font>
+      cout &lt;&lt; setfill('-') &lt;&lt; setw(43) &lt;&lt; '-'
+           &lt;&lt; setfill(' ') &lt;&lt; endl;
+      cout &lt;&lt; setw(11) &lt;&lt; d.getLatitude()
+           &lt;&lt; setw(11) &lt;&lt; d.getLongitude()
+           &lt;&lt; setw(10) &lt;&lt; d.getDepth()
+           &lt;&lt; setw(12) &lt;&lt; d.getTemperature()
+           &lt;&lt; endl;
+    } <font color=#0000ff>else</font> {
+      cout &lt;&lt; <font color=#004488>"invalid record number"</font> &lt;&lt; endl;
+      bindata.clear(); <font color=#009900>// Reset state to "good"</font>
+    }
+    cout &lt;&lt; endl
+      &lt;&lt; <font color=#004488>"enter record number, x to quit:"</font>;
+    <font color=#0000ff>char</font> buf[10];
+    cin.getline(buf, 10);
+    <font color=#0000ff>if</font>(buf[0] == 'x') <font color=#0000ff>break</font>;
+    istrstream input(buf, 10);
+    input &gt;&gt; recnum;
+  }</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The <B>ifstream</B> <B>bindata</B> is created from DATA.BIN as
+a binary file, with the <B>ios::nocreate</B> flag on to cause the
+<B>assert(&#160;)</B> to fail if the file doesn&#8217;t exist. The
+<B>read(&#160;)<A NAME="Index332"></A><A NAME="Index333"></A></B> statement
+reads a single record and places it directly into the <B>DataPoint d</B>.
+(Again, if <B>DataPoint</B> contained pointers this would result in meaningless
+pointer values.) This <B>read(&#160;)</B> action will set <B>bindata</B>&#8217;s
+<B>failbit</B> <A NAME="Index334"></A><A NAME="Index335"></A>when the end of the
+file is reached, which will cause the <B>while</B> statement to fail. At this
+point, however, you can&#8217;t move the get
+pointer<A NAME="Index336"></A><A NAME="Index337"></A> back and read more records
+because the state of the stream won&#8217;t allow further reads. So the
+<B>clear(&#160;)<A NAME="Index338"></A><A NAME="Index339"></A></B> function is
+called to reset the <B>failbit</B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Once the record is read in from disk, you can do anything you
+want with it, such as perform calculations or make graphs. Here, it is displayed
+to further exercise your knowledge of iostream formatting.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The rest of the program displays a record number (represented
+by <B>recnum</B>) selected by the user. As before, the precision is fixed at
+four decimal places, but this time everything is left justified.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The formatting of this output looks different from
+before:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>record 0
+Tue Nov 16 18:15:49 1993
+Latitude   Longitude  Depth     Temperature
+-------------------------------------------</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">45*20'31"
+22*34'18"  186.0172  269.0167    </FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>To make sure the labels and the data columns line up, the
+labels are put in the same width fields as the columns, using
+<B>setw(&#160;)</B>. The line in between is generated by setting the fill
+character to &#8216;-&#8217;, the width to the desired line width, and
+outputting a single &#8216;-&#8217;.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>If the <B>read(&#160;)</B> fails, you&#8217;ll end up in the
+<B>else</B> part, which tells the user the record number was invalid. Then,
+because the <B>failbit</B> was set, it must be reset with a call to
+<B>clear(&#160;)</B> so the next <B>read(&#160;)</B> is successful (assuming
+it&#8217;s in the right range).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Of course, you can also open the binary data file for writing
+as well as reading. This way you can retrieve the records, modify them, and
+write them back to the same location, thus creating a flat-file database
+management system. In my very first programming job, I also had to create a
+flat-file DBMS &#8211; but using BASIC on an Apple II. It took months, while
+this took minutes. Of course, it might make more sense to use a packaged DBMS
+now, but with C++ and iostreams you can still do all the low-level operations
+that are necessary in a
+lab.<A NAME="_Toc305628672"></A><A NAME="_Toc312373900"></A><A NAME="_Toc462393411"></A><BR></P></DIV>
+<A NAME="Heading84"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Counting editor</H3></FONT>
+<DIV ALIGN="LEFT"><P>Often you have some editing task where you must go through and
+sequentially number something, but all the other text is duplicated. I
+encountered this problem when pasting digital photos into a Web page &#8211; I
+got the formatting just right, then duplicated it, then had the problem of
+incrementing the photo number for each one. So I replaced the photo number with
+XXX, duplicated that, and wrote the following program to find and replace the
+&#8220;XXX&#8221; with an incremented count. Notice the formatting, so the value
+will be &#8220;001,&#8221; &#8220;002,&#8221; etc.:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:NumberPhotos.cpp</font>
+<font color=#009900>// Find the marker "XXX" and replace it with an</font>
+<font color=#009900>// incrementing number whereever it appears. Used</font>
+<font color=#009900>// to help format a web page with photos in it</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;fstream&gt;
+#include &lt;sstream&gt;
+#include &lt;iomanip&gt;
+#include &lt;string&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main(<font color=#0000ff>int</font> argc, <font color=#0000ff>char</font>* argv[]) {
+  requireArgs(argc, 2);
+  ifstream in(argv[1]);
+  assure(in, argv[1]);
+  ofstream out(argv[2]);
+  assure(out, argv[2]);
+  string line;
+  <font color=#0000ff>int</font> counter = 1;
+  <font color=#0000ff>while</font>(getline(in, line)) {
+    <font color=#0000ff>int</font> xxx = line.find(<font color=#004488>"XXX"</font>);
+    <font color=#0000ff>if</font>(xxx != string::npos) {
+      ostringstream cntr;
+      cntr &lt;&lt; setfill('0') &lt;&lt; setw(3) &lt;&lt; counter++;
+      line.replace(xxx, 3, cntr.str());
+    }
+    out &lt;&lt; line &lt;&lt; endl;
+  }</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P><A NAME="_Toc462393412"></A><BR></P></DIV>
+<A NAME="Heading85"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Breaking up big files</H3></FONT>
+<DIV ALIGN="LEFT"><P>This program was created to break up big files into smaller
+ones, in particular so they could be more easily downloaded from an Internet
+server (since hangups sometimes occur, this allows someone to download a file a
+piece at a time and then re-assemble it at the client end). You&#8217;ll note
+that the program also creates a reassembly batch file for DOS (where it is
+messier), whereas under Linux/Unix you simply say something like &#8220;<B>cat
+*piece* &gt; destination.file</B>&#8221;.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>This program reads the entire file into memory, which of
+course relies on having a 32-bit operating system with virtual memory for big
+files. It then pieces it out in chunks to the smaller files, generating the
+names as it goes. Of course, you can come up with a possibly more reasonable
+strategy that reads a chunk, creates a file, reads another chunk, etc.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Note that this program can be run on the server, so you only
+have to download the big file once and then break it up once it&#8217;s on the
+server.<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C02:Breakup.cpp</font>
+<font color=#009900>// Breaks a file up into smaller files for </font>
+<font color=#009900>// easier downloads</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;iomanip&gt;
+#include &lt;strstream&gt;
+#include &lt;string&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main(<font color=#0000ff>int</font> argc, <font color=#0000ff>char</font>* argv[]) {
+  requireArgs(argc, 1);
+  ifstream in(argv[1], ios::binary);
+  assure(in, argv[1]);
+  in.seekg(0, ios::end); <font color=#009900>// End of file</font>
+  <font color=#0000ff>long</font> fileSize = in.tellg(); <font color=#009900>// Size of file</font>
+  cout &lt;&lt; <font color=#004488>"file size = "</font> &lt;&lt; fileSize &lt;&lt; endl;
+  in.seekg(0, ios::beg); <font color=#009900>// Start of file</font>
+  <font color=#0000ff>char</font>* fbuf = <font color=#0000ff>new</font> <font color=#0000ff>char</font>[fileSize];
+  require(fbuf != 0);
+  in.read(fbuf, fileSize);
+  in.close();
+  string infile(argv[1]);
+  <font color=#0000ff>int</font> dot = infile.find('.');
+  <font color=#0000ff>while</font>(dot != string::npos) {
+    infile.replace(dot, 1, <font color=#004488>"-"</font>);
+    dot = infile.find('.');
+  }
+  string batchName(
+    <font color=#004488>"DOSAssemble"</font> + infile + <font color=#004488>".bat"</font>);
+  ofstream batchFile(batchName.c_str());
+  batchFile &lt;&lt; <font color=#004488>"copy </font><font color=#004488>/b "</font>;
+  <font color=#0000ff>int</font> filecount = 0;
+  <font color=#0000ff>const</font> <font color=#0000ff>int</font> sbufsz = 128;
+  <font color=#0000ff>char</font> sbuf[sbufsz];
+  <font color=#0000ff>const</font> <font color=#0000ff>long</font> pieceSize = 1000L * 100L;
+  <font color=#0000ff>long</font> byteCounter = 0;
+  <font color=#0000ff>while</font>(byteCounter &lt; fileSize) {
+    ostrstream name(sbuf, sbufsz);
+    name &lt;&lt; argv[1] &lt;&lt; <font color=#004488>"-part"</font> &lt;&lt; setfill('0') 
+      &lt;&lt; setw(2) &lt;&lt; filecount++ &lt;&lt; ends;
+    cout &lt;&lt; <font color=#004488>"creating "</font> &lt;&lt; sbuf &lt;&lt; endl;
+    <font color=#0000ff>if</font>(filecount &gt; 1) 
+      batchFile &lt;&lt; <font color=#004488>"+"</font>;
+    batchFile &lt;&lt; sbuf;
+    ofstream out(sbuf, ios::out | ios::binary);
+    assure(out, sbuf);
+    <font color=#0000ff>long</font> byteq;
+    <font color=#0000ff>if</font>(byteCounter + pieceSize &lt; fileSize)
+      byteq = pieceSize;
+    <font color=#0000ff>else</font>
+      byteq = fileSize - byteCounter;
+    out.write(fbuf + byteCounter, byteq);
+    cout &lt;&lt; <font color=#004488>"wrote "</font> &lt;&lt; byteq &lt;&lt; <font color=#004488>" bytes, "</font>;
+    byteCounter += byteq;
+    out.close();
+    cout &lt;&lt; <font color=#004488>"ByteCounter = "</font> &lt;&lt; byteCounter 
+      &lt;&lt; <font color=#004488>", fileSize = "</font> &lt;&lt; fileSize &lt;&lt; endl;
+  }
+  batchFile &lt;&lt; <font color=#004488>" "</font> &lt;&lt; argv[1] &lt;&lt; endl;</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P><A NAME="_Toc462393413"></A><BR></P></DIV>
+<A NAME="Heading86"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Summary</H2></FONT>
+<DIV ALIGN="LEFT"><P>This chapter has given you a fairly thorough introduction to
+the iostream class library. In all likelihood, it is all you need to create
+programs using iostreams. (In later chapters you&#8217;ll see simple examples of
+adding iostream functionality to your own classes.) However, you should be aware
+that there are some additional features in iostreams that are not used often,
+but which you can discover by looking at the iostream header files and by
+reading your compiler&#8217;s documentation on
+iostreams.<A NAME="_Toc312373901"></A><A NAME="_Toc462393414"></A><BR></P></DIV>
+<A NAME="Heading87"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Exercises</H2></FONT>
+<OL>
+<LI>	Open a file by creating an <B>ifstream</B> object called <B>in</B>. Make an
+<B>ostrstream</B> object called <B>os</B>, and read the entire contents into the
+<B>ostrstream</B> using the <B>rdbuf(&#160;)</B> member function. Get the
+address of <B>os</B>&#8217;s <B>char*</B> with the <B>str(&#160;)</B> function,
+and capitalize every character in the file using the Standard C
+<B>toupper(&#160;)</B> macro. Write the result out to a new file, and
+<B>delete</B> the memory allocated by <B>os</B>.<LI>	Create a program that opens
+a file (the first argument on the command line) and searches it for any one of a
+set of words (the remaining arguments on the command line). Read the input a
+line at a time, and print out the lines (with line numbers) that
+match.<LI>	Write a program that adds a copyright notice to the beginning of all
+source-code files. This is a small modification to exercise 1.<LI>	Use your
+favorite text-searching program (<B>grep</B>, for example) to output the names
+(only) of all the files that contain a particular pattern. Redirect the output
+into a file. Write a program that uses the contents of that file to generate a
+batch file that invokes your editor on each of the files found by the search
+program.</OL>
+<HR><DIV ALIGN="LEFT"><P><A NAME="fn6" HREF="#fnB6">[6]</A><FONT SIZE=2> The
+implementation and test files for FULLWRAP are available in the freely
+distributed source code for this book. See preface for details.</FONT><BR></P></DIV>
+<DIV ALIGN="LEFT"><P><A NAME="fn7" HREF="#fnB7">[7]</A><FONT SIZE=2> Newer
+implementations of iostreams will still support this style of handling errors,
+but in some cases will also throw exceptions.</FONT><BR></P></DIV>
+<DIV ALIGN="LEFT"><P><A NAME="fn8" HREF="#fnB8">[8]</A><FONT SIZE=2> These only
+appear in the revised library; you won&#8217;t find them in older
+implementations of iostreams.</FONT><BR></P></DIV>
+<DIV ALIGN="LEFT"><P><A NAME="fn9" HREF="#fnB9">[9]</A><FONT SIZE=2> Before putting
+<B>nl</B> into a header file, you should make it an <B>inline</B> function (see
+Chapter 7).</FONT><BR></P></DIV>
+<DIV ALIGN="LEFT"><P><A NAME="fn10" HREF="#fnB10">[10]</A><FONT SIZE=2> In a
+private conversation.</FONT><BR></P></DIV>
+
+<DIV ALIGN="CENTER">
+    <FONT FACE="Verdana" size = "-1">
+     [ <a href="Chapter01.html">Previous Chapter</a> ] 
+    [ <a href="SimpleContents.html">Short TOC</a> ] 
+    [ <a href="Contents.html">Table of Contents</a> ] 
+    [ <a href="DocIndex.html">Index</a> ]
+     [ <a href="Chapter03.html">Next Chapter</a> ] 
+    </FONT>
+    <BR>
+ Last Update:05/23/2000</P></DIV>
+
+</BODY>
+
+</HTML>

@@ -1,0 +1,335 @@
+#: :CompileDB.txt
+# Compiler information listings for Thinking in 
+# C++ 2nd Edition By Bruce Eckel. See copyright 
+# notice in Copyright.txt.
+# This is used by ExtractCode.cpp to generate the
+# makefiles for the book, including the command-
+# line flags for each vendor's compiler and 
+# linker. Following that are the code listings 
+# from the book that will not compile for each 
+# compiler. The listings are, to the best of my 
+# knowledge, correct Standard C++ (According to 
+# the Final Draft International Standard). Please
+# note that the tests were performed with the 
+# most recent compiler that I had at the time, 
+# and may have changed since this file was 
+# created.
+# After ExtractCode.cpp creates the makefiles
+# for each chapter subdirectory, you can say 
+# "make gcc", for example, and all the programs
+# that will successfully compile with gcc will
+# be built.
+#################################################
+# Compiling all files, for a (theoretical) fully-
+# conformant compiler. This assumes a typical
+# compiler under dos:
+{ all }
+# Object file name extension in parentheses:
+(obj)
+# Executable file extension in square brackets:
+[exe]
+# The leading '&' is for special directives. The
+# dos directive means to replace '/' 
+# with '\' in all directory paths:
+&dos
+# The following lines will be inserted directly
+# into the makefile (sans the leading '@' sign)
+# If your environment variables are set to 
+# establish these you won't need to use arguments
+# on the make command line to set them:
+# CPP: the name of your C++ compiler
+# CPPFLAGS: Compilation flags for your compiler
+# OFLAG: flag to give the final executable name
+#@CPP = yourcompiler
+#@CPPFLAGS =
+#@OFLAG = -e
+@.SUFFIXES : .obj .cpp .c
+@.cpp.obj :
+@   $(CPP) $(CPPFLAGS) -c $<
+@.c.obj :
+@   $(CPP) $(CPPFLAGS) -c $<
+# Assumes all files will compile
+# See later for an example of Unix configuration
+#################################################
+# Borland C++ Builder 4 -- With Upgrade!!!
+# Target name used in makefile:
+{ Borland }
+# Object file name extension in parentheses:
+(obj)
+# Executable file extension in square brackets:
+[exe]
+# The leading '&' is for special directives. The
+# dos directive means to replace '/' 
+# with '\' in all directory paths:
+&dos
+# Inserted directly into the makefile (without
+# the leading '@' sign):
+@# Note: this requires the upgrade from 
+@# www.Borland.com for successful compilation!
+@CPP = Bcc32
+@CPPFLAGS = -w-inl -w-csu -wnak	
+@OFLAG = -e
+@.SUFFIXES : .obj .cpp .c
+@.cpp.obj :
+@   $(CPP) $(CPPFLAGS) -c $<
+@.c.obj :
+@   $(CPP) $(CPPFLAGS) -c $<
+# Doesn't support static const 
+# array initialization:
+C10:StaticArray.cpp 
+# Problem with string constructors at run-time:
+C01:ICompare.cpp
+### ???
+C01:StringIterators.cpp
+# Template bug:
+C03:ArraySize.cpp
+# Not sure:
+C04:AssocInserter.cpp
+# Bitset is Broken in this compiler's library:
+C04:BitSet.cpp
+# Standard Library problem:
+C05:SearchReplace.cpp
+### ???
+C05:PtrFun1.cpp
+C05:PtrFun2.cpp
+C05:Removing.cpp
+# Function-level try blocks not implemented:
+C07:FunctionTryBlock.cpp
+# Uses the SGI STL extensions, so it actually 
+# isn't supposed to compile with this 
+# compiler:
+C04:MapVsHashMap.cpp
+C05:MemFun4.cpp
+C05:Compose2.cpp
+### ???
+C09:UseLog2.cpp
+C09:Recycle1.cpp
+C09:Recycle2.cpp
+C09:Recycle3.cpp
+C09:Recycle4.cpp
+C09:DoubleDispatch.cpp
+C09:DynaTrash.cpp
+#################################################
+# Visual C++ 6.0 -- With Service Pack 3!!!
+# Target name used in makefile:
+{ Microsoft }
+# Object file name extension in parentheses:
+(obj)
+# Executable file extension in square brackets:
+[exe]
+# The leading '&' is for special directives. The
+# dos directive means to replace '/' 
+# with '\' in all directory paths:
+&dos
+# Inserted directly into the makefile (without
+# the leading '@' sign):
+@# Note: this requires the service Pack 3 from 
+@# www.Microsoft.com for successful compilation!
+@CPP = cl
+@CPPFLAGS = -GX -GR
+@OFLAG = -o
+@.SUFFIXES : .obj .cpp .c
+@.cpp.obj :
+@   $(CPP) $(CPPFLAGS) -c $<
+@.c.obj :
+@   $(CPP) $(CPPFLAGS) -c $<
+C02:Incident.cpp
+# It can't even handle multiple "for(int i =...:"
+# statements in the same scope (a really old
+# language feature!):
+C02:Intvector.cpp
+C03:Assert.cpp
+C07:MemTest.cpp
+C09:Cpptime.cpp
+C12:Comma.cpp
+C13:GlobalOperatorNew.cpp
+C16:TStack2Test.cpp
+# Template scoping bug:
+C16:Drawing.cpp
+# Common problem with namespaces and C libraries:
+C01:ICompare.cpp
+C02:FileClassTest.cpp
+C02:Datagen.cpp
+C02:Datascan.cpp
+# Can't do template type induction properly:
+C03:ArraySize.cpp
+# Doesn't know about template-templates:
+C03:TemplateTemplate.cpp
+C03:applyGromit2.cpp
+# Can't do template specializations:
+C03:Sorted.cpp
+# Can't do explicit template instantiation:
+C03:ExplicitInstantiation.cpp
+# Missing part of iostreams:
+C04:StreamIt.cpp
+# Problem with STL:
+C04:BasicSequenceOperations.cpp
+C04:VectorCoreDump.cpp
+C04:DequeConversion.cpp
+C04:Stack2.cpp
+# Problem with static class initializer:
+C04:BankTeller.cpp
+# Missing STL functionality:
+C04:VectorOfBool.cpp
+# STL problem:
+C04:AssocInserter.cpp
+# Various problems:
+C04:WildLifeMonitor.cpp
+C04:MultiSet1.cpp
+C04:Thesaurus.cpp
+# These use the SGI STL extensions, so they 
+# actually aren't supposed to compile 
+# with this compiler:
+C04:MapVsHashMap.cpp
+C05:Compose2.cpp
+# Namespace problem again, and other issues:
+C05:FunctionObjects.cpp
+C05:Binder1.cpp
+C05:Binder3.cpp
+C05:Binder4.cpp
+C05:RandGenTest.cpp
+C05:MemFun1.cpp
+C05:MemFun2.cpp
+C05:FindBlanks.cpp
+C05:MemFun3.cpp
+C05:MemFun4.cpp
+C05:FillGenerateTest.cpp
+C05:Counting.cpp
+C05:Manipulations.cpp
+C05:SearchReplace.cpp
+C05:Comparison.cpp
+C05:Removing.cpp
+C05:SortTest.cpp
+C05:SortedSearchTest.cpp
+C05:MergeTest.cpp
+C05:SetOperations.cpp
+C05:ForEach.cpp
+C05:Transform.cpp
+C05:CalcInventory.cpp
+C05:TransformNames.cpp
+C05:SpecialList.cpp
+C05:NumericTest.cpp
+# Most compilers don't support this yet:
+C07:FunctionTryBlock.cpp
+# Lack of support for 'static const' again:
+C09:Recycle2.cpp
+C10:ExtractCode.cpp
+C10:MemTest.cpp
+# All these do not compile only becase of the
+# lack of support for 'static const'. To make
+# them compile, you must substitute the
+# 'enum hack' shown in chapter 8:
+C08:StringStack.cpp 
+C08:Quoter.cpp
+C08:Volatile.cpp
+C10:StaticArray.cpp 
+C11:HowMany2.cpp 
+C11:Autocc.cpp 
+C11:Pmem2.cpp 
+C12:Smartp.cpp 
+C12:Iosop.cpp 
+C12:CopyingWithPointers.cpp 
+C12:ReferenceCounting.cpp 
+C12:TracedReferenceCounting.cpp 
+C13:MallocClass.cpp 
+C13:Framis.cpp 
+C13:ArrayOperatorNew.cpp 
+C14:FName1.cpp 
+C14:FName2.cpp 
+C16:IntStack.cpp 
+C16:Array.cpp 
+C16:Array2.cpp
+C16:StackTemplateTest.cpp
+C16:StackTemplate.cpp
+C16:IterIntStack.cpp
+C16:NestedIterator.cpp
+C07:Cleanup.cpp
+C08:Selfrtti.cpp 
+C08:Reinterp.cpp
+### ???
+C09:UseLog2.cpp
+C09:Recycle1.cpp
+C09:Recycle3.cpp
+C09:Recycle4.cpp
+C09:DoubleDispatch.cpp
+C09:DynaTrash.cpp
+#################################################
+# The gcc (Gnu g++) under Linux
+{ gcc }
+(o)
+[]
+# The unix directive controls the way some of the
+# makefile lines are generated:
+&unix
+@CPP = g++
+@OFLAG = -o
+@.SUFFIXES : .o .cpp .c
+@.cpp.o :
+@   $(CPP) $(CPPFLAGS) -c $<
+@.c.o :
+@   $(CPP) $(CPPFLAGS) -c $<
+# Files that won't compile
+# Error in streambuf.h:
+C02:Cppcheck.cpp
+# Not sure:
+C03:applyGromit2.cpp
+# Missing the standard library 'at()':
+C03:Sorted.cpp
+C03:ExplicitInstantiation.cpp
+### ???
+C03:TemplateFunctionAddress.cpp
+# Problem with the gcc iterator header
+C04:StreambufIterator.cpp
+C04:RawStorageIterator.cpp
+# gcc is missing istreambuf_iterator
+C04:WordList2.cpp
+C04:TokenizeTest.cpp
+C04:TokenIteratorTest.cpp
+C04:WordCount.cpp
+C04:MultiSetWordCount.cpp
+# gcc is missing std::iterator:
+C04:Ring.cpp
+####
+C04:BasicSequenceOperations.cpp
+C04:DequeConversion.cpp
+C04:Stack2.cpp
+C04:AssocInserter.cpp
+# gcc is missing char_traits
+C01:ICompare.cpp
+# gcc vector and deque (at least) are missing
+# the "at()" functions:
+C04:IndexingVsAt.cpp
+# There's a problem with the gcc string class:
+C01:Compare2.cpp
+# Broken in this compiler's library:
+C04:BitSet.cpp
+# These are because <sstream> isn't implemented
+C02:NumberPhotos.cpp
+C03:stringConvTest.cpp
+C04:StringVector.cpp
+C04:FEditTest.cpp
+C04:StringDeque.cpp
+C04:VectorOfBool.cpp
+C04:WildLifeMonitor.cpp
+C05:SortTest.cpp
+C05:SortedSearchTest.cpp
+C05:Binder4.cpp 
+C05:ForEach.cpp
+### ???
+C05:MemFun2.cpp
+C05:Transform.cpp
+# Problem in parsing PrintSequence.h:
+C05:Counting.cpp
+C05:Manipulations.cpp
+C05:SearchReplace.cpp
+C05:Comparison.cpp
+C05:Removing.cpp
+C05:CalcInventory.cpp
+C05:TransformNames.cpp
+C05:SpecialList.cpp
+C05:NumericTest.cpp
+### ???
+C09:UseLog2.cpp
+C09:DynaTrash.cpp
+# The end tag is required:
+#///:~

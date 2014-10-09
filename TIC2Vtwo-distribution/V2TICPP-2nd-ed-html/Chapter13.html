@@ -1,0 +1,3047 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<!--
+This document was converted from RTF source: 
+By rtftohtml 4.19
+See http://www.sunpack.com/RTF
+Filename:TicV2.rtf
+Application Directory:c:\TOOLS\RTF2HTML\
+Subject:
+Author:Bruce Eckel
+Operator:Bruce Eckel
+Document Comments:
+Version Comments:
+Comments:
+Keywords:
+Translation Date:02/08/2000
+Translation Time:09:45:59
+Translation Platform:Win32
+Number of Output files:19
+This File:Chapter13.html
+SplitDepth=1
+SkipNavPanel=1
+SkipLeadingToc=1
+SkipTrailingToc=1
+GenContents=1
+GenFrames=1
+GenIndex=1
+-->
+<HEAD lang="en"><META http-equiv="Content-Type" content="text/html">
+<TITLE>11: Tools &amp; topics</TITLE>
+</HEAD>
+
+<BODY  BGCOLOR="#FFFFFF"><DIV ALIGN="CENTER">
+  <a href="http://www.MindView.net">
+  <img src="mindview-head.gif" alt="MindView Inc." BORDER = "0"></a>
+  <CENTER>
+    <FONT FACE="Verdana" size = "-1">
+    [ <a href="README-HTML.txt">Viewing Hints</a> ]
+    [ <a href="RevisionHistory.html">Revision History</a> ]
+    [ <a href="http://www.mindview.net/MailingList.html">Free Newsletter</a> ] <br>
+    [ <a href="http://www.mindview.net/CPPServices/#PublicSeminars">Seminars</a> ]
+    [ <a href="http://www.mindview.net/CPPServices/#SeminarsOnCD">Seminars on CD ROM</a> ]
+    [ <a href="http://www.mindview.net/CPPServices/#ConsultingServices">Consulting</a> ]
+    </FONT>
+  <H2><FONT FACE="Verdana">
+  Thinking in Java, 2nd edition, Revision 2</FONT></H2>
+  <H3><FONT FACE="Verdana">&copy;2000 by Bruce Eckel</FONT></H3>
+  
+    <FONT FACE="Verdana" size = "-1">
+     [ <a href="Chapter12.html">Previous Chapter</a> ] 
+    [ <a href="SimpleContents.html">Short TOC</a> ] 
+    [ <a href="Contents.html">Table of Contents</a> ] 
+    [ <a href="DocIndex.html">Index</a> ]
+     [ <a href="AppendixA.html">Next Chapter</a> ] 
+    </FONT>
+    
+  </CENTER>
+  </P></DIV><A NAME="_Toc462393612"></A><A NAME="Heading347"></A><FONT FACE = "Verdana"><H1 ALIGN="LEFT">
+11: Tools &amp; topics</H1></FONT>
+<DIV ALIGN="LEFT"><P><FONT SIZE=4>Tools created &amp; used during the development
+of this book and various other handy
+things</FONT><A NAME="_Toc462393613"></A><BR></P></DIV>
+<A NAME="Heading348"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+The code extractor</H2></FONT>
+<DIV ALIGN="LEFT"><P>The code for this book is automatically extracted directly
+from the ASCII text version of this book. The book is normally maintained in a
+word processor capable of producing camera-ready copy, automatically creating
+the table of contents and index, etc. To generate the code files, the book is
+saved into a plain ASCII text file, and the program in this section
+automatically extracts all the code files, places them in appropriate
+subdirectories, and generates all the makefiles. The entire contents of the book
+can then be built, for each compiler, by invoking a single <B>make</B> command.
+This way, the code listings in the book can be regularly tested and verified,
+and in addition various compilers can be tested for some degree of compliance
+with Standard C++ (the degree to which all the examples in the book can exercise
+a particular compiler, which is not too bad). <BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The code in this book is designed to be as generic as
+possible, but it is only tested under two operating systems: 32-bit Windows and
+Linux (using the Gnu C++ compiler <B>g++</B>, which means it should compile
+under other versions of Unix without too much trouble). You can easily get the
+latest sources for the book onto your machine by going to the web site
+<B>www.BruceEckel.com</B> and downloading the zipped archive containing all the
+code files and makefiles. If you unzip this you&#8217;ll have the book&#8217;s
+directory tree available. However, it may not be configured for your particular
+compiler or operating system. In this case, you can generate your own using the
+ASCII text file for the book (available at <B>www.BruceEckel.com</B>) and the
+<B>ExtractCode.cpp </B>program in this section. Using a text editor, you find
+the <B>CompileDB.txt</B> file inside the ASCII text file for the book, edit it
+(leaving it the book&#8217;s text file) to adapt it to your compiler and
+operating system, and then hand it to the ExtractCode program to generate your
+own source tree and makefiles.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>You&#8217;ve seen that each file to be extracted contains a
+starting marker (which includes the file name and path) and an ending marker.
+Files can be of any type, and if the colon after the comment is directly
+followed by a &#8216;!&#8217; then the starting and ending marker lines are not
+reproduced in the generated file. In addition, you&#8217;ve seen the other
+markers <B>{O}</B>, <B>{L}</B>, and <B>{T}</B> that have been placed inside
+comments; these are used to generate the makefile for each
+subdirectory.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>If there&#8217;s a mistake in the input file, then the program
+must report the error, which is the <B>error(&#160;)</B> function at the
+beginning of the program. In addition, directory manipulation is not supported
+by the standard libraries, so this is hidden away in the class
+<B>OSDirControl</B>. If you discover that this class will not compile on your
+system, you must replace the non-portable function calls in <B>OSDirControl</B>
+with equivalent calls from your library.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Although this program is very useful for distributing the code
+in the book, you&#8217;ll see that it&#8217;s also a useful example in its own
+right, since it partitions everything into sensible objects and also makes heavy
+use of the STL and the standard <B>string</B> class. You may note that one or
+two pieces of code might be duplicated from other parts of the book, and you
+might observe that some of the tools created within the program might have been
+broken out into their own reusable header files and <B>cpp</B> files. However,
+for easy unpacking of the book&#8217;s source code it made more sense to keep
+everything lumped together in a single file.<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:ExtractCode.cpp</font>
+<font color=#009900>// Automatically extracts code files from</font>
+<font color=#009900>// ASCII text of this book.</font>
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+#include &lt;map&gt;
+#include &lt;set&gt;
+#include &lt;algorithm&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+string copyright =
+  <font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/ From Thinking in C++, 2nd Edition\n"</font>
+  <font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/ Available at http:</font><font color=#004488>/</font><font color=#004488>/www.BruceEckel.com\n"</font>
+  <font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/ (c) Bruce Eckel 1999\n"</font>
+  <font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/ Copyright notice in Copyright.txt\n"</font>;
+
+string usage =
+  <font color=#004488>" Usage:ExtractCode source\n"</font>
+  <font color=#004488>"where source is the ASCII file containing \n"</font>
+  <font color=#004488>"the embedded tagged sourcefiles. The ASCII \n"</font>
+  <font color=#004488>"file must also contain an embedded compiler\n"</font>
+  <font color=#004488>"configuration file called CompileDB.txt \n"</font>
+  <font color=#004488>"See Thinking in C++, 2nd ed. for details\n"</font>;
+
+<font color=#009900>// Tool to remove the white space from both ends:</font>
+string trim(<font color=#0000ff>const</font> string&amp; s) {
+  <font color=#0000ff>if</font>(s.length() == 0)
+    <font color=#0000ff>return</font> s;
+  <font color=#0000ff>int</font> b = s.find_first_not_of(<font color=#004488>" \t"</font>);
+  <font color=#0000ff>int</font> e = s.find_last_not_of(<font color=#004488>" \t"</font>);
+  <font color=#0000ff>if</font>(b == -1) <font color=#009900>// No non-spaces</font>
+    <font color=#0000ff>return</font> <font color=#004488>""</font>;
+  <font color=#0000ff>return</font> string(s, b, e - b + 1);
+}
+
+<font color=#009900>// Manage all the error messaging:</font>
+<font color=#0000ff>void</font> error(string problem, string message) {
+  <font color=#0000ff>static</font> <font color=#0000ff>const</font> string border(
+  <font color=#004488>"-----------------------------------------\n"</font>);
+  <font color=#0000ff>class</font> ErrReport {
+    <font color=#0000ff>int</font> count;
+    string fname;
+  <font color=#0000ff>public</font>:
+    ofstream errs;
+    ErrReport(<font color=#0000ff>char</font>* fn = <font color=#004488>"ExtractCodeErrors.txt"</font>) 
+      : count(0),fname(fn),errs(fname.c_str()) {}
+    <font color=#0000ff>void</font> <font color=#0000ff>operator</font>++(<font color=#0000ff>int</font>) { count++; }
+    ~ErrReport() {
+      errs.close();
+      <font color=#009900>// Dump error messages to console</font>
+      ifstream in(fname.c_str());
+      cerr &lt;&lt; in.rdbuf() &lt;&lt; endl;
+      cerr &lt;&lt; count &lt;&lt; <font color=#004488>" Errors found"</font> &lt;&lt; endl;
+      cerr &lt;&lt; <font color=#004488>"Messages in "</font> &lt;&lt; fname &lt;&lt; endl;
+    }
+  };
+  <font color=#009900>// Created on first call to this function;</font>
+  <font color=#009900>// Destructor reports total errors:</font>
+  <font color=#0000ff>static</font> ErrReport report;
+  report++;
+  report.errs &lt;&lt; border &lt;&lt; message &lt;&lt; endl
+    &lt;&lt; <font color=#004488>"Problem spot: "</font> &lt;&lt; problem &lt;&lt; endl;
+}
+
+<font color=#009900>///// OS-specific code, hidden inside a class:</font>
+#ifdef __GNUC__  <font color=#009900>// For gcc under Linux/Unix</font>
+#include &lt;unistd.h&gt;
+#include &lt;sys/stat.h&gt;
+#include &lt;stdlib.h&gt;
+<font color=#0000ff>class</font> OSDirControl {
+<font color=#0000ff>public</font>:
+  <font color=#0000ff>static</font> string getCurrentDir() {
+    <font color=#0000ff>char</font> path[PATH_MAX];
+    getcwd(path, PATH_MAX);
+    <font color=#0000ff>return</font> string(path);
+  }
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> makeDir(string dir) {
+    mkdir(dir.c_str(), 0777);
+  }
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> changeDir(string dir) {
+    chdir(dir.c_str());
+  }
+};
+#<font color=#0000ff>else</font> <font color=#009900>// For Dos/Windows:</font>
+#include &lt;direct.h&gt;
+<font color=#0000ff>class</font> OSDirControl {
+<font color=#0000ff>public</font>:
+  <font color=#0000ff>static</font> string getCurrentDir() {
+    <font color=#0000ff>char</font> path[_MAX_PATH];
+    getcwd(path, _MAX_PATH);
+    <font color=#0000ff>return</font> string(path);
+  }
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> makeDir(string dir) {
+    mkdir(dir.c_str());
+  }
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> changeDir(string dir) {
+    chdir(dir.c_str());
+  }
+};
+#endif <font color=#009900>///// End of OS-specific code</font>
+
+<font color=#0000ff>class</font> PushDirectory {
+  string oldpath;
+<font color=#0000ff>public</font>:
+  PushDirectory(string path);
+  ~PushDirectory() {
+    OSDirControl::changeDir(oldpath);
+  }
+  <font color=#0000ff>void</font> pushOneDir(string dir) {
+    OSDirControl::makeDir(dir);
+    OSDirControl::changeDir(dir);
+  }
+};
+
+PushDirectory::PushDirectory(string path) {
+  oldpath = OSDirControl::getCurrentDir();
+  <font color=#0000ff>while</font>(path.length() != 0) {
+    <font color=#0000ff>int</font> colon = path.find(':');
+    <font color=#0000ff>if</font>(colon != string::npos) {
+      pushOneDir(path.substr(0, colon));
+      path = path.substr(colon + 1);
+    } <font color=#0000ff>else</font> {
+      pushOneDir(path);
+      <font color=#0000ff>return</font>;
+    }
+  }
+}
+
+<font color=#009900>//--------------- Manage code files -------------</font>
+<font color=#009900>// A CodeFile object knows everything about a</font>
+<font color=#009900>// particular code file, including contents, path</font>
+<font color=#009900>// information, how to compile, link, and test </font>
+<font color=#009900>// it, and which compilers it won't compile with.</font>
+<font color=#0000ff>enum</font> TType {header, object, executable, none};
+
+<font color=#0000ff>class</font> CodeFile {
+  TType _targetType;
+  string _rawName, <font color=#009900>// Original name from input</font>
+    _path, <font color=#009900>// Where the source file lives</font>
+    _file, <font color=#009900>// Name of the source file</font>
+    _base, <font color=#009900>// Name without extension</font>
+    _tname, <font color=#009900>// Target name</font>
+    _testArgs; <font color=#009900>// Command-line arguments</font>
+  vector&lt;string&gt;
+    lines, <font color=#009900>// Contains the file</font>
+    _compile, <font color=#009900>// Compile dependencies</font>
+    _link; <font color=#009900>// How to link the executable</font>
+  set&lt;string&gt;
+    _noBuild; <font color=#009900>// Compilers it won't compile with</font>
+  <font color=#0000ff>bool</font> writeTags; <font color=#009900>// Whether to write the markers</font>
+  <font color=#009900>// Initial makefile processing for the file:</font>
+  <font color=#0000ff>void</font> target(<font color=#0000ff>const</font> string&amp; s);
+  <font color=#009900>// For quoted #include headers:</font>
+  <font color=#0000ff>void</font> headerLine(<font color=#0000ff>const</font> string&amp; s);
+  <font color=#009900>// For special dependency tag marks:</font>
+  <font color=#0000ff>void</font> dependLine(<font color=#0000ff>const</font> string&amp; s);
+<font color=#0000ff>public</font>:
+  CodeFile(istream&amp; in, string&amp; s);
+  <font color=#0000ff>const</font> string&amp; rawName() { <font color=#0000ff>return</font> _rawName; }
+  <font color=#0000ff>const</font> string&amp; path() { <font color=#0000ff>return</font> _path; }
+  <font color=#0000ff>const</font> string&amp; file() { <font color=#0000ff>return</font> _file; }
+  <font color=#0000ff>const</font> string&amp; base() { <font color=#0000ff>return</font> _base; }
+  <font color=#0000ff>const</font> string&amp; targetName() { <font color=#0000ff>return</font> _tname; }
+  TType targetType() { <font color=#0000ff>return</font> _targetType; }
+  <font color=#0000ff>const</font> vector&lt;string&gt;&amp; compile() {
+    <font color=#0000ff>return</font> _compile;
+  }
+  <font color=#0000ff>const</font> vector&lt;string&gt;&amp; link() {
+    <font color=#0000ff>return</font> _link;
+  }
+  <font color=#0000ff>const</font> set&lt;string&gt;&amp; noBuild() {
+    <font color=#0000ff>return</font> _noBuild;
+  }
+  <font color=#0000ff>const</font> string&amp; testArgs() { <font color=#0000ff>return</font> _testArgs; }
+  <font color=#009900>// Add a compiler it won't compile with:</font>
+  <font color=#0000ff>void</font> addFailure(<font color=#0000ff>const</font> string&amp; failure) {
+    _noBuild.insert(failure);
+  }
+  <font color=#0000ff>bool</font> compilesOK(string compiler) {
+    <font color=#0000ff>return</font> _noBuild.count(compiler) == 0;
+  }
+  <font color=#0000ff>friend</font> ostream&amp;
+  <font color=#0000ff>operator</font>&lt;&lt;(ostream&amp; os, <font color=#0000ff>const</font> CodeFile&amp; cf) {
+    copy(cf.lines.begin(), cf.lines.end(),
+      ostream_iterator&lt;string&gt;(os, <font color=#004488>""</font>));
+    <font color=#0000ff>return</font> os;
+  }
+  <font color=#0000ff>void</font> write() {
+    PushDirectory pd(_path);
+    ofstream listing(_file.c_str());
+    listing &lt;&lt; *<font color=#0000ff>this</font>;  <font color=#009900>// Write the file</font>
+  }
+  <font color=#0000ff>void</font> dumpInfo(ostream&amp; os);
+};
+
+<font color=#0000ff>void</font> CodeFile::target(<font color=#0000ff>const</font> string&amp; s) {
+  <font color=#009900>// Find the base name of the file (without</font>
+  <font color=#009900>// the extension):</font>
+  <font color=#0000ff>int</font> lastDot = _file.find_last_of('.');
+  <font color=#0000ff>if</font>(lastDot == string::npos) {
+    error(s, <font color=#004488>"Missing extension"</font>);
+    exit(1);
+  }
+  _base = _file.substr(0, lastDot);
+  <font color=#009900>// Determine the type of file and target:</font>
+  <font color=#0000ff>if</font>(s.find(<font color=#004488>".h"</font>) != string::npos ||
+     s.find(<font color=#004488>".H"</font>) != string::npos) {
+    _targetType = header;
+    _tname = _file;
+    <font color=#0000ff>return</font>;
+  }
+  <font color=#0000ff>if</font>(s.find(<font color=#004488>".txt"</font>) != string::npos
+      || s.find(<font color=#004488>".TXT"</font>) != string::npos
+      || s.find(<font color=#004488>".dat"</font>) != string::npos
+      || s.find(<font color=#004488>".DAT"</font>) != string::npos) {
+    <font color=#009900>// Text file, not involved in make</font>
+    _targetType = none;
+    _tname = _file;
+    <font color=#0000ff>return</font>;
+  }
+  <font color=#009900>// C++ objs/exes depend on their own source:</font>
+  _compile.push_back(_file);
+  <font color=#0000ff>if</font>(s.find(<font color=#004488>"{O}"</font>) != string::npos) {
+    <font color=#009900>// Don't build an executable from this file</font>
+    _targetType = object;
+    _tname = _base;
+  } <font color=#0000ff>else</font> {
+    _targetType = executable;
+    _tname = _base;
+    <font color=#009900>// The exe depends on its own object file:</font>
+    _link.push_back(_base);
+  }
+}
+
+<font color=#0000ff>void</font> CodeFile::headerLine(<font color=#0000ff>const</font> string&amp; s) {
+  <font color=#0000ff>int</font> start = s.find('\"');
+  <font color=#0000ff>int</font> end = s.find('\"', start + 1);
+  <font color=#0000ff>int</font> len = end - start - 1;
+  _compile.push_back(s.substr(start + 1, len));
+}
+
+<font color=#0000ff>void</font> CodeFile::dependLine(<font color=#0000ff>const</font> string&amp; s) {
+  <font color=#0000ff>const</font> string linktag(<font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/{L} "</font>);
+  string deps = trim(s.substr(linktag.length()));
+  <font color=#0000ff>while</font>(<font color=#0000ff>true</font>) {
+    <font color=#0000ff>int</font> end = deps.find(' ');
+    string dep = deps.substr(0, end);
+    _link.push_back(dep);
+    <font color=#0000ff>if</font>(end == string::npos) <font color=#009900>// Last one</font>
+      <font color=#0000ff>break</font>;
+    <font color=#0000ff>else</font>
+      deps = trim(deps.substr(end));
+  }
+}
+
+CodeFile::CodeFile(istream&amp; in, string&amp; s) {
+  <font color=#009900>// If false, don't write begin &amp; end tags:</font>
+  writeTags = (s[3] != '!');
+  <font color=#009900>// Assume a space after the starting tag:</font>
+  _file = s.substr(s.find(' ') + 1);
+  <font color=#009900>// There will always be at least one colon:</font>
+  <font color=#0000ff>int</font> lastColon = _file.find_last_of(':');
+  <font color=#0000ff>if</font>(lastColon == string::npos) {
+    error(s, <font color=#004488>"Missing path"</font>);
+    lastColon = 0; <font color=#009900>// Recover from error</font>
+  }
+  _rawName = trim(_file);
+  _path = _file.substr(0, lastColon);
+  _file = _file.substr(lastColon + 1);
+  _file =_file.substr(0,_file.find_last_of(' '));
+  cout &lt;&lt; <font color=#004488>"path = ["</font> &lt;&lt; _path &lt;&lt; <font color=#004488>"] "</font>
+    &lt;&lt; <font color=#004488>"file = ["</font> &lt;&lt; _file &lt;&lt; <font color=#004488>"]"</font> &lt;&lt; endl;
+  target(s); <font color=#009900>// Determine target type</font>
+  <font color=#0000ff>if</font>(writeTags){
+    lines.push_back(s + '\n');
+    lines.push_back(copyright);
+  }
+  string s2;
+  <font color=#0000ff>while</font>(getline(in, s2)) {
+    <font color=#009900>// Look for specified link dependencies:</font>
+    <font color=#0000ff>if</font>(s2.find(<font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/{L}"</font>) == 0) <font color=#009900>// 0: Start of line</font>
+      dependLine(s2);
+    <font color=#009900>// Look for command-line arguments for test:</font>
+    <font color=#0000ff>if</font>(s2.find(<font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/{T}"</font>) == 0) <font color=#009900>// 0: Start of line</font>
+      _testArgs = s2.substr(strlen(<font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/{T}"</font>) + 1);
+    <font color=#009900>// Look for quoted includes:</font>
+    <font color=#0000ff>if</font>(s2.find(<font color=#004488>"#include \"</font>") != string::npos) {
+      headerLine(s2); <font color=#009900>// Grab makefile info</font>
+    }
+    <font color=#009900>// Look for end marker:</font>
+    <font color=#0000ff>if</font>(s2.find(<font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/"</font> <font color=#004488>"</font><font color=#004488>/:~"</font>) != string::npos) {
+      <font color=#0000ff>if</font>(writeTags)
+        lines.push_back(s2 + '\n');
+      <font color=#0000ff>return</font>;  <font color=#009900>// Found the end</font>
+    }
+    <font color=#009900>// Make sure you don't see another start:</font>
+    <font color=#0000ff>if</font>(s2.find(<font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/"</font> <font color=#004488>":"</font>) != string::npos
+       || s2.find(<font color=#004488>"</font><font color=#004488>/*"</font> <font color=#004488>":"</font>) != string::npos) {
+      error(s, <font color=#004488>"Error: new file started before"</font>
+        <font color=#004488>" previous file concluded"</font>);
+      <font color=#0000ff>return</font>;
+    }
+    <font color=#009900>// Write ordinary line:</font>
+    lines.push_back(s2 + '\n');
+  }
+}
+
+<font color=#0000ff>void</font> CodeFile::dumpInfo(ostream&amp; os) {
+  os &lt;&lt; _path &lt;&lt; ':' &lt;&lt; _file &lt;&lt; endl;
+  os &lt;&lt; <font color=#004488>"target: "</font> &lt;&lt; _tname &lt;&lt; endl;
+  os &lt;&lt; <font color=#004488>"compile: "</font> &lt;&lt; endl;
+  <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; _compile.size(); i++)
+    os &lt;&lt; '\t' &lt;&lt; _compile[i] &lt;&lt; endl;
+  os &lt;&lt; <font color=#004488>"link: "</font> &lt;&lt; endl;
+  <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; _link.size(); i++)
+    os &lt;&lt; '\t' &lt;&lt; _link[i] &lt;&lt; endl;
+  <font color=#0000ff>if</font>(_noBuild.size() != 0) {
+    os &lt;&lt; <font color=#004488>"Won't build with: "</font> &lt;&lt; endl;
+    copy(_noBuild.begin(), _noBuild.end(),
+      ostream_iterator&lt;string&gt;(os, <font color=#004488>"\n"</font>));
+  }
+}
+
+<font color=#009900>//--------- Manage compiler information ---------</font>
+<font color=#0000ff>class</font> CompilerData {
+  <font color=#009900>// Information about each compiler:</font>
+  vector&lt;string&gt; rules; <font color=#009900>// Makefile rules</font>
+  set&lt;string&gt; fails; <font color=#009900>// Non-compiling files</font>
+  string objExtension; <font color=#009900>// File name extensions</font>
+  string exeExtension;
+  <font color=#009900>// For OS-specific activities:</font>
+  <font color=#0000ff>bool</font> _dos, _unix;
+  <font color=#009900>// Store the information for all the compilers:</font>
+  <font color=#0000ff>static</font> map&lt;string, CompilerData&gt; compilerInfo;
+  <font color=#0000ff>static</font> set&lt;string&gt; _compilerNames;
+<font color=#0000ff>public</font>:
+  CompilerData() : _dos(<font color=#0000ff>false</font>), _unix(<font color=#0000ff>false</font>) {}
+  <font color=#009900>// Read database of various compiler's </font>
+  <font color=#009900>// information and failure listings for </font>
+  <font color=#009900>// compiling the book files:</font>
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> readDB(istream&amp; in);
+  <font color=#009900>// For enumerating all the compiler names:</font>
+  <font color=#0000ff>static</font> set&lt;string&gt;&amp; compilerNames() {
+    <font color=#0000ff>return</font> _compilerNames;
+  }
+  <font color=#009900>// Tell this CodeFile which compilers</font>
+  <font color=#009900>// don't work with it:</font>
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> addFailures(CodeFile&amp; cf);
+  <font color=#009900>// Produce the proper object file name</font>
+  <font color=#009900>// extension for this compiler:</font>
+  <font color=#0000ff>static</font> string obj(string compiler);
+  <font color=#009900>// Produce the proper executable file name</font>
+  <font color=#009900>// extension for this compiler:</font>
+  <font color=#0000ff>static</font> string exe(string compiler);
+  <font color=#009900>// For inserting a particular compiler's</font>
+  <font color=#009900>// rules into a makefile:</font>
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> 
+  writeRules(string compiler, ostream&amp; os);
+  <font color=#009900>// Change forward slashes to backward </font>
+  <font color=#009900>// slashes if necessary:</font>
+  <font color=#0000ff>static</font> string 
+  adjustPath(string compiler, string path);
+  <font color=#009900>// So you can ask if it's a Unix compiler:</font>
+  <font color=#0000ff>static</font> <font color=#0000ff>bool</font> isUnix(string compiler) {
+    <font color=#0000ff>return</font> compilerInfo[compiler]._unix;
+  }
+  <font color=#009900>// So you can ask if it's a dos compiler:</font>
+  <font color=#0000ff>static</font> <font color=#0000ff>bool</font> isDos(string compiler) {
+    <font color=#0000ff>return</font> compilerInfo[compiler]._dos;
+  }
+  <font color=#009900>// Display information (for debugging):</font>
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> dump(ostream&amp; os = cout);
+};
+
+<font color=#009900>// Static initialization:</font>
+map&lt;string,CompilerData&gt; 
+  CompilerData::compilerInfo;
+set&lt;string&gt; CompilerData::_compilerNames;
+
+<font color=#0000ff>void</font> CompilerData::readDB(istream&amp; in) {
+  string compiler; <font color=#009900>// Name of current compiler</font>
+  string s;
+  <font color=#0000ff>while</font>(getline(in, s)) {
+    <font color=#0000ff>if</font>(s.find(<font color=#004488>"#</font><font color=#004488>/</font><font color=#004488>/"</font> <font color=#004488>"</font><font color=#004488>/:~"</font>) == 0)
+      <font color=#0000ff>return</font>; <font color=#009900>// Found end tag</font>
+    s = trim(s);
+    <font color=#0000ff>if</font>(s.length() == 0) <font color=#0000ff>continue</font>; <font color=#009900>// Blank line</font>
+    <font color=#0000ff>if</font>(s[0] == '#') <font color=#0000ff>continue</font>; <font color=#009900>// Comment</font>
+    <font color=#0000ff>if</font>(s[0] == '{') { <font color=#009900>// Different compiler</font>
+      compiler = s.substr(0, s.find('}'));
+      compiler = trim(compiler.substr(1));
+      <font color=#0000ff>if</font>(compiler.length() != 0)
+        _compilerNames.insert(compiler);
+      <font color=#0000ff>continue</font>; <font color=#009900>// Changed compiler name</font>
+    }
+    <font color=#0000ff>if</font>(s[0] == '(') { <font color=#009900>// Object file extension</font>
+      string obj = s.substr(1);
+      obj = trim(obj.substr(0, obj.find(')')));
+      compilerInfo[compiler].objExtension =obj;
+      <font color=#0000ff>continue</font>;
+    }
+    <font color=#0000ff>if</font>(s[0] == '[') { <font color=#009900>// Executable extension</font>
+      string exe = s.substr(1);
+      exe = trim(exe.substr(0, exe.find(']')));
+      compilerInfo[compiler].exeExtension =exe;
+      <font color=#0000ff>continue</font>;
+    }
+    <font color=#0000ff>if</font>(s[0] == '&amp;') { <font color=#009900>// Special directive</font>
+      <font color=#0000ff>if</font>(s.find(<font color=#004488>"dos"</font>) != string::npos)
+        compilerInfo[compiler]._dos = <font color=#0000ff>true</font>;
+      <font color=#0000ff>else</font> <font color=#0000ff>if</font>(s.find(<font color=#004488>"unix"</font>) != string::npos)
+        compilerInfo[compiler]._unix = <font color=#0000ff>true</font>;
+      <font color=#0000ff>else</font>
+        error(<font color=#004488>"Compiler Information Database"</font>, 
+          <font color=#004488>"unknown special directive: "</font> + s);
+      <font color=#0000ff>continue</font>;
+    }
+    <font color=#0000ff>if</font>(s[0] == '@') { <font color=#009900>// Makefile rule</font>
+      string rule(s.substr(1)); <font color=#009900>// Remove the @</font>
+      <font color=#0000ff>if</font>(rule[0] == ' ') <font color=#009900>// Space means tab</font>
+        rule = '\t' + trim(rule);
+      compilerInfo[compiler].rules
+        .push_back(rule); 
+      <font color=#0000ff>continue</font>;
+    }
+    <font color=#009900>// Otherwise, it's a failure line:</font>
+    compilerInfo[compiler].fails.insert(s);
+  }
+  error(<font color=#004488>"CompileDB.txt"</font>,<font color=#004488>"Missing end tag"</font>);
+}
+
+<font color=#0000ff>void</font> CompilerData::addFailures(CodeFile&amp; cf) {
+  set&lt;string&gt;::iterator it = 
+    _compilerNames.begin();
+  <font color=#0000ff>while</font>(it != _compilerNames.end()) {
+    <font color=#0000ff>if</font>(compilerInfo[*it]
+       .fails.count(cf.rawName()) != 0)
+      cf.addFailure(*it);
+    it++;
+  }
+}
+
+string CompilerData::obj(string compiler) {
+  <font color=#0000ff>if</font>(compilerInfo.count(compiler) != 0) {
+    string ext(
+      compilerInfo[compiler].objExtension);
+    <font color=#0000ff>if</font>(ext.length() != 0)
+      ext = '.' + ext; <font color=#009900>// Use '.' if it exists</font>
+    <font color=#0000ff>return</font> ext;
+  } <font color=#0000ff>else</font>
+    <font color=#0000ff>return</font> <font color=#004488>"No such compiler information"</font>;
+}
+
+string CompilerData::exe(string compiler) {
+  <font color=#0000ff>if</font>(compilerInfo.count(compiler) != 0) {
+    string ext(
+      compilerInfo[compiler].exeExtension);
+    <font color=#0000ff>if</font>(ext.length() != 0)
+      ext = '.' + ext; <font color=#009900>// Use '.' if it exists</font>
+    <font color=#0000ff>return</font> ext;
+  } <font color=#0000ff>else</font>
+    <font color=#0000ff>return</font> <font color=#004488>"No such compiler information"</font>;
+}
+
+<font color=#0000ff>void</font> CompilerData::writeRules(
+  string compiler, ostream&amp; os) {
+  <font color=#0000ff>if</font>(_compilerNames.count(compiler) == 0) {
+    os &lt;&lt; <font color=#004488>"No info on this compiler"</font> &lt;&lt; endl;
+    <font color=#0000ff>return</font>;
+  }
+  vector&lt;string&gt;&amp; r = 
+    compilerInfo[compiler].rules;
+  copy(r.begin(), r.end(), 
+    ostream_iterator&lt;string&gt;(os, <font color=#004488>"\n"</font>));
+}
+
+string CompilerData::adjustPath(
+  string compiler, string path) {
+  <font color=#009900>// Use STL replace() algorithm:</font>
+  <font color=#0000ff>if</font>(compilerInfo[compiler]._dos)
+    replace(path.begin(), path.end(), '/', '\\');
+  <font color=#0000ff>return</font> path;
+}
+
+<font color=#0000ff>void</font> CompilerData::dump(ostream&amp; os) {
+  ostream_iterator&lt;string&gt; out(os, <font color=#004488>"\n"</font>);
+  *out++ = <font color=#004488>"Compiler Names:"</font>;
+  copy(_compilerNames.begin(), 
+    _compilerNames.end(), out);
+  map&lt;string, CompilerData&gt;::iterator compIt;
+  <font color=#0000ff>for</font>(compIt = compilerInfo.begin(); 
+    compIt != compilerInfo.end(); compIt++) {
+    os &lt;&lt; <font color=#004488>"******************************\n"</font>;
+    os &lt;&lt; <font color=#004488>"Compiler: ["</font> &lt;&lt; (*compIt).first &lt;&lt;
+      <font color=#004488>"]"</font> &lt;&lt; endl;
+    CompilerData&amp; cd = (*compIt).second;
+    os &lt;&lt; <font color=#004488>"objExtension: "</font> &lt;&lt; cd.objExtension
+      &lt;&lt; <font color=#004488>"\nexeExtension: "</font> &lt;&lt; cd.exeExtension 
+      &lt;&lt; endl;
+    *out++ = <font color=#004488>"Rules:"</font>;
+    copy(cd.rules.begin(), cd.rules.end(), out);
+    cout &lt;&lt; <font color=#004488>"Won't compile with: "</font> &lt;&lt; endl;
+    copy(cd.fails.begin(), cd.fails.end(), out);
+  }
+}
+
+<font color=#009900>// ---------- Manage makefile creation ----------</font>
+<font color=#009900>// Create the makefile for this directory, based</font>
+<font color=#009900>// on each of the CodeFile entries:</font>
+<font color=#0000ff>class</font> Makefile {
+  vector&lt;CodeFile&gt; codeFiles;
+  <font color=#009900>// All the different paths </font>
+  <font color=#009900>// (for creating the Master makefile):</font>
+  <font color=#0000ff>static</font> set&lt;string&gt; paths;
+  <font color=#0000ff>void</font> 
+  createMakefile(string compiler, string path);
+<font color=#0000ff>public</font>:
+  Makefile() {}
+  <font color=#0000ff>void</font> addEntry(CodeFile&amp; cf) {
+    paths.insert(cf.path()); <font color=#009900>// Record all paths</font>
+    <font color=#009900>// Tell it what compilers don't work with it:</font>
+    CompilerData::addFailures(cf);
+    codeFiles.push_back(cf);
+  }
+  <font color=#009900>// Write the makefile for each compiler:</font>
+  <font color=#0000ff>void</font> writeMakefiles(string path);
+  <font color=#009900>// Create the master makefile:</font>
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> writeMaster(string flag = <font color=#004488>""</font>);
+};
+
+<font color=#009900>// Static initialization:</font>
+set&lt;string&gt; Makefile::paths;
+
+<font color=#0000ff>void</font> Makefile::writeMakefiles(string path) {
+  <font color=#0000ff>if</font>(trim(path).length() == 0)
+    <font color=#0000ff>return</font>; <font color=#009900>// No makefiles in root directory</font>
+  PushDirectory pd(path);
+  set&lt;string&gt;&amp; compilers = 
+    CompilerData::compilerNames();
+  set&lt;string&gt;::iterator it = compilers.begin();
+  <font color=#0000ff>while</font>(it != compilers.end())
+    createMakefile(*it++, path);
+}
+
+<font color=#0000ff>void</font> Makefile::createMakefile(
+  string compiler, string path) {
+  string <font color=#009900>// File name extensions:</font>
+    exe(CompilerData::exe(compiler)),
+    obj(CompilerData::obj(compiler));
+  string filename(compiler + <font color=#004488>".makefile"</font>);
+  ofstream makefile(filename.c_str());
+  makefile &lt;&lt; 
+    <font color=#004488>"# From Thinking in C++, 2nd Edition\n"</font>
+    <font color=#004488>"# At http:</font><font color=#004488>/</font><font color=#004488>/www.BruceEckel.com\n"</font>
+    <font color=#004488>"# (c) Bruce Eckel 1999\n"</font>
+    <font color=#004488>"# Copyright notice in Copyright.txt\n"</font>
+    <font color=#004488>"# Automatically-generated MAKEFILE \n"</font>
+    <font color=#004488>"# For examples in directory "</font>+ path + <font color=#004488>"\n"</font>
+    <font color=#004488>"# using the "</font> + compiler + <font color=#004488>" compiler\n"</font>
+    <font color=#004488>"# Note: does not make files that will \n"</font>
+    <font color=#004488>"# not compile with this compiler\n"</font>
+    <font color=#004488>"# Invoke with: make -f "</font> 
+    + compiler + <font color=#004488>".makefile\n"</font>
+    &lt;&lt; endl;
+  CompilerData::writeRules(compiler, makefile);
+  vector&lt;string&gt; makeAll, makeTest, 
+    makeBugs, makeDeps, linkCmd;
+  <font color=#009900>// Write the "all" dependencies:</font>
+  makeAll.push_back(<font color=#004488>"all: "</font>);
+  makeTest.push_back(<font color=#004488>"test: all "</font>);
+  makeBugs.push_back(<font color=#004488>"bugs: "</font>);
+  string line;
+  vector&lt;CodeFile&gt;::iterator it;
+  <font color=#0000ff>for</font>(it = codeFiles.begin(); 
+    it != codeFiles.end(); it++) {
+    CodeFile&amp; cf = *it;
+    <font color=#0000ff>if</font>(cf.targetType() == executable) {
+      line = <font color=#004488>"\\\n\t"</font>+cf.targetName()+ exe + ' ';
+      <font color=#0000ff>if</font>(cf.compilesOK(compiler) == <font color=#0000ff>false</font>) {
+        makeBugs.push_back(
+          CompilerData::adjustPath(
+            compiler,line));
+      } <font color=#0000ff>else</font> {
+        makeAll.push_back(
+          CompilerData::adjustPath(
+            compiler,line));
+        line = <font color=#004488>"\\\n\t"</font> + cf.targetName() + exe +
+          ' ' + cf.testArgs() + ' ';
+        makeTest.push_back(
+          CompilerData::adjustPath(
+            compiler,line));
+      }
+      <font color=#009900>// Create the link command:</font>
+      <font color=#0000ff>int</font> linkdeps = cf.link().size();
+      string linklist;
+      <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; linkdeps; i++)
+        linklist += 
+          cf.link().<font color=#0000ff>operator</font>[](i) + obj + <font color=#004488>" "</font>;
+      line = cf.targetName() + exe + <font color=#004488>": "</font>
+        + linklist + <font color=#004488>"\n\t$(CPP) $(OFLAG)"</font>
+        + cf.targetName() + exe
+        + ' ' + linklist + <font color=#004488>"\n\n"</font>;
+      linkCmd.push_back(
+        CompilerData::adjustPath(compiler,line));
+    }
+    <font color=#009900>// Create dependencies</font>
+    <font color=#0000ff>if</font>(cf.targetType() == executable
+      || cf.targetType() == object) {
+      <font color=#0000ff>int</font> compiledeps = cf.compile().size();
+      string objlist(cf.base() + obj + <font color=#004488>": "</font>);
+      <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; compiledeps; i++)
+        objlist += 
+          cf.compile().<font color=#0000ff>operator</font>[](i) + <font color=#004488>" "</font>;
+      makeDeps.push_back(
+        CompilerData::adjustPath(
+          compiler, objlist) +<font color=#004488>"\n"</font>);
+    }      
+  }
+  ostream_iterator&lt;string&gt; mkos(makefile, <font color=#004488>""</font>);
+  *mkos++ = <font color=#004488>"\n"</font>;
+  <font color=#009900>// The "all" target:</font>
+  copy(makeAll.begin(), makeAll.end(), mkos);
+  *mkos++ = <font color=#004488>"\n\n"</font>;
+  <font color=#009900>// Remove continuation marks from makeTest:</font>
+  vector&lt;string&gt;::iterator si = makeTest.begin();
+  <font color=#0000ff>int</font> bsl;
+  <font color=#0000ff>for</font>(; si != makeTest.end(); si++)
+    <font color=#0000ff>if</font>((bsl= (*si).find(<font color=#004488>"\\\n"</font>)) != string::npos)
+      (*si).erase(bsl, strlen(<font color=#004488>"\\"</font>));
+  <font color=#009900>// Now print the "test" target:</font>
+  copy(makeTest.begin(), makeTest.end(), mkos);
+  *mkos++ = <font color=#004488>"\n\n"</font>;
+  <font color=#009900>// The "bugs" target:</font>
+  copy(makeBugs.begin(), makeBugs.end(), mkos);
+  <font color=#0000ff>if</font>(makeBugs.size() == 1)
+    *mkos++ = <font color=#004488>"\n\t@echo No compiler bugs in "</font>
+      <font color=#004488>"this directory!"</font>;
+  *mkos++ = <font color=#004488>"\n\n"</font>;
+  <font color=#009900>// Link commands:</font>
+  copy(linkCmd.begin(), linkCmd.end(), mkos);
+  *mkos++ = <font color=#004488>"\n"</font>;
+  <font color=#009900>// Demendencies:</font>
+  copy(makeDeps.begin(), makeDeps.end(), mkos);
+  *mkos++ = <font color=#004488>"\n"</font>;
+}
+
+<font color=#0000ff>void</font> Makefile::writeMaster(string flag) {
+  string filename = <font color=#004488>"makefile"</font>;
+  <font color=#0000ff>if</font>(flag.length() != 0)
+    filename += '.' + flag;
+  ofstream makefile(filename.c_str());
+  makefile &lt;&lt; <font color=#004488>"# Master makefile for "</font>
+    <font color=#004488>"Thinking in C++, 2nd Ed. by Bruce Eckel\n"</font>
+    <font color=#004488>"# at http:</font><font color=#004488>/</font><font color=#004488>/www.BruceEckel.com\n"</font>
+    <font color=#004488>"# Compiles all the code in the book\n"</font>
+    <font color=#004488>"# Copyright notice in Copyright.txt\n\n"</font>
+    <font color=#004488>"help: \n"</font>
+    <font color=#004488>"\t@echo To compile all programs from \n"</font>
+    <font color=#004488>"\t@echo Thinking in C++, 2nd Ed., type\n"</font>
+    <font color=#004488>"\t@echo one of the following commands,\n"</font>
+    <font color=#004488>"\t@echo according to your compiler:\n"</font>;
+  set&lt;string&gt;&amp; n = CompilerData::compilerNames();
+  set&lt;string&gt;::iterator nit;
+  <font color=#0000ff>for</font>(nit = n.begin(); nit != n.end(); nit++)
+    makefile &lt;&lt; 
+      string(<font color=#004488>"\t@echo make "</font> + *nit + <font color=#004488>"\n"</font>);
+  makefile &lt;&lt; endl;
+  <font color=#009900>// Make for each compiler:</font>
+  <font color=#0000ff>for</font>(nit = n.begin(); nit != n.end(); nit++) {
+    makefile &lt;&lt; *nit &lt;&lt; <font color=#004488>":\n"</font>;
+    <font color=#0000ff>for</font>(set&lt;string&gt;::iterator it = paths.begin();
+      it != paths.end(); it++) {
+      <font color=#009900>// Ignore the root directory:</font>
+      <font color=#0000ff>if</font>((*it).length() == 0) <font color=#0000ff>continue</font>;
+      makefile &lt;&lt; <font color=#004488>"\tcd "</font> &lt;&lt; *it;
+      <font color=#009900>// Different commands for unix vs. dos:</font>
+      <font color=#0000ff>if</font>(CompilerData::isUnix(*nit))
+        makefile &lt;&lt; <font color=#004488>"; "</font>;
+      <font color=#0000ff>else</font>
+        makefile &lt;&lt; <font color=#004488>"\n\t"</font>;
+      makefile &lt;&lt; <font color=#004488>"make -f "</font> &lt;&lt; *nit 
+        &lt;&lt; <font color=#004488>".makefile"</font>;
+      <font color=#0000ff>if</font>(flag.length() != 0) {
+        makefile &lt;&lt; ' ';
+        <font color=#0000ff>if</font>(flag == <font color=#004488>"bugs"</font>)
+          makefile &lt;&lt; <font color=#004488>"-i "</font>;
+        makefile &lt;&lt; flag;
+      }
+      makefile &lt;&lt; <font color=#004488>"\n"</font>;
+      <font color=#0000ff>if</font>(CompilerData::isUnix(*nit) == <font color=#0000ff>false</font>)
+        makefile &lt;&lt; <font color=#004488>"\tcd ..\n"</font>;
+    }
+    makefile &lt;&lt; endl;
+  }
+}
+
+<font color=#0000ff>int</font> main(<font color=#0000ff>int</font> argc, <font color=#0000ff>char</font>* argv[]) {
+  <font color=#0000ff>if</font>(argc &lt; 2) {
+    error(<font color=#004488>"Command line error"</font>, usage);
+    exit(1);
+  }
+  <font color=#009900>// For development &amp; testing, leave off notice:</font>
+  <font color=#0000ff>if</font>(argc == 3)
+    <font color=#0000ff>if</font>(string(argv[2]) == <font color=#004488>"-nocopyright"</font>)
+      copyright = <font color=#004488>""</font>;
+  <font color=#009900>// Open the input file to read the compiler</font>
+  <font color=#009900>// information database:</font>
+  ifstream in(argv[1]);
+  <font color=#0000ff>if</font>(!in) {
+    error(string(<font color=#004488>"can't open "</font>) + argv[1],usage);
+    exit(1);
+  }
+  string s;
+  <font color=#0000ff>while</font>(getline(in, s)) {
+    <font color=#009900>// Break up the strings to prevent a match when</font>
+    <font color=#009900>// this code is seen by this program:</font>
+    <font color=#0000ff>if</font>(s.find(<font color=#004488>"#:"</font> <font color=#004488>" :CompileDB.txt"</font>) 
+      != string::npos) {
+      <font color=#009900>// Parse the compiler information database:</font>
+      CompilerData::readDB(in);
+      <font color=#0000ff>break</font>; <font color=#009900>// Out of while loop</font>
+    }
+  }
+  <font color=#0000ff>if</font>(in.eof())
+    error(<font color=#004488>"CompileDB.txt"</font>, <font color=#004488>"Can't find data"</font>);
+  in.seekg(0, ios::beg); <font color=#009900>// Back to beginning</font>
+  map&lt;string, Makefile&gt; makeFiles;
+  <font color=#0000ff>while</font>(getline(in, s)) {
+    <font color=#009900>// Look for tag at beginning of line:</font>
+    <font color=#0000ff>if</font>(s.find(<font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/"</font> <font color=#004488>":"</font>) == 0
+       || s.find(<font color=#004488>"</font><font color=#004488>/*"</font> <font color=#004488>":"</font>) == 0
+       || s.find(<font color=#004488>"#"</font> <font color=#004488>":"</font>) == 0) {
+      CodeFile cf(in, s);
+      cf.write();  <font color=#009900>// Tell it to write itself</font>
+      makeFiles[cf.path()].addEntry(cf);
+    }
+  }
+  <font color=#009900>// Write all the makefiles, telling each</font>
+  <font color=#009900>// the path where it belongs:</font>
+  map&lt;string, Makefile&gt;::iterator mfi;
+  <font color=#0000ff>for</font>(mfi = makeFiles.begin(); 
+    mfi != makeFiles.end(); mfi++)
+    (*mfi).second.writeMakefiles((*mfi).first);
+  <font color=#009900>// Create the master makefile:</font>
+  Makefile::writeMaster();
+  <font color=#009900>// Write the makefile that tries the bug files:</font>
+  Makefile::writeMaster(<font color=#004488>"bugs"</font>);
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>The first tool you see is <B>trim(&#160;)</B>, which was
+lifted from the <B>string</B>s chapter earlier in the book. It removes the
+whitespace from both ends of a <B>string</B> object. This is followed by the
+<B>usage</B> string which is printed whenever something goes wrong with the
+program.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The <B>error(&#160;)</B> function is global because it uses a
+trick with static members of functions. <B>error(&#160;) </B>is designed so that
+if it is never called, no error reporting occurs, but if it is called one or
+more times then an error file is created and the total number of errors is
+reported at the end of the program execution. This is accomplished by creating a
+nested class <B>ErrReport </B>and making a <B>static</B> <B>ErrReport </B>object
+inside <B>error(&#160;)</B>.<B> </B>That way, an <B>ErrReport</B> object is only
+created the first time <B>error(&#160;)</B> is called, so if
+<B>error(&#160;)</B> is never called no error reporting will occur.
+<B>ErrReport</B> creates an <B>ofstream</B> to write the errors to, and the
+<B>ErrReport </B>destructor closes the <B>ofstream</B>, then re-opens it and
+dumps it to <B>cerr</B>. This way, if the error report is too long and scrolls
+off the screen, you can use an editor to look at it. The count of the number of
+errors is held in <B>ErrReport</B>, and this is also reported upon program
+termination.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The job of a <B>PushDirectory</B> object is to capture the
+current directory, then created and move down each directory in the path (the
+path can be arbitrarily long). Each subdirectory in the file&#8217;s path
+description is separated by a &#8216;<B>:</B>&#8217; and the
+<B>mkdir(&#160;)</B> and <B>chdir(&#160;)</B> (or the equivalent on your system)
+are used to move into only one directory at a time, so the actual character
+that&#8217;s used to separate directory paths is safely ignored. The destructor
+returns the path to the one that was captured before all the creating and moving
+took place.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Unfortunately, there are no functions in Standard C or
+Standard C++ to control directory creation and movement, so this is captured in
+the class <B>OSDirControl</B>. After reading the design patterns chapter, your
+first impulse might be to use the full &#8220;Bridge&#8221; pattern. However,
+there&#8217;s a lot more going on here. Bridge generally works with things that
+are already classes, and here we are actually creating the class to
+encapsulating operating system directory control. In addition, this requires
+<B>#ifdef</B>s and <B>#include</B>s for each different operating system and
+compiler. However, the basic idea is that of a Bridge, since the rest of the
+code (<B>PushDirectory </B>is actually the only thing that uses this, and thus
+it acts as the Bridge abstraction) treats an <B>OsDirControl</B> object as a
+standard interface.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>All the information about a particular source code file is
+encapsulated in a <B>CodeFile</B> object. This includes the type of target the
+file should produce, variations on the name of the file including the name of
+the target file it&#8217;s supposed to produce. The entire contents of the file
+is contained in the <B>vector&lt;string&gt; lines</B>. In addition, the
+file&#8217;s dependencies (the files which, if they change, should cause a
+recompilation of the current file) and the files on the linker command line are
+also <B>vector&lt;string&gt;</B> objects. The <B>CodeFile</B> object keeps all
+the compilers it won&#8217;t work with in <B>_noBuild</B>, which is a
+<B>set&lt;string&gt;</B> because it&#8217;s easier to look up an element in a
+<B>set</B>. The <B>writeTags</B> flag indicates whether the beginning and ending
+markers from the book listing should actually be output to the generated
+file.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The three private helper functions <B>target(&#160;)</B>,
+<B>headerLine(&#160;)</B> and <B>dependLine(&#160;)</B> are used by the
+<B>CodeFile</B> constructor while it is parsing the input stream. In fact, the
+<B>CodeFile</B> constructor does much of the work and most of the rest of the
+member functions simply return values that are stored in the <B>CodeFile</B>
+object. Exceptions to this are <B>addFailure(&#160;)</B> which stores a compiler
+that won&#8217;t work, and <B>compilesOK(&#160;)</B> which, when given a
+compiler tells whether this file will compile successfully with that compiler.
+The <B>ostream operator&lt;&lt;</B> uses the STL <B>copy(&#160;)</B> algorithm
+and <B>write(&#160;)</B> uses <B>operator&lt;&lt;</B> to write the file into a
+particular directory and file name.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Looking at the implementation, you&#8217;ll see that the
+helper functions <B>target(&#160;)</B>, <B>headerLine(&#160;)</B> and
+<B>dependLine(&#160;)</B> are just using <B>string</B> functions in order to
+search and manipulate the lines. The constructor is what initiates everything.
+The idea is that the main program opens the file and reads it until it sees the
+starting marker for a code file. At that point it makes a <B>CodeFile</B> object
+and hands the constructor the <B>istream</B> (so the constructor can read the
+rest of the code file) and the first line that was already read, since it
+contains valuable information. This first line is dissected for the file name
+information and the target type. The beginning of the file is written (source
+and copyright information is added) and the rest of the file is read, until the
+ending tag. The top few lines may contain information about link dependencies
+and command line arguments, or they may be files that are <B>#included</B> using
+quotes rather than angle brackets. Quotes indicate they are from local
+directories and should be added to the makefile dependency.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>You&#8217;ll notice that a number of the markers strings in
+this program are broken up into two adjacent character strings, relying on the
+preprocessor to concatenate those strings. This is to prevent them from causing
+the <B>ExtractCode</B> program from accidentally mistaking the strings embedded
+in the program with the end marker, when <B>ExtractCode</B> is extracting
+it&#8217;s own source code.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The goal of <B>CompilerData </B>is to capture and make
+available all the information about particular compiler idiosyncrasies. At first
+glance, the <B>CompilerData</B> class appears to be a container of <B>static</B>
+member functions, a library of functions wrapped in a class. Actually, the class
+contains two <B>static</B> data members; the simpler one is a
+<B>set&lt;string&gt; </B>that holds all the compiler names, but
+<B>compilerInfo</B> is a <B>map</B> that maps <B>string</B> objects (the
+compiler name) to <B>CompilerData</B> objects. Each individual
+<B>CompilerData</B> object in <B>compilerInfo</B> contains a
+<B>vector&lt;string&gt;</B> which is the &#8220;rules&#8221; that are placed in
+the makefile (these rules are different for different compilers) and a
+<B>set&lt;string&gt;</B> which indicates the files that won&#8217;t compile with
+this particular compiler. Also, each compiler creates different extensions for
+object files and executable files, and these are also stored. There are two
+flags which indicate if this is a &#8220;dos&#8221; or &#8220;Unix&#8221; style
+environment (this causes differences in path information and command styles for
+the resulting makefiles).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The member function <B>readDB(&#160;)</B> is responsible for
+taking an <B>istream</B> and parsing it into a series of <B>CompilerData</B>
+objects which are stored in <B>compilerInfo</B>. By choosing a relatively simple
+format (which you can see in Appendix D) the parsing of this configuration file
+is fairly simple: the first character on a line determines what information the
+line contains; a &#8216;<B>#</B>&#8217; sign is a comment, a
+&#8216;<B>{</B>&#8216; indicates that the next compiler configuration is
+beginning and this is the new compiler name, a &#8216;<B>(</B>&#8216; is used to
+establish the object file extension name, a &#8216;<B>&amp;</B>&#8217; indicates
+the &#8220;dos&#8221; or &#8220;Unix&#8221; directive, and &#8216;@&#8217; is a
+makefile rule which is placed verbatim at the beginning of the makefile. If
+there is no special character at the beginning of the line, the it must be a
+file that fails to compile.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The <B>addFailures(&#160;)</B> member function takes
+it&#8217;s <B>CodeFile</B> argument (by reference, so it can modify the outside
+object) and checks each compiler to see if it works with that particular code
+file; if not, it adds that compiler to the <B>CodeFile</B> object&#8217;s
+failure list.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Both <B>obj(&#160;)</B> and <B>exe(&#160;)</B> return the
+appropriate file extension for a particular compiler. Note that some situations
+don&#8217;t expect extensions, and so the &#8216;<B>.</B>&#8217; is added only
+if there is an extension.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>When the makefile is being created, one of the first things to
+do is add the various <B>make</B> rules, such as the prefixes and target rules
+(see Appendix D for examples). This is accomplished with
+<B>writeRules(&#160;)</B>. Note the use of the STL <B>copy(&#160;)</B>
+algorithm.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Although dos compilers have no trouble with forward slashes as
+part of the paths of <B>#include</B> files, most dos <B>make</B> programs expect
+backslashes as part of paths in dependency lists. To adjust for this, the
+<B>adjustPath(&#160;)</B> function checks to see if this is a dos compiler, and
+if so it uses the STL <B>replace(&#160;)</B> algorithm, treating the <B>path</B>
+string object as a container, to replace forward-slash characters with backward
+slashes.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The last class, <B>Makefile</B>, is used to create all the
+makefiles, including the master makefile that moves into each subdirectory and
+calls the other makefiles. Each <B>Makefile</B> contains a group of
+<B>CodeFile</B> objects, stored in a <B>vector</B>. You call
+<B>addEntry(&#160;)</B> to put a new <B>CodeFile</B> into the <B>Makefile</B>;
+this also adds the failure list to the <B>CodeFile</B>. In addition, there is a
+<B>static set&lt;string&gt;</B> which contains all the different paths where all
+the different makefiles will be written; this is used to build the master
+makefile so it can call all the makefiles in all the subdirectories. The
+<B>addEntry(&#160;)</B> function also updates this set of paths.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>To write the makefile for a particular path (once the entire
+book file has been read), you call <B>writeMakefiles(&#160;)</B> and hand it the
+path you want it to write the makefile for. This function simply iterates
+through all the compilers in <B>compilers</B> and calls
+<B>createMakefile(&#160;)</B> for each one, passing it the compiler name and the
+path. The latter function is where the real work gets done. First the file name
+extensions are captured into local <B>string</B> objects, then the file name is
+created from the name of the compiler with &#8220;.makefile&#8221; concatenated
+(you can use a file with a name other than &#8220;makefile&#8221; by using the
+<B>make -f</B> flag). After writing the header comments and the rules for that
+particular compiler/operating-system combination (remember, these rules come
+from the compiler configuration file), a <B>vector&lt;string&gt;</B> is created
+to hold all the different regions of the makefile: the master target list
+<B>makeAll</B>, the testing commands <B>makeTest</B>, the dependencies
+<B>makeDeps</B>, and<B> </B>the commands for linking into executables
+<B>linkCmd</B>. The reason it&#8217;s necessary to have lists for these four
+regions is that each <B>CodeFile</B> object causes entries into each region, so
+the regions are built as the list of <B>CodeFile</B>s is traversed, and then
+finally each region is written in its proper order. This is the function which
+decides whether a file is going to be included, and also calls
+<B>adjustPath(&#160;)</B> to conditionally change forward slashes to backward
+slashes.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>To write the master makefile in <B>writeMaster(&#160;)</B>,
+the initial comments are written. The default target is called
+&#8220;help,&#8221; and it is used if you simply type <B>make</B>. This provides
+very simple help to the first time user, including the options for <B>make</B>
+that this makefile supports (that is, all the different compilers the makefile
+is set up for). Then it creates the list of commands for each compiler, which
+basically consists of: descending into a subdirectory, call <B>make</B>
+(recursively) on the appropriate makefile in that subdirectory, and then rising
+back up to the book&#8217;s root subdirectory. Makefiles in Unix and dos work
+very differently from each other in this situation: in Unix, you <B>cd</B> to
+the directory, followed by a semicolon and then the command you want to execute
+&#8211; returning to the root directory happens automatically. While in dos, you
+must <B>cd</B> both down and then back up again, all on separate lines. So the
+<B>writeMaster(&#160;)</B> function must interrogate to see if a compiler is
+running under Unix and write different commands accordingly.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Because of the work done in designing the classes (and this
+was an iterative process; it didn&#8217;t just pop out this way),
+<B>main(&#160;)</B> is quite straightforward to read. After opening the input
+file, the <B>getline(&#160;)</B> function is used to read each input line until
+the line containing <B>CompileDB.txt</B> is found; this indicates the beginning
+of the compiler database listing. Once that has been parsed,
+<B>seekg(&#160;)</B> is used to move the file pointer back to the beginning so
+all the code files can be extracted.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Each line is read and if one of the start markers is found in
+the line, a <B>CodeFile</B> object is created using that line (which has
+essential information) and the input stream. The constructor returns when it
+finishes reading its file, and at that point you can turn around and call
+<B>write(&#160;)</B> for the code file, and it is automatically written to the
+correct spot (an earlier version of this program collected all the
+<B>CodeFile</B> objects first and put them in a container, then wrote one
+directory at a time, but the approach shown above has code that&#8217;s easier
+to understand and the performance impact is not really significant for a tool
+like this.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>For makefile management, a <B>map&lt;string, Makefile&gt;</B>
+is created, where the <B>string</B> is the path where the makefile exists. The
+nice thing about this approach is that the <B>Makefile</B> objects will be
+automatically created whenever you access a new path, as you can see in the
+line<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>makeFiles[cf.path()].addEntry(cf);</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>then to write all the makefiles you simply iterate through the
+<B>makeFiles</B> <B>map</B>.<A NAME="_Toc462393614"></A><BR></P></DIV>
+<A NAME="Heading349"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Debugging</H2></FONT>
+<DIV ALIGN="LEFT"><P>This section contains some tips and techniques which may help
+during debugging.<A NAME="_Toc462393615"></A><BR></P></DIV>
+<A NAME="Heading350"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+assert(&#160;)</H3></FONT>
+<DIV ALIGN="LEFT"><P>The Standard C library <B>assert(&#160;)</B> macro is brief,
+to the point and portable. In addition, when you&#8217;re finished debugging you
+can remove all the code by defining <B>NDEBUG</B>, either on the command-line or
+in code.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Also, <B>assert(&#160;)</B> can be used while roughing out the
+code. Later, the calls to <B>assert(&#160;)</B> that are actually providing
+information to the end user can be replaced with more civilized
+messages.<A NAME="_Toc462393616"></A><BR></P></DIV>
+<A NAME="Heading351"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Trace macros</H3></FONT>
+<DIV ALIGN="LEFT"><P>Sometimes it&#8217;s very helpful to print the code of each
+statement before it is executed, either to <B>cout</B> or to a trace file.
+Here&#8217;s a preprocessor macro to accomplish this:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>#define TRACE(ARG) cout &lt;&lt; #ARG &lt;&lt; endl; ARG</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>Now you can go through and surround the statements you trace
+with this macro. Of course, it can introduce problems. For example, if you take
+the statement:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; 100; i++)
+  cout &lt;&lt; i &lt;&lt; endl;</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>And put both lines inside <B>TRACE(&#160;)</B> macros, you get
+this:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>TRACE(<font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; 100; i++))
+TRACE(  cout &lt;&lt; i &lt;&lt; endl;)</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>Which expands to this:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>cout &lt;&lt; <font color=#004488>"for(int i = 0; i &lt; 100; i++)"</font> &lt;&lt; endl;
+<font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; 100; i++)
+  cout &lt;&lt; <font color=#004488>"cout &lt;&lt; i &lt;&lt; endl;"</font> &lt;&lt; endl;
+cout &lt;&lt; i &lt;&lt; endl;</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>Which isn&#8217;t what you want. Thus, this technique must be
+used carefully.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>A variation on the <B>TRACE(&#160;)</B> macro is
+this:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>#define D(a) cout &lt;&lt; #a <font color=#004488>"=["</font> &lt;&lt; a &lt;&lt; <font color=#004488>"]"</font> &lt;&lt; nl;</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>If there&#8217;s an expression you want to display, you simply
+put it inside a call to <B>D(&#160;)</B> and the expression will be printed,
+followed by its value (assuming there&#8217;s an overloaded operator
+<B>&lt;&lt;</B> for the result type). For example, you can say <B>D(a + b)</B>.
+Thus you can use it anytime you want to test an intermediate value to make sure
+things are OK.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Of course, the above two macros are actually just the two most
+fundamental things you do with a debugger: trace through the code execution and
+print values. A good debugger is an excellent productivity tool, but sometimes
+debuggers are not available, or it&#8217;s not convenient to use them. The above
+techniques always work, regardless of the
+situation.<A NAME="_Toc462393617"></A><BR></P></DIV>
+<A NAME="Heading352"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Trace file</H3></FONT>
+<DIV ALIGN="LEFT"><P>This code allows you to easily create a trace file and send
+all the output that would normally go to <B>cout</B> into the file. All you have
+to do is <B>#define</B> TRACEON and include the header file (of course,
+it&#8217;s fairly easy just to write the two key lines right into your
+file):<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:Trace.h</font>
+<font color=#009900>// Creating a trace file</font>
+#ifndef TRACE_H
+#define TRACE_H
+#include &lt;fstream&gt;
+
+#ifdef TRACEON
+ofstream TRACEFILE__(<font color=#004488>"TRACE.OUT"</font>);
+#define cout TRACEFILE__
+#endif
+
+#endif <font color=#009900>// TRACE_H ///:~</font></PRE></FONT></BLOCKQUOTE>
+
+<DIV ALIGN="LEFT"><P>Here&#8217;s a simple test of the above file:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:Tracetst.cpp</font>
+<font color=#009900>// Test of trace.h</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+#define TRACEON
+#include <font color=#004488>"Trace.h"</font>
+
+<font color=#0000ff>int</font> main() {
+  ifstream f(<font color=#004488>"Tracetst.cpp"</font>);
+  assure(f, <font color=#004488>"Tracetst.cpp"</font>);
+  cout &lt;&lt; f.rdbuf();
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>This also uses the <B>assure(&#160;)</B> function defined
+earlier in the book.<A NAME="_Toc462393618"></A><BR></P></DIV>
+<A NAME="Heading353"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Abstract base class for debugging</H3></FONT>
+<DIV ALIGN="LEFT"><P>In the Smalltalk tradition, you can create your own
+object-based hierarchy, and install pure virtual functions to perform debugging.
+Then everyone on the team must inherit from this class and redefine the
+debugging functions. All objects in the system will then have debugging
+functions available.<A NAME="_Toc462393619"></A><BR></P></DIV>
+<A NAME="Heading354"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Tracking new/delete &amp; malloc/free</H3></FONT>
+<DIV ALIGN="LEFT"><P>Common problems with memory allocation include calling
+<B>delete</B> for things you have <B>malloc</B>ed, calling <B>free</B> for
+things you allocated with <B>new</B>, forgetting to release objects from the
+free store, and releasing them more than once. This section provides a system to
+help you track these kinds of problems down.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>To use the memory checking system, you simply link the
+<B>obj</B> file in and all the calls to <B>malloc(&#160;)</B>,
+<B>realloc(&#160;)</B>, <B>calloc(&#160;)</B>, <B>free(&#160;)</B>, <B>new</B>
+and <B>delete</B> are intercepted. However, if you also include the following
+file (which is optional), all the calls to <B>new</B> will store information
+about the file and line where they were called. This is accomplished with a use
+of the <I>placement syntax</I> for <B>operator new</B> (this trick was suggested
+by Reg Charney of the C++ Standards Committee). The placement syntax is intended
+for situations where you need to place objects at a specific point in memory.
+However, it allows you to create an <B>operator new</B> with any number of
+arguments. This is used to advantage here to store the results of the
+<B>__FILE__</B> and <B>__LINE__</B> macros whenever <B>new</B> is
+called:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:MemCheck.h</font>
+<font color=#009900>// Memory testing system</font>
+<font color=#009900>// This file is only included if you want to</font>
+<font color=#009900>// use the special placement syntax to find</font>
+<font color=#009900>// out the line number where "new" was called.</font>
+#ifndef MEMCHECK_H
+#define MEMCHECK_H
+#include &lt;cstdlib&gt;  <font color=#009900>// size_t</font>
+
+<font color=#009900>// Use placement syntax to pass extra arguments.</font>
+<font color=#009900>// From an idea by Reg Charney:</font>
+<font color=#0000ff>void</font>* <font color=#0000ff>operator</font> <font color=#0000ff>new</font>(
+  std::size_t sz, <font color=#0000ff>char</font>* file, <font color=#0000ff>int</font> line);
+#define <font color=#0000ff>new</font> <font color=#0000ff>new</font>(__FILE__, __LINE__)
+
+#endif <font color=#009900>// MEMCHECK_H ///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>In the following file containing the function definitions, you
+will note that everything is done with standard IO rather than iostreams. This
+is because, for example, the <B>cout</B> constructor allocates memory. Standard
+IO ensures against cyclical conditions that can lock up the system.<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:MemCheck.cpp {O}</font>
+<font color=#009900>// Memory allocation tester</font>
+#include &lt;cstdlib&gt;
+#include &lt;cstring&gt;
+#include &lt;cstdio&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+<font color=#009900>// MemCheck.h must not be included here</font>
+
+<font color=#009900>// Output file object using cstdio</font>
+<font color=#009900>// (cout constructor calls malloc())</font>
+<font color=#0000ff>class</font> OFile {
+  FILE* f;
+<font color=#0000ff>public</font>:
+  OFile(<font color=#0000ff>char</font>* name) : f(fopen(name, <font color=#004488>"w"</font>)) {}
+  ~OFile() { fclose(f); }
+  <font color=#0000ff>operator</font> FILE*() { <font color=#0000ff>return</font> f; }
+};
+<font color=#0000ff>extern</font> OFile memtrace;
+<font color=#009900>// Comment out the following to send all the</font>
+<font color=#009900>// information to the trace file:</font>
+#define memtrace stdout
+
+<font color=#0000ff>const</font> <font color=#0000ff>unsigned</font> <font color=#0000ff>long</font> _pool_sz = 50000L;
+<font color=#0000ff>static</font> <font color=#0000ff>unsigned</font> <font color=#0000ff>char</font> _memory_pool[_pool_sz];
+<font color=#0000ff>static</font> <font color=#0000ff>unsigned</font> <font color=#0000ff>char</font>* _pool_ptr = _memory_pool;
+
+<font color=#0000ff>void</font>* getmem(size_t sz) {
+  <font color=#0000ff>if</font>(_memory_pool + _pool_sz - _pool_ptr &lt; sz) {
+    fprintf(stderr,
+           <font color=#004488>"Out of memory. Use bigger model\n"</font>);
+    exit(1);
+  }
+  <font color=#0000ff>void</font>* p = _pool_ptr;
+  _pool_ptr += sz;
+  <font color=#0000ff>return</font> p;
+}
+
+<font color=#009900>// Holds information about allocated pointers:</font>
+<font color=#0000ff>class</font> MemBag { 
+<font color=#0000ff>public</font>:
+  <font color=#0000ff>enum</font> type { Malloc, New };
+<font color=#0000ff>private</font>:
+  <font color=#0000ff>char</font>* typestr(type t) {
+    <font color=#0000ff>switch</font>(t) {
+      <font color=#0000ff>case</font> Malloc: <font color=#0000ff>return</font> <font color=#004488>"malloc"</font>;
+      <font color=#0000ff>case</font> New: <font color=#0000ff>return</font> <font color=#004488>"new"</font>;
+      <font color=#0000ff>default</font>: <font color=#0000ff>return</font> <font color=#004488>"?unknown?"</font>;
+    }
+  }
+  <font color=#0000ff>struct</font> M {
+    <font color=#0000ff>void</font>* mp;  <font color=#009900>// Memory pointer</font>
+    type t;     <font color=#009900>// Allocation type</font>
+    <font color=#0000ff>char</font>* file; <font color=#009900>// File name where allocated</font>
+    <font color=#0000ff>int</font> line;  <font color=#009900>// Line number where allocated</font>
+    M(<font color=#0000ff>void</font>* v, type tt, <font color=#0000ff>char</font>* f, <font color=#0000ff>int</font> l)
+      : mp(v), t(tt), file(f), line(l) {}
+  }* v;
+  <font color=#0000ff>int</font> sz, next;
+  <font color=#0000ff>static</font> <font color=#0000ff>const</font> <font color=#0000ff>int</font> increment = 50 ;
+<font color=#0000ff>public</font>:
+  MemBag() : v(0), sz(0), next(0) {}
+  <font color=#0000ff>void</font>* add(<font color=#0000ff>void</font>* p, type tt = Malloc,
+            <font color=#0000ff>char</font>* s = <font color=#004488>"library"</font>, <font color=#0000ff>int</font> l = 0) {
+    <font color=#0000ff>if</font>(next &gt;= sz) {
+      sz += increment;
+      <font color=#009900>// This memory is never freed, so it</font>
+      <font color=#009900>// doesn't "get involved" in the test:</font>
+      <font color=#0000ff>const</font> <font color=#0000ff>int</font> memsize = sz * <font color=#0000ff>sizeof</font>(M);
+      <font color=#009900>// Equivalent of realloc, no registration:</font>
+      <font color=#0000ff>void</font>* p = getmem(memsize);
+      <font color=#0000ff>if</font>(v) memmove(p, v, memsize);
+      v = (M*)p;
+      memset(&amp;v[next], 0,
+             increment * <font color=#0000ff>sizeof</font>(M));
+    }
+    v[next++] = M(p, tt, s, l);
+    <font color=#0000ff>return</font> p;
+  }
+  <font color=#009900>// Print information about allocation:</font>
+  <font color=#0000ff>void</font> allocation(<font color=#0000ff>int</font> i) {
+    fprintf(memtrace, <font color=#004488>"pointer %p"</font>
+      <font color=#004488>" allocated with %s"</font>,
+      v[i].mp, typestr(v[i].t));
+    <font color=#0000ff>if</font>(v[i].t == New)
+      fprintf(memtrace, <font color=#004488>" at %s: %d"</font>,
+        v[i].file, v[i].line);
+    fprintf(memtrace, <font color=#004488>"\n"</font>);
+  }
+  <font color=#0000ff>void</font> validate(<font color=#0000ff>void</font>* p, type T = Malloc) {
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; next; i++)
+      <font color=#0000ff>if</font>(v[i].mp == p) {
+        <font color=#0000ff>if</font>(v[i].t != T) {
+          allocation(i);
+          fprintf(memtrace,
+          <font color=#004488>"\t was released as if it were "</font>
+          <font color=#004488>"allocated with %s \n"</font>, typestr(T));
+        }
+        v[i].mp = 0;  <font color=#009900>// Erase it</font>
+        <font color=#0000ff>return</font>;
+      }
+    fprintf(memtrace,
+    <font color=#004488>"pointer not in memory list: %p\n"</font>, p);
+  }
+  ~MemBag() {
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; next; i++)
+      <font color=#0000ff>if</font>(v[i].mp != 0) {
+        fprintf(memtrace,
+        <font color=#004488>"pointer not released: "</font>);
+        allocation(i);
+      }
+  }
+};
+<font color=#0000ff>extern</font> MemBag MEMBAG_;
+
+<font color=#0000ff>void</font>* malloc(size_t sz) {
+  <font color=#0000ff>void</font>* p = getmem(sz);
+  <font color=#0000ff>return</font> MEMBAG_.add(p, MemBag::Malloc);
+}
+
+<font color=#0000ff>void</font>* calloc(size_t num_elems, size_t elem_sz) {
+  <font color=#0000ff>void</font>* p = getmem(num_elems * elem_sz);
+  memset(p, 0, num_elems * elem_sz);
+  <font color=#0000ff>return</font> MEMBAG_.add(p, MemBag::Malloc);
+}  
+
+<font color=#0000ff>void</font>* realloc(<font color=#0000ff>void</font>* block, size_t sz) {
+  <font color=#0000ff>void</font>* p = getmem(sz);
+  <font color=#0000ff>if</font>(block) memmove(p, block, sz);
+  <font color=#0000ff>return</font> MEMBAG_.add(p, MemBag::Malloc);
+}
+
+<font color=#0000ff>void</font> free(<font color=#0000ff>void</font>* v) { 
+  MEMBAG_.validate(v, MemBag::Malloc);
+}
+
+<font color=#0000ff>void</font>* <font color=#0000ff>operator</font> <font color=#0000ff>new</font>(size_t sz) {
+  <font color=#0000ff>void</font>* p = getmem(sz);
+  <font color=#0000ff>return</font> MEMBAG_.add(p, MemBag::New);
+}
+
+<font color=#0000ff>void</font>*
+<font color=#0000ff>operator</font> <font color=#0000ff>new</font>(size_t sz, <font color=#0000ff>char</font>* file, <font color=#0000ff>int</font> line) {
+  <font color=#0000ff>void</font>* p = getmem(sz);
+  <font color=#0000ff>return</font> MEMBAG_.add(p, MemBag::New, file, line);
+}
+
+<font color=#0000ff>void</font> <font color=#0000ff>operator</font> <font color=#0000ff>delete</font>(<font color=#0000ff>void</font>* v) {
+  MEMBAG_.validate(v, MemBag::New);
+}
+
+MemBag MEMBAG_;
+<font color=#009900>// Placed here so the constructor is called</font>
+<font color=#009900>// AFTER that of MEMBAG_ :</font>
+#ifdef memtrace
+#undef memtrace
+#endif
+OFile memtrace(<font color=#004488>"memtrace.out"</font>);
+<font color=#009900>// Causes 1 "pointer not in memory list" message</font>
+<font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P><B>OFile</B> is a simple wrapper around a <B>FILE*</B>; the
+constructor opens the file and the destructor closes it. The <B>operator
+FILE*(&#160;)</B> allows you to simply use the <B>OFile</B> object anyplace you
+would ordinarily use a <B>FILE*</B> (in the <B>fprintf(&#160;)</B> statements in
+this example). The <B>#define</B> that follows simply sends everything to
+standard output, but if you need to put it in a trace file you simply comment
+out that line.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Memory is allocated from an array called <B>_memory_pool</B>.
+The <B>_pool_ptr</B> is moved forward every time storage is allocated. For
+simplicity, the storage is never reclaimed, and <B>realloc(&#160;)</B>
+doesn&#8217;t try to resize the storage in the same place.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>All the storage allocation functions call
+<B>getmem(&#160;)</B> which ensures there is enough space left and moves the
+<B>_pool_ptr</B> to allocate your storage. Then they store the pointer in a
+special container of class <B>MemBag</B> called <B>MEMBAG_</B>, along with
+pertinent information (notice the two versions of <B>operator new</B>; one which
+just stores the pointer and the other which stores the file and line number).
+The <B>MemBag</B> class is the heart of the system.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>You will see many similarities to <B>xbag</B> in
+<B>MemBag</B>. A distinct difference is <B>realloc(&#160;)</B> is replaced by a
+call to <B>getmem(&#160;)</B> and <B>memmove(&#160;)</B>, so that storage
+allocated for the <B>MemBag</B> is not registered. In addition, the <B>type</B>
+<B>enum</B> allows you to store the way the memory was allocated; the
+<B>typestr(&#160;)</B> function takes a type and produces a string for use with
+printing.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The nested <B>struct M</B> holds the pointer, the type, a
+pointer to the file name (which is assumed to be statically allocated) and the
+line where the allocation occurred. <B>v</B> is a pointer to an array of
+<B>M</B> objects &#8211; this is the array which is dynamically sized.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The <B>allocation(&#160;)</B> function prints out a different
+message depending on whether the storage was allocated with <B>new</B> (where it
+has line and file information) or <B>malloc(&#160;)</B> (where it
+doesn&#8217;t). This function is used inside <B>validate(&#160;)</B>, which is
+called by <B>free(&#160;)</B> and <B>delete(&#160;)</B> to ensure everything is
+OK, and in the destructor, to ensure the pointer was cleaned up (note that in
+<B>validate(&#160;)</B> the pointer value <B>v[i].mp</B> is set to zero, to
+indicate it has been cleaned up).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The following is a simple test using the memcheck facility.
+The <B>MemCheck.obj</B> file must be linked in for it to work:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:MemTest.cpp</font>
+<font color=#009900>//{L} MemCheck</font>
+<font color=#009900>// Test of MemCheck system</font>
+#include <font color=#004488>"MemCheck.h"</font>
+
+<font color=#0000ff>int</font> main() {
+  <font color=#0000ff>void</font>* v = std::malloc(100);
+  <font color=#0000ff>delete</font> v;
+  <font color=#0000ff>int</font>* x = <font color=#0000ff>new</font> <font color=#0000ff>int</font>;
+  std::free(x);
+  <font color=#0000ff>new</font> <font color=#0000ff>double</font>;
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>The trace file created in <B>MemCheck.cpp</B> causes the
+generation of one "pointer not in memory list" message, apparently from the
+creation of the file pointer on the heap. [[ This may not still be true &#8211;
+test it ]]<A NAME="_Toc408018776"></A><A NAME="_Toc462393620"></A><BR></P></DIV>
+<A NAME="Heading355"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+CGI programming in C++</H2></FONT>
+<DIV ALIGN="LEFT"><P>The World-Wide Web has become the common tongue of
+connectivity on planet earth. It began as simply a way to publish
+primitively-formatted documents in a way that everyone could read them
+regardless of the machine they were using. The documents are created in
+<I>hypertext markup language</I> (HTML) and placed on a central server machine
+where they are handed to anyone who asks. The documents are requested and read
+using a <I>web browser</I> that has been written or ported to each particular
+platform.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Very quickly, just reading a document was not enough and
+people wanted to be able to collect information from the clients, for example to
+take orders or allow database lookups from the server. Many different approaches
+to <I>client-side</I> <I>programming</I> have been tried such as Java applets,
+JavaScript, and other scripting or programming languages. Unfortunately,
+whenever you publish something on the Internet you face the problem of a whole
+history of browsers, some of which may support the particular flavor of your
+client-side programming tool, and some which won&#8217;t. The only reliable and
+well-established solution<A NAME="fnB28" HREF="#fn28">[28]</A> to this problem
+is to use straight HTML (which has a very limited way to collect and submit
+information from the client) and <I>common gateway interface</I> (CGI) programs
+that are run on the server. The Web server takes an encoded request submitted
+via an HTML page and responds by invoking a CGI program and handing it the
+encoded data from the request.
+<A NAME="Index713"></A><A NAME="Index714"></A>This request is classified as
+either a &#8220;<A NAME="Index715"></A><A NAME="Index716"></A>GET&#8221; or a
+&#8220;<A NAME="Index717"></A><A NAME="Index718"></A>POST&#8221; (the meaning of
+which will be explained later) and if you look at the URL window in your Web
+browser when you push a &#8220;submit&#8221; button on a page you&#8217;ll often
+be able to see the encoded request and information.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>CGI can seem a bit intimidating at first, but it turns out
+that it&#8217;s just messy, and not all that difficult to write. (An innocent
+statement that&#8217;s true of many things &#8211; <I>after</I> you understand
+them.) A CGI program is quite straightforward since it takes its input from
+environment variables and standard input, and sends its output to standard
+output. However, there is some decoding that must be done in order to extract
+the data that&#8217;s been sent to you from the client&#8217;s web page. In this
+section you&#8217;ll get a <A NAME="Index719"></A><A NAME="Index720"></A>crash
+course in CGI programming, and we&#8217;ll develop tools that will perform the
+decoding for the two different types of CGI submissions (GET and POST). These
+tools will allow you to easily write a CGI program to solve any problem. Since
+C++ exists on virtually all machines that have Web servers (and you can get GNU
+C++ free for virtually any platform), the solution presented here is quite
+portable.<A NAME="_Toc408018777"></A><A NAME="_Toc462393621"></A><BR></P></DIV>
+<A NAME="Heading356"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Encoding data for CGI</H3></FONT>
+<DIV ALIGN="LEFT"><P>To submit data to a CGI program, the HTML &#8220;form&#8221;
+tag is used. The following very simple HTML page contains a form that has one
+user-input field along with a &#8220;submit&#8221; button:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>//:! C10:SimpleForm.html
+&lt;HTML&gt;&lt;HEAD&gt;
+&lt;TITLE&gt;A simple HTML form&lt;/TITLE&gt;&lt;/HEAD&gt;
+Test, uses standard html GET
+&lt;Form method="GET" ACTION="/cgi-bin/CGI_GET.exe"&gt;
+&lt;P&gt;Field1: &lt;INPUT TYPE = "text" NAME = "Field1" 
+VALUE = "This is a test" size = "40"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;input type = "submit" name = "submit" &gt; &lt;/p&gt;
+&lt;/Form&gt;&lt;/HTML&gt;
+///:~</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>Everything between the <B>&lt;Form</B> and the
+<B>&lt;/Form&gt;</B> is part of this form (You can have multiple forms on a
+single page, but each one is controlled by its own method and submit button).
+The &#8220;method&#8221; can be either &#8220;get&#8221; or &#8220;post,&#8221;
+and the &#8220;action&#8221; is what the server does when it receives the form
+data: it calls a program. Each form has a method, an action, and a submit
+button, and the rest of the form consists of input fields. The most
+commonly-used input field is shown here: a text field. However, you can also
+have things like check boxes, drop-down selection lists and radio
+buttons.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>CGI_GET.exe</B> is the name of the executable program that
+resides in the directory that&#8217;s typically called &#8220;cgi-bin&#8221; on
+your Web server.<A NAME="fnB29" HREF="#fn29">[29]</A> (If the named program is
+not in the cgi-bin directory, you won&#8217;t see any results.) Many Web servers
+are Unix machines (mine runs Linux) that don&#8217;t traditionally use the
+<B>.exe</B> extension for their executable programs, but you can call the
+program anything you want under Unix. By using the <B>.exe </B>extension the
+program can be tested without change under most operating systems.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>If you fill out this form and press the &#8220;submit&#8221;
+button, in the URL address window of your browser you will see something
+like:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>http:<font color=#009900>//www.pooh.com/cgi-bin/CGI_GET.exe?Field1=</font>
+This+is+a+test&amp;submit=Submit+Query</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>(Without the line break, of course.) Here you see a little bit
+of the way that data is encoded to send to CGI. For one thing, spaces are not
+allowed (since spaces typically separate command-line arguments). Spaces are
+replaced by &#8216;<B>+</B>&#8217; signs. In addition, each field contains the
+field name (which is determined by the form on the HTML page) followed by an
+&#8216;<B>=</B>&#8216; and the field data, and terminated by a
+&#8216;<B>&amp;</B>&#8217;.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>At this point, you might wonder about the
+&#8216;<B>+</B>&#8217;, &#8216;<B>=,</B>&#8217; and &#8216;<B>&amp;</B>&#8217;.
+What if those are used in the field, as in &#8220;John &amp; Marsha
+Smith&#8221;? This is encoded to: <BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>John+%26+Marsha+Smith</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>That is, the special character is turned into a
+<B>&#8216;%</B>&#8217; followed by its ASCII value in hex. Fortunately, the web
+browser automatically performs all encoding for
+you.<A NAME="_Toc408018779"></A><A NAME="_Toc462393622"></A><BR></P></DIV>
+<A NAME="Heading357"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+The CGI
+parser<BR><A NAME="Index721"></A><A NAME="Index722"></A><A NAME="Index723"></A></H3></FONT>
+<DIV ALIGN="LEFT"><P>There are many examples of CGI programs written using Standard
+C. One argument for doing this is that Standard C can be found virtually
+everywhere. However, C++ has become quite ubiquitous, especially in the form of
+the <A NAME="Index724"></A><A NAME="Index725"></A>GNU C++
+Compiler<A NAME="fnB30" HREF="#fn30">[30]</A> (<B>g++</B>)<B> </B>that can be
+downloaded free from the Internet for virtually any platform (and often comes
+pre-installed with operating systems such as Linux). As you will see, this means
+that you can get the benefit of object-oriented programming in a CGI
+program.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Since what we&#8217;re concerned with when parsing the CGI
+information is the field name-value pairs, one class (<B>CGIpair</B>)<B>
+</B>will be used to represent a single name-value pair and a second class
+(<B>CGImap</B>) will use <B>CGIpair</B> to parse each name-value pair that is
+submitted from the HTML form into keys and values that it will hold in a
+<B>map</B> of <B>strings</B> so you can easily fetch the value for each field at
+your leisure.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>One of the reasons for using C++ here is the convenience of
+the <A NAME="Index726"></A><A NAME="Index727"></A><A NAME="Index728"></A>STL, in
+particular the <B>map</B> class. Since <B>map </B>has the <B>operator[ ],
+</B>you have a nice syntax for extracting the data for each field. The
+<B>map</B> template will be used in the creation of <B>CGImap</B>, which
+you&#8217;ll see is a fairly short definition considering how powerful it
+is.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The project will start with a reusable portion, which consists
+of <B>CGIpair</B> and <B>CGImap</B> in a header file. Normally you should avoid
+cramming this much code into a header file, but for these examples it&#8217;s
+convenient and it doesn&#8217;t hurt anything:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:CGImap.h</font>
+<font color=#009900>// Tools for extracting and decoding data from </font>
+<font color=#009900>// from CGI GETs and POSTs.</font>
+#include &lt;string&gt;
+#include &lt;vector&gt;
+#include &lt;iostream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>class</font> CGIpair : <font color=#0000ff>public</font> pair&lt;string, string&gt; {
+<font color=#0000ff>public</font>:
+  CGIpair() {}
+  CGIpair(string name, string value) {
+    first = decodeURLString(name);
+    second = decodeURLString(value);
+  }
+  <font color=#009900>// Automatic type conversion for boolean test:</font>
+  <font color=#0000ff>operator</font> <font color=#0000ff>bool</font>() <font color=#0000ff>const</font> {
+    <font color=#0000ff>return</font> (first.length() != 0);
+  } 
+<font color=#0000ff>private</font>:  
+  <font color=#0000ff>static</font> string decodeURLString(string URLstr) {
+    <font color=#0000ff>const</font> <font color=#0000ff>int</font> len = URLstr.length();
+    string result;
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; len; i++) {
+      <font color=#0000ff>if</font>(URLstr[i] == '+')
+        result += ' ';
+      <font color=#0000ff>else</font> <font color=#0000ff>if</font>(URLstr[i] == '%') {
+        result +=
+          translateHex(URLstr[i + 1]) * 16 +
+          translateHex(URLstr[i + 2]);
+        i += 2; <font color=#009900>// Move past hex code</font>
+      } <font color=#0000ff>else</font> <font color=#009900>// An ordinary character</font>
+        result += URLstr[i];
+    }
+    <font color=#0000ff>return</font> result;
+  }
+  <font color=#009900>// Translate a single hex character; used by</font>
+  <font color=#009900>// decodeURLString():</font>
+  <font color=#0000ff>static</font> <font color=#0000ff>char</font> translateHex(<font color=#0000ff>char</font> hex) {
+    <font color=#0000ff>if</font>(hex &gt;= 'A')
+      <font color=#0000ff>return</font> (hex &amp; 0xdf) - 'A' + 10;
+    <font color=#0000ff>else</font>
+      <font color=#0000ff>return</font> hex - '0';
+  }
+};
+
+<font color=#009900>// Parses any CGI query and turns it into an</font>
+<font color=#009900>// STL vector of CGIpair which has an associative</font>
+<font color=#009900>// lookup operator[] like a map. A vector is used</font>
+<font color=#009900>// instead of a map because it keeps the original</font>
+<font color=#009900>// ordering of the fields in the Web page form.</font>
+<font color=#0000ff>class</font> CGImap : <font color=#0000ff>public</font> vector&lt;CGIpair&gt; {
+  string gq;
+  <font color=#0000ff>int</font> index;
+  <font color=#009900>// Prevent assignment and copy-construction:</font>
+  <font color=#0000ff>void</font> <font color=#0000ff>operator</font>=(CGImap&amp;);
+  CGImap(CGImap&amp;);
+<font color=#0000ff>public</font>:
+  CGImap(string query): index(0), gq(query){
+    CGIpair p;
+    <font color=#0000ff>while</font>((p = nextPair()) != 0)
+      push_back(p); 
+  }
+  <font color=#009900>// Look something up, as if it were a map:</font>
+  string <font color=#0000ff>operator</font>[](<font color=#0000ff>const</font> string&amp; key) {
+    iterator i = begin();
+    <font color=#0000ff>while</font>(i != end()) {
+      <font color=#0000ff>if</font>((*i).first == key)
+        <font color=#0000ff>return</font> (*i).second;
+      i++;
+    }
+    <font color=#0000ff>return</font> string(); <font color=#009900>// Empty string == not found</font>
+  }
+  <font color=#0000ff>void</font> dump(ostream&amp; o, string nl = <font color=#004488>"&lt;br&gt;"</font>) {
+    <font color=#0000ff>for</font>(iterator i = begin(); i != end(); i++) {
+      o &lt;&lt; (*i).first &lt;&lt; <font color=#004488>" = "</font>
+        &lt;&lt; (*i).second &lt;&lt; nl;
+    }
+  }
+<font color=#0000ff>private</font>:
+  <font color=#009900>// Produces name-value pairs from the query </font>
+  <font color=#009900>// string. Returns an empty Pair when there's </font>
+  <font color=#009900>// no more query string left:</font>
+  CGIpair nextPair() {
+    <font color=#0000ff>if</font>(gq.length() == 0)
+      <font color=#0000ff>return</font> CGIpair(); <font color=#009900>// Error, return empty</font>
+    <font color=#0000ff>if</font>(gq.find('=') == -1)
+      <font color=#0000ff>return</font> CGIpair(); <font color=#009900>// Error, return empty</font>
+    string name = gq.substr(0, gq.find('='));
+    gq = gq.substr(gq.find('=') + 1);
+    string value = gq.substr(0, gq.find('&amp;'));
+    gq = gq.substr(gq.find('&amp;') + 1);
+    <font color=#0000ff>return</font> CGIpair(name, value);
+  }
+};
+
+<font color=#009900>// Helper class for getting POST data:</font>
+<font color=#0000ff>class</font> Post : <font color=#0000ff>public</font> string {
+<font color=#0000ff>public</font>: 
+  Post() {
+    <font color=#009900>// For a CGI "POST," the server puts the</font>
+    <font color=#009900>// length of the content string in the </font>
+    <font color=#009900>// environment variable CONTENT_LENGTH:</font>
+    <font color=#0000ff>char</font>* clen = getenv(<font color=#004488>"CONTENT_LENGTH"</font>);
+    <font color=#0000ff>if</font>(clen == 0) {
+      cout &lt;&lt; <font color=#004488>"Zero CONTENT_LENGTH, Make sure "</font>
+        <font color=#004488>"this is a POST and not a GET"</font> &lt;&lt; endl;
+      <font color=#0000ff>return</font>;
+    }
+    <font color=#0000ff>int</font> len = atoi(clen);
+    <font color=#0000ff>char</font>* s = <font color=#0000ff>new</font> <font color=#0000ff>char</font>[len];
+    cin.read(s, len); <font color=#009900>// Get the data</font>
+    append(s, len); <font color=#009900>// Add it to this string</font>
+    <font color=#0000ff>delete</font> []s;
+  }
+}; <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>The <B>CGIpair</B> class starts out quite simply: it inherits
+from the standard library <B>pair</B> template to create a <B>pair</B> of<B>
+string</B>s, one for the name and one for the value. The second constructor
+calls the member function <B>decodeURLString(&#160;)</B> which produces a
+<B>string</B> after stripping away all the extra characters added by the browser
+as it submitted the CGI request. There is no need to provide functions to select
+each individual element &#8211; because <B>pair </B>is inherited publicly, you
+can just select the <B>first </B>and <B>second</B> elements of the
+<B>CGIpair</B>.<B> </B><BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The <B>operator bool</B> provides automatic type conversion to
+<B>bool</B>. If you have a <B>CGIpair</B> object called <B>p</B> and you use it
+in an expression where a Boolean result is expected, such as <BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#0000ff>if</font>(p) { <font color=#009900>//...</font></PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P>then the compiler will recognize that
+it has a <B>CGIpair</B> and it needs a Boolean, so it will automatically call
+<B>operator bool</B> to perform the necessary conversion.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Because the <B>string</B> objects take care of themselves, you
+don&#8217;t need to explicitly define the copy-constructor, <B>operator=</B> or
+destructor &#8211; the default versions synthesized by the compiler do the right
+thing.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The remainder of the <B>CGIpair</B> class consists of the two
+methods <B>decodeURLString(&#160;)</B> and a helper member function
+<B>translateHex(&#160;)</B> which is used by <B>decodeURLString(&#160;)</B>.
+(Note that <B>translateHex(&#160;)</B> does not guard against bad input such as
+&#8220;%1H.&#8221;) <B>decodeURLString(&#160;)</B> moves through and replaces
+each &#8216;<B>+</B>&#8217; with a space, and each hex code (beginning with a
+&#8216;<B>%</B>&#8217;) with the appropriate character. It&#8217;s worth noting
+here and in <B>CGImap</B> the power of the <B>string</B> class &#8211; you can
+index into a <B>string</B> object using <B>operator[ ]</B>, and you can use
+methods like <B>find(&#160;)</B> and <B>substring(&#160;)</B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>CGImap</B> parses and holds all the name-value pairs
+submitted from the form as part of a CGI request. You might think that anything
+that has the word &#8220;map&#8221; in it&#8217;s name should be inherited from
+the STL <B>map</B>, but <B>map</B> has it&#8217;s own way of ordering the
+elements it stores whereas here it&#8217;s useful to keep the elements in the
+order that they appear on the Web page. So <B>CGImap</B> is inherited from
+<B>vector&lt;CGIpair&gt;</B>, and <B>operator[ ] </B>is overloaded so you get
+the associative-array lookup of a <B>map</B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>You can also see that <B>CGImap</B> has a copy-constructor and
+an <B>operator=</B>, but they&#8217;re both declared as <B>private</B>. This is
+to prevent the compiler from synthesizing the two functions (which it will do if
+you don&#8217;t declare them yourself), but it also prevents the client
+programmer from passing a <B>CGImap</B> by value or from using
+assignment.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>CGImap</B>&#8217;s job is to take the input data and parse
+it into name-value pairs, which it will do with the aid of <B>CGIpair</B>
+(effectively, <B>CGIpair</B> is only a helper class, but it also seems to make
+it easier to understand the code). After copying the query string (you&#8217;ll
+see where the query string comes from later) into a local <B>string</B> object
+<B>gq</B>, the <B>nextPair(&#160;)</B> member function is used to parse the
+string into raw name-value pairs, delimited by &#8216;<B>=</B>&#8216; and<B>
+</B>&#8216;<B>&amp;</B>&#8217; signs. Each resulting <B>CGIpair</B> object is
+added to the <B>vector</B> using the standard <B>vector::push_back(&#160;)</B>.
+When <B>nextPair(&#160;)</B> runs out of input from the query string, it returns
+zero.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The <B>CGImap::operator[ ]</B> takes the brute-force approach
+of a linear search through the elements. Since the <B>CGImap</B> is
+intentionally not sorted and they tend to be small, this is not too terrible.
+The <B>dump(&#160;)</B> function is used for testing, typically by sending
+information to the resulting Web page, as you might guess from the default value
+of <B>nl</B>, which is an HTML &#8220;break line&#8221; token.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><A NAME="Index729"></A><A NAME="Index730"></A><A NAME="Index731"></A>Using
+GET can be fine for many applications. However, GET passes its data to the CGI
+program through an environment variable (called <B>QUERY_STRING</B>), and
+operating systems typically run out of environment space with long GET strings
+(you should start worrying at about 200 characters). CGI provides a solution for
+this: POST. With POST, the data is encoded and concatenated the same way as with
+GET, but POST uses standard input to pass the encoded query string to the CGI
+program and has no length limitation on the input. All you have to do in your
+CGI program is determine the length of the query string. This length is stored
+in the environment variable <B>CONTENT_LENGTH</B>. Once you know the length, you
+can allocate storage and read the precise number of bytes from standard input.
+Because POST is the less-fragile solution, you should probably prefer it over
+GET, unless you know for sure that your input will be short. In fact, one might
+surmise that the only reason for GET is that it is slightly easier to code a CGI
+program in C using GET. However, the last class in <B>CGImap.h</B> is a tool
+that makes handling a POST just as easy as handling a GET, which means you can
+always use POST.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The <B>class Post</B> inherits from a string and only has a
+constructor. The job of the constructor is to get the query data from the POST
+into itself (a <B>string</B>). It does this by reading the <B>CONTENT_LENGTH</B>
+environment variable using the Standard C library function
+<B>getenv(&#160;)</B>. This comes back as a pointer to a C character string. If
+this pointer is zero, the CONTENT_LENGTH environment variable has not been set,
+so something is wrong. Otherwise, the character string must be converted to an
+integer using the Standard C library function <B>atoi(&#160;)</B>. The resulting
+length is used with <B>new </B>to allocate enough storage to hold the query
+string (plus its null terminator), and then <B>read(&#160;)</B> is called for
+<B>cin</B>. The <B>read(&#160;)</B> function takes a pointer to the destination
+buffer and the number of bytes to read. The resulting buffer is inserted into
+the current <B>string</B> using <B>string::append(&#160;)</B>. At this point,
+the POST data is just a <B>string</B> object and can be easily used without
+further concern about where it came from.<BR></P></DIV>
+<A NAME="Heading358"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Testing the CGI parser</H4></FONT>
+<DIV ALIGN="LEFT"><P>Now that the basic tools are defined, they can easily be used
+in a CGI program like the following which simply dumps the name-value pairs that
+are parsed from a GET query. Remember that an iterator for a <B>CGImap</B>
+returns a <B>CGIpair</B> object when it is dereferenced, so you must select the
+<B>first</B> and <B>second</B> parts of that <B>CGIpair</B>:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:CGI_GET.cpp</font>
+<font color=#009900>// Tests CGImap by extracting the information</font>
+<font color=#009900>// from a CGI GET submitted by an HTML Web page.</font>
+#include <font color=#004488>"CGImap.h"</font>
+
+<font color=#0000ff>int</font> main() {
+  <font color=#009900>// You MUST print this out, otherwise the </font>
+  <font color=#009900>// server will not send the response:</font>
+  cout &lt;&lt; <font color=#004488>"Content-type: text</font><font color=#004488>/plain\n"</font> &lt;&lt; endl;
+  <font color=#009900>// For a CGI "GET," the server puts the data</font>
+  <font color=#009900>// in the environment variable QUERY_STRING:</font>
+  CGImap query(getenv(<font color=#004488>"QUERY_STRING"</font>));
+  <font color=#009900>// Test: dump all names and values</font>
+  <font color=#0000ff>for</font>(CGImap::iterator it = query.begin();
+    it != query.end(); it++) {
+    cout &lt;&lt; (*it).first &lt;&lt; <font color=#004488>" = "</font>
+      &lt;&lt; (*it).second &lt;&lt; endl;
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>When you use the GET approach (which is controlled by the HTML
+page with the METHOD tag of the FORM directive), the Web server grabs everything
+after the &#8216;?&#8217; and puts in into the operating-system environment
+variable <B>QUERY_STRING</B>. So to read that information all you have to do is
+get the <B>QUERY_STRING</B>. You do this with the standard C library function
+<B>getenv(&#160;)</B>, passing it the identifier of the environment variable you
+wish to fetch. In <B>main(&#160;)</B>,<B> </B>notice how simple the act of
+parsing the <B>QUERY_STRING</B> is: you just hand it to the constructor for the
+<B>CGImap</B> object called <B>query </B>and all the work is done for you.
+Although an iterator is used here, you can also pull out the names and values
+from <B>query</B> using <B>CGImap::operator[ ]</B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Now it&#8217;s important to understand something about CGI. A
+CGI program is handed its input in one of two ways: through QUERY_STRING during
+a GET (as in the above case) or through standard input during a POST. But a CGI
+program only returns its results through standard output, via <B>cout</B>. Where
+does this output go? Back to the Web server, which decides what to do with it.
+The server makes this decision based on the <B>content-type</B> header, which
+means that if the <B>content-type</B> header isn&#8217;t the first thing it
+sees, it won&#8217;t know what to do with the data. Thus it&#8217;s essential
+that you start the output of all CGI programs with the <B>content-type</B>
+header.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>In this case, we want the server to feed all the information
+directly back to the client program. The information should be unchanged, so the
+<B>content-type</B> is <B>text/plain</B>. Once the server sees this, it will
+echo all strings right back to the client as a simple text Web page.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>To test this program, you must compile it in the cgi-bin
+directory of your host Web server. Then you can perform a simple test by writing
+an HTML page like this:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>//:! C10:GETtest.html
+&lt;HTML&gt;&lt;HEAD&gt;
+&lt;TITLE&gt;A test of standard HTML GET&lt;/TITLE&gt;
+&lt;/HEAD&gt; Test, uses standard html GET
+&lt;Form method="GET" ACTION="/cgi-bin/CGI_GET.exe"&gt;
+&lt;P&gt;Field1: &lt;INPUT TYPE = "text" NAME = "Field1" 
+VALUE = "This is a test" size = "40"&gt;&lt;/p&gt;
+&lt;P&gt;Field2: &lt;INPUT TYPE = "text" NAME = "Field2" 
+VALUE = "of the emergency" size = "40"&gt;&lt;/p&gt;
+&lt;P&gt;Field3: &lt;INPUT TYPE = "text" NAME = "Field3" 
+VALUE = "broadcast system" size = "40"&gt;&lt;/p&gt;
+&lt;P&gt;Field4: &lt;INPUT TYPE = "text" NAME = "Field4" 
+VALUE = "this is only a test" size = "40"&gt;&lt;/p&gt;
+&lt;P&gt;Field5: &lt;INPUT TYPE = "text" NAME = "Field5" 
+VALUE = "In a real emergency" size = "40"&gt;&lt;/p&gt;
+&lt;P&gt;Field6: &lt;INPUT TYPE = "text" NAME = "Field6" 
+VALUE = "you will be instructed" size = "40"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;input type = "submit" name = "submit" &gt; &lt;/p&gt;
+&lt;/Form&gt;&lt;/HTML&gt;
+///:~</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>Of course, the <B>CGI_GET.exe </B>program must be compiled on
+some kind of Web server and placed in the correct subdirectory (typically called
+&#8220;cgi-bin&#8221; in order for this web page to work. The dominant Web
+server is the freely-available Apache (see http://www.Apache.org), which runs on
+virtually all platforms. Some word-processing/spreadsheet packages even come
+with Web servers. It&#8217;s also quite cheap and easy to get an old PC and
+install Linux along with an inexpensive network card. Linux automatically sets
+up the Apache server for you, and you can test everything on your local network
+as if it were live on the Internet. One way or another it&#8217;s possible to
+install a Web server for local tests, so you don&#8217;t need to have a remote
+Web server and permission to install CGI programs on that server.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>One of the advantages of this design is that, now that
+<B>CGIpair</B> and <B>CGImap</B> are defined, most of the work is done for you
+so you can easily create your own CGI program simply by modifying
+<B>main(&#160;)</B>.<A NAME="_Toc408018780"></A><A NAME="_Toc462393623"></A><BR></P></DIV>
+<A NAME="Heading359"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Using POST</H3></FONT>
+<DIV ALIGN="LEFT"><P>The <B>CGIpair</B> and <B>CGImap</B> from <B>CGImap.h</B> can
+be used as is for a CGI program that handles POSTs. The only thing you need to
+do is get the data from a <B>Post </B>object instead of from the
+<B>QUERY_STRING</B> environment variable. The following listing shows how simple
+it is to write such a CGI program:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:CGI_POST.cpp</font>
+<font color=#009900>// CGImap works as easily with POST as it</font>
+<font color=#009900>// does with GET. </font>
+#include <font color=#004488>"CGImap.h"</font>
+#include &lt;iostream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main() {
+  cout &lt;&lt; <font color=#004488>"Content-type: text</font><font color=#004488>/plain\n"</font> &lt;&lt; endl;
+  Post p; <font color=#009900>// Get the query string</font>
+  CGImap query(p);
+  <font color=#009900>// Test: dump all names and values</font>
+  <font color=#0000ff>for</font>(CGImap::iterator it = query.begin();
+    it != query.end(); it++) {
+    cout &lt;&lt; (*it).first &lt;&lt; <font color=#004488>" = "</font>
+      &lt;&lt; (*it).second &lt;&lt; endl;
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>After creating a <B>Post</B> object, the query string is no
+different from a GET query string, so it is handed to the constructor for
+<B>CGImap</B>. The different fields in the vector are then available just as in
+the previous example. If you wanted to get even more terse, you could even
+define the <B>Post</B> as a temporary directly inside the constructor for the
+<B>CGImap</B> object:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>CGImap query(Post());</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>To test this program, you can use the following Web
+page:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>//:! C10:POSTtest.html
+&lt;HTML&gt;&lt;HEAD&gt;
+&lt;TITLE&gt;A test of standard HTML POST&lt;/TITLE&gt;
+&lt;/HEAD&gt;Test, uses standard html POST
+&lt;Form method="POST" ACTION="/cgi-bin/CGI_POST.exe"&gt;
+&lt;P&gt;Field1: &lt;INPUT TYPE = "text" NAME = "Field1" 
+VALUE = "This is a test" size = "40"&gt;&lt;/p&gt;
+&lt;P&gt;Field2: &lt;INPUT TYPE = "text" NAME = "Field2" 
+VALUE = "of the emergency" size = "40"&gt;&lt;/p&gt;
+&lt;P&gt;Field3: &lt;INPUT TYPE = "text" NAME = "Field3" 
+VALUE = "broadcast system" size = "40"&gt;&lt;/p&gt;
+&lt;P&gt;Field4: &lt;INPUT TYPE = "text" NAME = "Field4" 
+VALUE = "this is only a test" size = "40"&gt;&lt;/p&gt;
+&lt;P&gt;Field5: &lt;INPUT TYPE = "text" NAME = "Field5" 
+VALUE = "In a real emergency" size = "40"&gt;&lt;/p&gt;
+&lt;P&gt;Field6: &lt;INPUT TYPE = "text" NAME = "Field6" 
+VALUE = "you will be instructed" size = "40"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;input type = "submit" name = "submit" &gt; &lt;/p&gt;
+&lt;/Form&gt;&lt;/HTML&gt;
+///:~</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>When you press the &#8220;submit&#8221; button, you&#8217;ll
+get back a simple text page containing the parsed results, so you can see that
+the CGI program works correctly. The server turns around and feeds the query
+string to the CGI program via standard
+input.<A NAME="_Toc462393624"></A><BR></P></DIV>
+<A NAME="Heading360"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Handling mailing lists</H3></FONT>
+<DIV ALIGN="LEFT"><P>Managing an email list is the kind of problem many people need
+to solve for their Web site. As it is turning out to be the case for everything
+on the Internet, the simplest approach is always the best. I learned this the
+hard way, first trying a variety of Java applets (which some firewalls do not
+allow) and even JavaScript (which isn&#8217;t supported uniformly on all
+browsers). The result of each experiment was a steady stream of email from the
+folks who couldn&#8217;t get it to work. When you set up a Web site, your goal
+should be to never get email from anyone complaining that it doesn&#8217;t work,
+and the best way to produce this result is to use plain HTML (which, with a
+little work, can be made to look quite decent).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The second problem was on the server side. Ideally,
+you&#8217;d like all your email addresses to be added and removed from a single
+master file, but this presents a problem. Most operating systems allow more than
+one program to open a file. When a client makes a CGI request, the Web server
+starts up a new invocation of the CGI program, and since a Web server can handle
+many requests at a time, this means that you can have many instances of your CGI
+program running at once. If the CGI program opens a specific file, then you can
+have many programs running at once that open that file. This is a problem if
+they are each reading and writing to that file.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>There may be a function for your operating system that
+&#8220;locks&#8221; a file, so that other invocations of your program do not
+access the file at the same time. However, I took a different approach, which
+was to make a unique file for each client. Making a file unique was quite easy,
+since the email name itself is a unique character string. The filename for each
+request is then just the email name, followed by the string &#8220;.add&#8221;
+or &#8220;.remove&#8221;. The contents of the file is also the email address of
+the client. Then, to produce a list of all the names to add, you simply say
+something like (in Unix):<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>cat *.add &gt; addlist</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>(or the equivalent for your system). For removals, you
+say:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>cat *.remove &gt; removelist</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>Once the names have been combined into a list you can archive
+or remove the files.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The HTML code to place on your Web page becomes fairly
+straightforward. This particular example takes an email address to be added or
+removed from my C++ mailing list:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>&lt;h1 align=<font color=#004488>"center"</font>&gt;&lt;font color=<font color=#004488>"#000000"</font>&gt;
+The C++ Mailing List&lt;/font&gt;&lt;/h1&gt;
+&lt;div align=<font color=#004488>"center"</font>&gt;&lt;center&gt;
+
+&lt;table border=<font color=#004488>"1"</font> cellpadding=<font color=#004488>"4"</font> 
+cellspacing=<font color=#004488>"1"</font> width=<font color=#004488>"550"</font> bgcolor=<font color=#004488>"#FFFFFF"</font>&gt;
+  &lt;tr&gt;
+    &lt;td width=<font color=#004488>"30"</font> bgcolor=<font color=#004488>"#FF0000"</font>&gt;&amp;nbsp;&lt;/td&gt;
+    &lt;td align=<font color=#004488>"center"</font> width=<font color=#004488>"422"</font> bgcolor=<font color=#004488>"#0"</font>&gt;
+    &lt;form action=<font color=#004488>"</font><font color=#004488>/cgi-bin</font><font color=#004488>/mlm.exe"</font> method=<font color=#004488>"GET"</font>&gt;
+    &lt;input type=<font color=#004488>"hidden"</font> name=<font color=#004488>"subject-field"</font>
+    value=<font color=#004488>"cplusplus-email-list"</font>&gt;
+    &lt;input type=<font color=#004488>"hidden"</font> name=<font color=#004488>"command-field"</font>
+    value=<font color=#004488>"add"</font>&gt;&lt;p&gt;
+    &lt;input type=<font color=#004488>"text"</font> size=<font color=#004488>"40"</font> 
+    name=<font color=#004488>"email-address"</font>&gt; 
+    &lt;input type=<font color=#004488>"submit"</font> name=<font color=#004488>"submit"</font>
+    value=<font color=#004488>"Add Address to C++ Mailing List"</font>&gt;
+    &lt;/p&gt;&lt;/form&gt;&lt;/td&gt;
+    &lt;td width=<font color=#004488>"30"</font> bgcolor=<font color=#004488>"#FF0000"</font>&gt;&amp;nbsp;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td width=<font color=#004488>"30"</font> bgcolor=<font color=#004488>"#000000"</font>&gt;&amp;nbsp;&lt;/td&gt;
+    &lt;td align=<font color=#004488>"center"</font> width=<font color=#004488>"422"</font> 
+    bgcolor=<font color=#004488>"#FF0000"</font>&gt;
+    &lt;form action=<font color=#004488>"</font><font color=#004488>/cgi-bin</font><font color=#004488>/mlm.exe"</font> method=<font color=#004488>"GET"</font>&gt;
+    &lt;input type=<font color=#004488>"hidden"</font> name=<font color=#004488>"subject-field"</font>
+    value=<font color=#004488>"cplusplus-email-list"</font>&gt;
+    &lt;input type=<font color=#004488>"hidden"</font> name=<font color=#004488>"command-field"</font>
+    value=<font color=#004488>"remove"</font>&gt;&lt;p&gt;
+    &lt;input type=<font color=#004488>"text"</font> size=<font color=#004488>"40"</font> 
+    name=<font color=#004488>"email-address"</font>&gt;
+    &lt;input type=<font color=#004488>"submit"</font> name=<font color=#004488>"submit"</font>
+    value=<font color=#004488>"Remove Address From C++ Mailing List"</font>&gt;
+    &lt;/p&gt;&lt;/form&gt;&lt;/td&gt;
+    &lt;td width=<font color=#004488>"30"</font> bgcolor=<font color=#004488>"#000000"</font>&gt;&amp;nbsp;&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/center&gt;&lt;/div&gt;</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>Each form contains one data-entry field called
+<B>email-address</B>, as well as a couple of hidden fields which don&#8217;t
+provide for user input but carry information back to the server nonetheless. The
+<B>subject-field</B> tells the CGI program the subdirectory where the resulting
+file should be placed. The <B>command-field</B> tells the CGI program whether
+the user is requesting that they be added or removed from the list. From the
+<B>action</B>, you can see that a GET is used with a program called
+<B>mlm.exe</B> (for &#8220;mailing list manager&#8221;). Here it is:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:mlm.cpp</font>
+<font color=#009900>// A GGI program to maintain a mailing list</font>
+#include <font color=#004488>"CGImap.h"</font>
+#include &lt;fstream&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+<font color=#0000ff>const</font> string contact(<font color=#004488>"Bruce@EckelObjects.com"</font>);
+<font color=#009900>// Paths in this program are for Linux/Unix. You</font>
+<font color=#009900>// must use backslashes (two for each single </font>
+<font color=#009900>// slash) on Win32 servers:</font>
+<font color=#0000ff>const</font> string rootpath(<font color=#004488>"</font><font color=#004488>/home</font><font color=#004488>/eckel</font><font color=#004488>/"</font>);
+
+<font color=#0000ff>int</font> main() {
+  cout &lt;&lt; <font color=#004488>"Content-type: text</font><font color=#004488>/html\n"</font>&lt;&lt; endl;
+  CGImap query(getenv(<font color=#004488>"QUERY_STRING"</font>));
+  <font color=#0000ff>if</font>(query[<font color=#004488>"test-field"</font>] == <font color=#004488>"on"</font>) {
+    cout &lt;&lt; <font color=#004488>"map size: "</font> &lt;&lt; query.size() &lt;&lt; <font color=#004488>"&lt;br&gt;"</font>;
+    query.dump(cout, <font color=#004488>"&lt;br&gt;"</font>);
+  }
+  <font color=#0000ff>if</font>(query[<font color=#004488>"subject-field"</font>].size() == 0) {
+    cout &lt;&lt; <font color=#004488>"&lt;h2&gt;Incorrect form. Contact "</font> &lt;&lt;
+    contact &lt;&lt; endl;
+    <font color=#0000ff>return</font> 0;
+  }
+  string email = query[<font color=#004488>"email-address"</font>];
+  <font color=#0000ff>if</font>(email.size() == 0) {
+    cout &lt;&lt; <font color=#004488>"&lt;h2&gt;Please enter your email address"</font>
+      &lt;&lt; endl;
+    <font color=#0000ff>return</font> 0;
+  }
+  <font color=#0000ff>if</font>(email.find_first_of(<font color=#004488>" \t"</font>) != string::npos){
+    cout &lt;&lt; <font color=#004488>"&lt;h2&gt;You cannot use white space "</font>
+      <font color=#004488>"in your email address"</font> &lt;&lt; endl;
+    <font color=#0000ff>return</font> 0;
+  }
+  <font color=#0000ff>if</font>(email.find('@') == string::npos) {
+    cout &lt;&lt; <font color=#004488>"&lt;h2&gt;You must use a proper email"</font>
+      <font color=#004488>" address including an '@' sign"</font> &lt;&lt; endl;
+    <font color=#0000ff>return</font> 0;
+  }
+  <font color=#0000ff>if</font>(email.find('.') == string::npos) {
+    cout &lt;&lt; <font color=#004488>"&lt;h2&gt;You must use a proper email"</font>
+      <font color=#004488>" address including a '.'"</font> &lt;&lt; endl;
+    <font color=#0000ff>return</font> 0;
+  }
+  string fname = email;
+  <font color=#0000ff>if</font>(query[<font color=#004488>"command-field"</font>] == <font color=#004488>"add"</font>)
+    fname += <font color=#004488>".add"</font>;
+  <font color=#0000ff>else</font> <font color=#0000ff>if</font>(query[<font color=#004488>"command-field"</font>] == <font color=#004488>"remove"</font>)
+    fname += <font color=#004488>".remove"</font>;
+  <font color=#0000ff>else</font> {  
+    cout &lt;&lt; <font color=#004488>"error: command-field not found. Contact "</font>
+      &lt;&lt; contact &lt;&lt; endl;
+    <font color=#0000ff>return</font> 0;
+  }
+  string path(rootpath + query[<font color=#004488>"subject-field"</font>] 
+    + <font color=#004488>"</font><font color=#004488>/"</font> + fname);
+  ofstream out(path.c_str());
+  <font color=#0000ff>if</font>(!out) {
+    cout &lt;&lt; <font color=#004488>"cannot open "</font> &lt;&lt; path &lt;&lt; <font color=#004488>"; Contact"</font>
+      &lt;&lt; contact &lt;&lt; endl;
+    <font color=#0000ff>return</font> 0;
+  }
+  out &lt;&lt; email &lt;&lt; endl;
+  cout &lt;&lt; <font color=#004488>"&lt;br&gt;&lt;H2&gt;"</font> &lt;&lt; email &lt;&lt; <font color=#004488>" has been "</font>;
+  <font color=#0000ff>if</font>(query[<font color=#004488>"command-field"</font>] == <font color=#004488>"add"</font>)
+    cout &lt;&lt; <font color=#004488>"added"</font>;
+  <font color=#0000ff>else</font> <font color=#0000ff>if</font>(query[<font color=#004488>"command-field"</font>] == <font color=#004488>"remove"</font>)
+    cout &lt;&lt; <font color=#004488>"removed"</font>;
+  cout &lt;&lt; <font color=#004488>"&lt;br&gt;Thank you&lt;</font><font color=#004488>/H2&gt;"</font> &lt;&lt; endl;
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>Again, all the CGI work is done by the <B>CGImap</B>. From
+then on it&#8217;s a matter of pulling the fields out and looking at them, then
+deciding what to do about it, which is easy because of the way you can index
+into a <B>map</B> and also because of the tools available for standard
+<B>string</B>s. Here, most of the programming has to do with checking for a
+valid email address. Then a file name is created with the email address as the
+name and &#8220;.add&#8221; or &#8220;.remove&#8221; as the extension, and the
+email address is placed in the file.<BR></P></DIV>
+<A NAME="Heading361"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Maintaining your list</H4></FONT>
+<DIV ALIGN="LEFT"><P>Once you have a list of names to add, you can just paste them
+to end of your list. However, you might get some duplicates so you need a
+program to remove those. Because your names may differ only by upper and
+lowercase, it&#8217;s useful to create a tool that will read a list of names
+from a file and place them into a container of strings, forcing all the names to
+lowercase as it does:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:readLower.h</font>
+<font color=#009900>// Read a file into a container of string, </font>
+<font color=#009900>// forcing each line to lower case.</font>
+#ifndef READLOWER_H
+#define READLOWER_H
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;string&gt;
+#include &lt;algorithm&gt;
+#include &lt;cctype&gt;
+
+<font color=#0000ff>inline</font> <font color=#0000ff>char</font> downcase(<font color=#0000ff>char</font> c) {
+  <font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std; <font color=#009900>// Compiler bug</font>
+  <font color=#0000ff>return</font> tolower(c);
+}
+
+std::string lcase(std::string s) {
+  std::transform(s.begin(), s.end(),
+    s.begin(), downcase);
+  <font color=#0000ff>return</font> s;
+}
+
+<font color=#0000ff>template</font>&lt;<font color=#0000ff>class</font> SContainer&gt; 
+<font color=#0000ff>void</font> readLower(<font color=#0000ff>char</font>* filename, SContainer&amp; c) {
+  std::ifstream in(filename);
+  assure(in, filename);
+  <font color=#0000ff>const</font> <font color=#0000ff>int</font> sz = 1024;
+  <font color=#0000ff>char</font> buf[sz];
+  <font color=#0000ff>while</font>(in.getline(buf, sz))
+    <font color=#009900>// Force to lowercase:</font>
+    c.push_back(string(lcase(buf)));
+} 
+#endif <font color=#009900>// READLOWER_H ///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>Since it&#8217;s a <B>template</B>, it will work with any
+container of <B>string</B> that supports <B>push_back(&#160;)</B>.<B> </B>Again,
+you may want to change the above to the form <B>readln(in, s)</B> instead of
+using a fixed-sized buffer, which is more fragile.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Once the names are read into the list and forced to lowercase,
+removing duplicates is trivial:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:RemoveDuplicates.cpp</font>
+<font color=#009900>// Remove duplicate names from a mailing list</font>
+#include <font color=#004488>"readLower.h"</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main(<font color=#0000ff>int</font> argc, <font color=#0000ff>char</font>* argv[]) {
+  requireArgs(argc, 2);
+  vector&lt;string&gt; names;
+  readLower(argv[1], names); 
+  <font color=#0000ff>long</font> before = names.size();
+  <font color=#009900>// You must sort first for unique() to work:</font>
+  sort(names.begin(), names.end()); 
+  <font color=#009900>// Remove adjacent duplicates:</font>
+  unique(names.begin(), names.end());
+  <font color=#0000ff>long</font> removed = before - names.size();
+  ofstream out(argv[2]);
+  assure(out, argv[2]);
+  copy(names.begin(), names.end(),
+       ostream_iterator&lt;string&gt;(out,<font color=#004488>"\n"</font>));
+  cout &lt;&lt; removed &lt;&lt; <font color=#004488>" names removed"</font> &lt;&lt; endl;
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>A <B>vector </B>is used here instead of a <B>list </B>because
+sorting requires random-access which is much faster in a <B>vector</B>. (A
+<B>list</B> has a built-in <B>sort(&#160;)</B> so that it doesn&#8217;t suffer
+from the performance that would result from applying the normal
+<B>sort(&#160;)</B> algorithm shown above).<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The sort must be performed so that all duplicates are adjacent
+to each other. Then <B>unique(&#160;)</B> can remove all the adjacent
+duplicates. The program also keeps track of how many duplicate names were
+removed.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>When you have a file of names to remove from your list,
+<B>readLower(&#160;)</B> comes in handy again:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:RemoveGroup.cpp</font>
+<font color=#009900>// Remove a group of names from a list</font>
+#include <font color=#004488>"readLower.h"</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;list&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>typedef</font> list&lt;string&gt; Container;
+
+<font color=#0000ff>int</font> main(<font color=#0000ff>int</font> argc, <font color=#0000ff>char</font>* argv[]) {
+  requireArgs(argc, 3);
+  Container names, removals;
+  readLower(argv[1], names);
+  readLower(argv[2], removals);
+  <font color=#0000ff>long</font> original = names.size();
+  Container::iterator rmit = removals.begin();
+  <font color=#0000ff>while</font>(rmit != removals.end())
+    names.remove(*rmit++); <font color=#009900>// Removes all matches</font>
+  ofstream out(argv[3]);
+  assure(out, argv[3]);
+  copy(names.begin(), names.end(),
+       ostream_iterator&lt;string&gt;(out,<font color=#004488>"\n"</font>));
+  <font color=#0000ff>long</font> removed = original - names.size();
+  cout &lt;&lt; <font color=#004488>"On removal list: "</font> &lt;&lt; removals.size()
+    &lt;&lt; <font color=#004488>"\n Removed: "</font> &lt;&lt; removed &lt;&lt; endl;  
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>Here, a <B>list </B>is used instead of a <B>vector </B>(since
+<B>readLower(&#160;) </B>is a <B>template</B>, it adapts). Although there is a
+<B>remove(&#160;)</B> algorithm that can be applied to containers, the built-in
+<B>list::remove(&#160;)</B> seems to work better.<B> </B>The second command-line
+argument is the file containing the list of names to be removed. An iterator is
+used to step through that list, and the <B>list::remove(&#160;)</B> function
+removes every instance of each name from the master list. Here, the list
+doesn&#8217;t need to be sorted first.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Unfortunately, that&#8217;s not all there is to it. The
+messiest part about maintaining a mailing list is the bounced messages.
+Presumably, you&#8217;ll just want to remove the addresses that produce bounces.
+If you can combine all the bounced messages into a single file, the following
+program has a pretty good chance of extracting the email addresses; then you can
+use <B>RemoveGroup</B> to delete them from your list.<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:ExtractUndeliverable.cpp</font>
+<font color=#009900>// Find undeliverable names to remove from </font>
+<font color=#009900>// mailing list from within a mail file </font>
+<font color=#009900>// containing many messages</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;cstdio&gt;
+#include &lt;string&gt;
+#include &lt;set&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>char</font>* start_str[] = {
+  <font color=#004488>"following address"</font>,
+  <font color=#004488>"following recipient"</font>,
+  <font color=#004488>"following destination"</font>,
+  <font color=#004488>"undeliverable to the following"</font>,
+  <font color=#004488>"following invalid"</font>,
+};
+
+<font color=#0000ff>char</font>* continue_str[] = {
+  <font color=#004488>"Message-ID"</font>,
+  <font color=#004488>"Please reply to"</font>,
+};
+
+<font color=#009900>// The in() function allows you to check whether</font>
+<font color=#009900>// a string in this set is part of your argument.</font>
+<font color=#0000ff>class</font> StringSet {
+  <font color=#0000ff>char</font>** ss;
+  <font color=#0000ff>int</font> sz;
+<font color=#0000ff>public</font>:
+  StringSet(<font color=#0000ff>char</font>** sa, <font color=#0000ff>int</font> sza):ss(sa),sz(sza) {}
+  <font color=#0000ff>bool</font> in(<font color=#0000ff>char</font>* s) {
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; sz; i++)
+      <font color=#0000ff>if</font> (strstr(s, ss[i]) != 0)
+        <font color=#0000ff>return</font> <font color=#0000ff>true</font>;
+    <font color=#0000ff>return</font> <font color=#0000ff>false</font>;
+  }
+};
+
+<font color=#009900>// Calculate array length:</font>
+#define ALEN(A) ((<font color=#0000ff>sizeof</font> A)/(<font color=#0000ff>sizeof</font> *A))
+
+StringSet 
+  starts(start_str, ALEN(start_str)),
+  continues(continue_str, ALEN(continue_str));
+
+<font color=#0000ff>int</font> main(<font color=#0000ff>int</font> argc, <font color=#0000ff>char</font>* argv[]) {
+  requireArgs(argc, 2, 
+    <font color=#004488>"Usage:ExtractUndeliverable infile outfile"</font>);
+  FILE* infile = fopen(argv[1], <font color=#004488>"rb"</font>);
+  FILE* outfile = fopen(argv[2], <font color=#004488>"w"</font>);
+  require(infile != 0); require(outfile != 0);
+  set&lt;string&gt; names;
+  <font color=#0000ff>const</font> <font color=#0000ff>int</font> sz = 1024;
+  <font color=#0000ff>char</font> buf[sz];
+  <font color=#0000ff>while</font>(fgets(buf, sz, infile) != 0) {
+    <font color=#0000ff>if</font>(starts.in(buf)) {
+      puts(buf);
+      <font color=#0000ff>while</font>(fgets(buf, sz, infile) != 0) {
+        <font color=#0000ff>if</font>(continues.in(buf)) <font color=#0000ff>continue</font>;
+        <font color=#0000ff>if</font>(strstr(buf, <font color=#004488>"---"</font>) != 0) <font color=#0000ff>break</font>;
+        <font color=#0000ff>const</font> <font color=#0000ff>char</font>* delimiters= <font color=#004488>" \t&lt;&gt;():;,\n\"</font>";
+        <font color=#0000ff>char</font>* name = strtok(buf, delimiters);
+        <font color=#0000ff>while</font>(name != 0) {
+          <font color=#0000ff>if</font>(strstr(name, <font color=#004488>"@"</font>) != 0)
+            names.insert(string(name));
+          name = strtok(0, delimiters);
+        }
+      }
+    }
+  }
+  set&lt;string&gt;::iterator i = names.begin();
+  <font color=#0000ff>while</font>(i != names.end())
+    fprintf(outfile, <font color=#004488>"%s\n"</font>, (*i++).c_str());
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>The first thing you&#8217;ll notice about this program is that
+contains some C functions, including C I/O. This is not because of any
+particular design insight. It just seemed to work when I used the C elements,
+and it started behaving strangely with C++ I/O. So the C is just because it
+works, and you may be able to rewrite the program in more &#8220;pure C++&#8221;
+using your C++ compiler and produce correct results.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>A lot of what this program does is read lines looking for
+string matches. To make this convenient, I created a <B>StringSet</B> class with
+a member function <B>in(&#160;)</B> that tells you whether any of the strings in
+the set are in the argument. The <B>StringSet</B> is initialized with a constant
+two-dimensional of strings and the size of that array. Although the
+<B>StringSet</B> makes the code easier to read, it&#8217;s also easy to add new
+strings to the arrays.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Both the input file and the output file in <B>main(&#160;)</B>
+are manipulated with standard I/O, since it&#8217;s not a good idea to mix I/O
+types in a program. Each line is read using <B>fgets(&#160;)</B>, and if one of
+them matches with the <B>starts</B> <B>StringSet</B>, then what follows will
+contain email addresses, until you see some dashes (I figured this out
+empirically, by hunting through a file full of bounced email). The
+<B>continues</B> <B>StringSet</B> contains strings whose lines should be
+ignored. For each of the lines that potentially contains an addresses, each
+address is extracted using the Standard C Library function <B>strtok(&#160;)</B>
+and then it is added to the <B>set&lt;string&gt;</B> called <B>names</B>. Using
+a <B>set</B> eliminates duplicates (you may have duplicates based on case, but
+those are dealt with by <B>RemoveGroup.cpp</B>. The resulting <B>set</B> of
+names is then printed to the output file.<BR></P></DIV>
+<A NAME="Heading362"></A><FONT FACE = "Verdana"><H4 ALIGN="LEFT">
+Mailing to your list</H4></FONT>
+<DIV ALIGN="LEFT"><P>There are a number of ways to connect to your system&#8217;s
+mailer, but the following program just takes the simple approach of calling an
+external command (&#8220;fastmail,&#8221; which is part of Unix) using the
+Standard C library function <B>system(&#160;)</B>. The program spends all its
+time building the external command.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>When people don&#8217;t want to be on a list anymore they will
+often ignore instructions and just reply to the message. This can be a problem
+if the email address they&#8217;re replying with is different than the one
+that&#8217;s on your list (sometimes it has been routed to a new or aliased
+address). To solve the problem, this program prepends the text file with a
+message that informs them that they can remove themselves from the list by
+visiting a URL. Since many email programs will present a URL in a form that
+allows you to just click on it, this can produce a very simple removal process.
+If you look at the URL, you can see it&#8217;s a call to the <B>mlm.exe</B> CGI
+program, including removal information that incorporates the same email address
+the message was sent to. That way, even if the user just replies to the message,
+all you have to do is click on the URL that comes back with their reply
+(assuming the message is automatically copied back to you).<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:Batchmail.cpp</font>
+<font color=#009900>// Sends mail to a list using Unix fastmail</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;string&gt;
+#include &lt;strstream&gt;
+#include &lt;cstdlib&gt; <font color=#009900>// system() function</font>
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+string subject(<font color=#004488>"New Intensive Workshops"</font>);
+string from(<font color=#004488>"Bruce@EckelObjects.com"</font>);
+string replyto(<font color=#004488>"Bruce@EckelObjects.com"</font>);
+ofstream logfile(<font color=#004488>"BatchMail.log"</font>);
+
+<font color=#0000ff>int</font> main(<font color=#0000ff>int</font> argc, <font color=#0000ff>char</font>* argv[]) {
+  requireArgs(argc, 2,
+    <font color=#004488>"Usage: Batchmail namelist mailfile"</font>);
+  ifstream names(argv[1]);
+  assure(names, argv[1]);
+  string name;
+  <font color=#0000ff>while</font>(getline(names, name)) {
+    ofstream msg(<font color=#004488>"m.txt"</font>);
+    assure(msg, <font color=#004488>"m.txt"</font>);
+    msg &lt;&lt; <font color=#004488>"To be removed from this list, "</font>
+      <font color=#004488>"DO NOT REPLY TO THIS MESSAGE. Instead, \n"</font>
+      <font color=#004488>"click on the following URL, or visit it "</font>
+      <font color=#004488>"using your Web browser. This \n"</font>
+      <font color=#004488>"way, the proper email address will be "</font>
+      <font color=#004488>"removed. Here's the URL:\n"</font>
+      &lt;&lt; <font color=#004488>"http:</font><font color=#004488>/</font><font color=#004488>/www.mindview.net</font><font color=#004488>/cgi-bin</font><font color=#004488>/"</font>
+      <font color=#004488>"mlm.exe?subject-field=workshop-email-list"</font>
+      <font color=#004488>"&amp;command-field=remove&amp;email-address="</font>
+      &lt;&lt; name &lt;&lt; <font color=#004488>"&amp;submit=submit\n\n"</font>
+      <font color=#004488>"------------------------------------\n\n"</font>;
+    ifstream text(argv[2]);
+    assure(text, argv[1]);
+    msg &lt;&lt; text.rdbuf() &lt;&lt; endl;
+    msg.close();
+    string command(<font color=#004488>"fastmail -F "</font> + from + 
+      <font color=#004488>" -r "</font> + replyto + <font color=#004488>" -s \"</font>" + subject + 
+      <font color=#004488>"\"</font> m.txt " + name);
+    system(command.c_str());
+    logfile &lt;&lt; command &lt;&lt; endl;
+    <font color=#0000ff>static</font> <font color=#0000ff>int</font> mailcounter = 0;
+    <font color=#0000ff>const</font> <font color=#0000ff>int</font> bsz = 25; 
+    <font color=#0000ff>char</font> buf[bsz];
+    <font color=#009900>// Convert mailcounter to a char string:</font>
+    ostrstream mcounter(buf, bsz);
+    mcounter &lt;&lt; mailcounter++ &lt;&lt; ends;
+    <font color=#0000ff>if</font>((++mailcounter % 500) == 0) {
+      string command2(<font color=#004488>"fastmail -F "</font> + from + 
+        <font color=#004488>" -r "</font> + replyto + <font color=#004488>" -s \"</font>Sent " +
+        string(buf) + 
+        <font color=#004488>" messages \"</font> m.txt eckel@aol.com");
+      system(command2.c_str());
+    }
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>The first command-line argument is the list of email
+addresses, one per line. The names are read one at a time into the <B>string
+</B>called <B>name</B> using <B>getline(&#160;)</B>. Then a temporary file
+called <B>m.txt</B> is created to build the customized message for that
+individual; the customization is the note about how to remove themselves, along
+with the URL. Then the message body, which is in the file specified by the
+second command-line argument, is appended to <B>m.txt</B>. Finally, the command
+is built inside a <B>string</B>: the &#8220;-F&#8221; argument to
+<B>fastmail</B> is who it&#8217;s from, the &#8220;-r&#8221; argument is who to
+reply to. The &#8220;-s&#8221; is the subject line, the next argument is the
+file containing the mail and the last argument is the email address to send it
+to.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>You can start this program in the background and tell Unix not
+to stop the program when you sign off of the server. However, it takes a while
+to run for a long list (this isn&#8217;t because of the program itself, but the
+mailing process). I like to keep track of the progress of the program by sending
+a status message to another email account, which is accomplished in the last few
+lines of the program.<A NAME="_Toc462393625"></A><BR></P></DIV>
+<A NAME="Heading363"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+A general information-extraction <BR>CGI program</H3></FONT>
+
+<DIV ALIGN="LEFT"><P>One of the problems with CGI is that you must write and
+compile a new program every time you want to add a new facility to your Web
+site. However, much of the time all that your CGI program does is capture
+information from the user and store it on the server. If you could use hidden
+fields to specify what to do with the information, then it would be possible to
+write a single CGI program that would extract the information from any CGI
+request. This information could be stored in a uniform format, in a subdirectory
+specified by a hidden field in the HTML form, and in a file that included the
+user&#8217;s email address &#8211; of course, in the general case the email
+address doesn&#8217;t guarantee uniqueness (the user may post more than one
+submission) so the date and time of the submission can be mangled in with the
+file name to make it unique. If you can do this, then you can create a new
+data-collection page just by defining the HTML and creating a new subdirectory
+on your server. For example, every time I come up with a new class or workshop,
+all I have to do is create the HTML form for signups &#8211; no CGI programming
+is required.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The following HTML page shows the format for this scheme.
+Since a CGI POST is more general and doesn&#8217;t have any limit on the amount
+of information it can send, it will always be used instead of a GET for the
+<B>ExtractInfo.cpp</B> program that will implement this system. Although this
+form is simple, yours can be as complicated as you need it.<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>//:! C10:INFOtest.html
+&lt;html&gt;&lt;head&gt;&lt;title&gt;
+Extracting information from an HTML POST&lt;/title&gt;
+&lt;/head&gt;
+&lt;body bgcolor="#FFFFFF" link="#0000FF" 
+vlink="#800080"&gt; &lt;hr&gt;
+&lt;p&gt;Extracting information from an HTML POST&lt;/p&gt;
+&lt;form action="/cgi-bin/ExtractInfo.exe" 
+  method="POST"&gt;
+&lt;input type="hidden" name="subject-field"
+value="test-extract-info"&gt;
+&lt;input type="hidden" name="reminder"
+value="Remember your lunch!"&gt;
+&lt;input type="hidden" name="test-field" 
+value="on"&gt;
+&lt;input type="hidden" name="mail-copy" 
+value="Bruce@EckelObjects.com;eckel@aol.com"&gt;
+&lt;input type="hidden" name="confirmation" 
+value="confirmation1"&gt;
+&lt;p&gt;Email address (Required): &lt;input
+type="text" size="45" name="email-address" &gt;
+&lt;/p&gt;Comment:&lt;br&gt;
+&lt;textarea name="Comment" rows="6" cols="55"&gt; 
+&lt;/textarea&gt;
+&lt;p&gt;&lt;input type="submit" name="submit"&gt; 
+&lt;input type="reset" name="reset"&lt;/p&gt;
+&lt;/form&gt;&lt;hr&gt;&lt;/body&gt;&lt;/html&gt;
+///:~</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>Right after the form&#8217;s <B>action</B> statement, you
+see<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>&lt;input type=<font color=#004488>"hidden"</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>This means that particular field will not appear on the form
+that the user sees, but the information will still be submitted as part of the
+data for the CGI program.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The value of this field named &#8220;subject-field&#8221; is
+used by <B>ExtractInfo.cpp </B>to determine the subdirectory in which to place
+the resulting file (in this case, the subdirectory will be
+&#8220;test-extract-info&#8221;). Because of this technique and the generality
+of the program, the only thing you&#8217;ll usually need to do to start a new
+database of data is to create the subdirectory on the server and then create an
+HTML page like the one above. The <B>ExtractInfo.cpp</B> program will do the
+rest for you by creating a unique file for each submission. Of course, you can
+always change the program if you want it to do something more unusual, but the
+system as shown will work most of the time.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The contents of the &#8220;reminder&#8221; field will be
+displayed on the form that is sent back to the user when their data is accepted.
+The &#8220;test-field&#8221; indicates whether to dump test information to the
+resulting Web page. If &#8220;mail-copy&#8221; exists and contains anything
+other than &#8220;no&#8221; the value string will be parsed for mailing
+addresses separated by &#8216;;&#8217; and each of these addresses will get a
+mail message with the data in it. The &#8220;email-address&#8221; field is
+required in each case and the email address will be checked to ensure that it
+conforms to some basic standards.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The &#8220;confirmation&#8221; field causes a second program
+to be executed when the form is posted. This program parses the information that
+was stored from the form into a file, turns it into human-readable form and
+sends an email message back to the client to confirm that their information was
+received (this is useful because the user may not have entered their email
+address correctly; if they don&#8217;t get a confirmation message they&#8217;ll
+know something is wrong). The design of the &#8220;confirmation&#8221; field
+allows the person creating the HTML page to select more than one type of
+confirmation. Your first solution to this may be to simply call the program
+directly rather than indirectly as was done here, but you don&#8217;t want to
+allow someone else to choose &#8211; by modifying the web page that&#8217;s
+downloaded to them &#8211; what programs they can run on your machine.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Here is the program that will extract the information from the
+CGI request:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:ExtractInfo.cpp</font>
+<font color=#009900>// Extracts all the information from a CGI POST</font>
+<font color=#009900>// submission, generates a file and stores the</font>
+<font color=#009900>// information on the server. By generating a </font>
+<font color=#009900>// unique file name, there are no clashes like</font>
+<font color=#009900>// you get when storing to a single file.</font>
+#include <font color=#004488>"CGImap.h"</font>
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;cstdio&gt;
+#include &lt;ctime&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>const</font> string contact(<font color=#004488>"Bruce@EckelObjects.com"</font>);
+<font color=#009900>// Paths in this program are for Linux/Unix. You</font>
+<font color=#009900>// must use backslashes (two for each single </font>
+<font color=#009900>// slash) on Win32 servers:</font>
+<font color=#0000ff>const</font> string rootpath(<font color=#004488>"</font><font color=#004488>/home</font><font color=#004488>/eckel</font><font color=#004488>/"</font>);
+
+<font color=#0000ff>void</font> show(CGImap&amp; m, ostream&amp; o);
+<font color=#009900>// The definition for the following is the only</font>
+<font color=#009900>// thing you must change to customize the program</font>
+<font color=#0000ff>void</font> 
+store(CGImap&amp; m, ostream&amp; o, string nl = <font color=#004488>"\n"</font>);
+
+<font color=#0000ff>int</font> main() {
+  cout &lt;&lt; <font color=#004488>"Content-type: text</font><font color=#004488>/html\n"</font>&lt;&lt; endl;
+  Post p; <font color=#009900>// Collect the POST data</font>
+  CGImap query(p);
+  <font color=#009900>// "test-field" set to "on" will dump contents</font>
+  <font color=#0000ff>if</font>(query[<font color=#004488>"test-field"</font>] == <font color=#004488>"on"</font>) {
+    cout &lt;&lt; <font color=#004488>"map size: "</font> &lt;&lt; query.size() &lt;&lt; <font color=#004488>"&lt;br&gt;"</font>;
+    query.dump(cout);
+  }
+  <font color=#0000ff>if</font>(query[<font color=#004488>"subject-field"</font>].size() == 0) {
+    cout &lt;&lt; <font color=#004488>"&lt;h2&gt;Incorrect form. Contact "</font> &lt;&lt;
+    contact &lt;&lt; endl;
+    <font color=#0000ff>return</font> 0;
+  }
+  string email = query[<font color=#004488>"email-address"</font>];
+  <font color=#0000ff>if</font>(email.size() == 0) {
+    cout &lt;&lt; <font color=#004488>"&lt;h2&gt;Please enter your email address"</font>
+      &lt;&lt; endl;
+    <font color=#0000ff>return</font> 0;
+  }
+  <font color=#0000ff>if</font>(email.find_first_of(<font color=#004488>" \t"</font>) != string::npos){
+    cout &lt;&lt; <font color=#004488>"&lt;h2&gt;You cannot include white space "</font>
+      <font color=#004488>"in your email address"</font> &lt;&lt; endl;
+    <font color=#0000ff>return</font> 0;
+  }
+  <font color=#0000ff>if</font>(email.find('@') == string::npos) {
+    cout &lt;&lt; <font color=#004488>"&lt;h2&gt;You must include a proper email"</font>
+      <font color=#004488>" address including an '@' sign"</font> &lt;&lt; endl;
+    <font color=#0000ff>return</font> 0;
+  }
+  <font color=#0000ff>if</font>(email.find('.') == string::npos) {
+    cout &lt;&lt; <font color=#004488>"&lt;h2&gt;You must include a proper email"</font>
+      <font color=#004488>" address including a '.'"</font> &lt;&lt; endl;
+    <font color=#0000ff>return</font> 0;
+  }
+  <font color=#009900>// Create a unique file name with the user's</font>
+  <font color=#009900>// email address and the current time in hex</font>
+  <font color=#0000ff>const</font> <font color=#0000ff>int</font> bsz = 1024;
+  <font color=#0000ff>char</font> fname[bsz];
+  time_t now;
+  time(&amp;now); <font color=#009900>// Encoded date &amp; time</font>
+  sprintf(fname, <font color=#004488>"%s%X.txt"</font>, email.c_str(), now);
+  string path(rootpath + query[<font color=#004488>"subject-field"</font>] +
+     <font color=#004488>"</font><font color=#004488>/"</font> + fname);
+  ofstream out(path.c_str());
+  <font color=#0000ff>if</font>(!out) {
+    cout &lt;&lt; <font color=#004488>"cannot open "</font> &lt;&lt; path &lt;&lt; <font color=#004488>"; Contact"</font>
+      &lt;&lt; contact &lt;&lt; endl;
+    <font color=#0000ff>return</font> 0;
+  }
+  <font color=#009900>// Store the file and path information:</font>
+  out &lt;&lt; <font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/</font><font color=#004488>/{"</font> &lt;&lt; path &lt;&lt; endl;
+  <font color=#009900>// Display optional reminder:</font>
+  <font color=#0000ff>if</font>(query[<font color=#004488>"reminder"</font>].size() != 0)
+    cout &lt;&lt;<font color=#004488>"&lt;H1&gt;"</font> &lt;&lt; query[<font color=#004488>"reminder"</font>] &lt;&lt;<font color=#004488>"&lt;</font><font color=#004488>/H1&gt;"</font>;
+  show(query, cout); <font color=#009900>// For results page</font>
+  store(query, out); <font color=#009900>// Stash data in file</font>
+  cout &lt;&lt; <font color=#004488>"&lt;br&gt;&lt;H2&gt;Your submission has been "</font>
+    <font color=#004488>"posted as&lt;br&gt;"</font> &lt;&lt; fname &lt;&lt; endl 
+    &lt;&lt; <font color=#004488>"&lt;br&gt;Thank you&lt;</font><font color=#004488>/H2&gt;"</font> &lt;&lt; endl;
+  out.close();
+  <font color=#009900>// Optionally send generated file as email</font>
+  <font color=#009900>// to recipients specified in the field:</font>
+  <font color=#0000ff>if</font>(query[<font color=#004488>"mail-copy"</font>].length() != 0 &amp;&amp;
+     query[<font color=#004488>"mail-copy"</font>] != <font color=#004488>"no"</font>) {
+    string to = query[<font color=#004488>"mail-copy"</font>];
+    <font color=#009900>// Parse out the recipient names, separated </font>
+    <font color=#009900>// by ';', into a vector.</font>
+    vector&lt;string&gt; recipients;
+    <font color=#0000ff>int</font> ii = to.find(';');
+    <font color=#0000ff>while</font>(ii != string::npos) {
+      recipients.push_back(to.substr(0, ii));
+      to = to.substr(ii + 1);
+      ii = to.find(';');
+    }
+    recipients.push_back(to); <font color=#009900>// Last one</font>
+    <font color=#009900>// "fastmail" only available on Linux/Unix:</font>
+    <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; recipients.size(); i++) {
+      string cmd(<font color=#004488>"fastmail -s"</font><font color=#004488>" \"</font>" +
+        query[<font color=#004488>"subject-field"</font>] + <font color=#004488>"\"</font> " +
+        path + <font color=#004488>" "</font> + recipients[i]);
+      system(cmd.c_str());
+    }
+  }
+  <font color=#009900>// Execute a confirmation program on the file.</font>
+  <font color=#009900>// Typically, this is so you can email a</font>
+  <font color=#009900>// processed data file to the client along with</font>
+  <font color=#009900>// a confirmation message:</font>
+  <font color=#0000ff>if</font>(query[<font color=#004488>"confirmation"</font>].length() != 0) {
+    string conftype = query[<font color=#004488>"confirmation"</font>];
+    <font color=#0000ff>if</font>(conftype == <font color=#004488>"confirmation1"</font>) {
+      string command(<font color=#004488>".</font><font color=#004488>/ProcessApplication.exe "</font>+
+        path + <font color=#004488>" &amp;"</font>);
+      <font color=#009900>// The data file is the argument, and the</font>
+      <font color=#009900>// ampersand runs it as a separate process:</font>
+      system(command.c_str());
+      string logfile(<font color=#004488>"Extract.log"</font>);
+      ofstream log(logfile.c_str());
+    }
+  }
+}
+
+<font color=#009900>// For displaying the information on the html </font>
+<font color=#009900>// results page:</font>
+<font color=#0000ff>void</font> show(CGImap&amp; m, ostream&amp; o) {
+  string nl(<font color=#004488>"&lt;br&gt;"</font>);
+  o &lt;&lt; <font color=#004488>"&lt;h2&gt;The data you entered was:"</font>
+    &lt;&lt; <font color=#004488>"&lt;</font><font color=#004488>/h2&gt;&lt;br&gt;"</font>
+    &lt;&lt; <font color=#004488>"From["</font> &lt;&lt; m[<font color=#004488>"email-address"</font>] &lt;&lt; ']' &lt;&lt;nl;
+  <font color=#0000ff>for</font>(CGImap::iterator it = m.begin();
+    it != m.end(); it++) {
+    string name = (*it).first, 
+      value = (*it).second;
+    <font color=#0000ff>if</font>(name != <font color=#004488>"email-address"</font> &amp;&amp; 
+       name != <font color=#004488>"confirmation"</font> &amp;&amp;
+       name != <font color=#004488>"submit"</font> &amp;&amp;
+       name != <font color=#004488>"mail-copy"</font> &amp;&amp;
+       name != <font color=#004488>"test-field"</font> &amp;&amp;
+       name != <font color=#004488>"reminder"</font>)
+      o &lt;&lt; <font color=#004488>"&lt;h3&gt;"</font> &lt;&lt; name &lt;&lt; <font color=#004488>": &lt;</font><font color=#004488>/h3&gt;"</font> 
+        &lt;&lt; <font color=#004488>"&lt;pre&gt;"</font> &lt;&lt; value &lt;&lt; <font color=#004488>"&lt;</font><font color=#004488>/pre&gt;"</font>;
+  }
+}
+
+<font color=#009900>// Change this to customize the program:</font>
+<font color=#0000ff>void</font> store(CGImap&amp; m, ostream&amp; o, string nl) {
+  o &lt;&lt; <font color=#004488>"From["</font> &lt;&lt; m[<font color=#004488>"email-address"</font>] &lt;&lt; ']' &lt;&lt;nl;
+  <font color=#0000ff>for</font>(CGImap::iterator it = m.begin();
+    it != m.end(); it++) {
+    string name = (*it).first, 
+      value = (*it).second;
+    <font color=#0000ff>if</font>(name != <font color=#004488>"email-address"</font> &amp;&amp; 
+       name != <font color=#004488>"confirmation"</font> &amp;&amp;
+       name != <font color=#004488>"submit"</font> &amp;&amp;
+       name != <font color=#004488>"mail-copy"</font> &amp;&amp;
+       name != <font color=#004488>"test-field"</font> &amp;&amp;
+       name != <font color=#004488>"reminder"</font>)
+      o &lt;&lt; nl &lt;&lt; <font color=#004488>"[{["</font> &lt;&lt; name &lt;&lt; <font color=#004488>"]}]"</font> &lt;&lt; nl
+        &lt;&lt; <font color=#004488>"[(["</font> &lt;&lt; nl &lt;&lt; value &lt;&lt; nl &lt;&lt; <font color=#004488>"])]"</font>
+        &lt;&lt; nl;
+    <font color=#009900>// Delimiters were added to aid parsing of</font>
+    <font color=#009900>// the resulting text file.</font>
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>The program is designed to be as generic as possible, but if
+you want to change something it is most likely the way that the data is stored
+in a file (for example, you may want to store it in a comma-separated ASCII
+format so that you can easily read it into a spreadsheet). You can make changes
+to the storage format by modifying <B>store(&#160;)</B>, and to the way the data
+is displayed by modifying <B>show(&#160;)</B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>main(&#160;)</B> begins using the same three lines
+you&#8217;ll start with for any POST program. The rest of the program is similar
+to <B>mlm.cpp</B> because it looks at the &#8220;test-field&#8221; and
+<B>&#8220;</B>email-address&#8221; (checking it for correctness). The file name
+combines the user&#8217;s email address and the current date and time in hex
+&#8211; notice that <B>sprintf(&#160;)</B> is used because it has a convenient
+way to convert a value to a hex representation. The entire file and path
+information is stored in the file, along with all the data from the form, which
+is tagged as it is stored so that it&#8217;s easy to parse (you&#8217;ll see a
+program to parse the files a bit later). All the information is also sent back
+to the user as a simply-formatted HTML page, along with the reminder, if there
+is one. If &#8220;mail-copy&#8221; exists and is not &#8220;no,&#8221; then the
+names in the &#8220;mail-copy&#8221; value are parsed and an email is sent to
+each one containing the tagged data. Finally, if there is a
+&#8220;confirmation&#8221; field, the value selects the type of confirmation
+(there&#8217;s only one type implemented here, but you can easily add others)
+and the command is built that passes the generated data file to the program
+(called <B>ProcessApplication.exe</B>). That program will be created in the next
+section.<A NAME="_Toc462393626"></A><BR></P></DIV>
+<A NAME="Heading364"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Parsing the data files</H3></FONT>
+<DIV ALIGN="LEFT"><P>You now have a lot of data files accumulating on your Web
+site, as people sign up for whatever you&#8217;re offering. Here&#8217;s what
+one of them might look like:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>//:! C07:TestData.txt
+///{/home/eckel/super-cplusplus-workshop-registration/Bruce@EckelObjects.com35B589A0.txt 
+From[Bruce@EckelObjects.com]
+
+[{[subject-field]}]
+[([
+super-cplusplus-workshop-registration
+])]
+
+[{[Date-of-event]}]
+[([
+Sept 2-4
+])]
+
+[{[name]}]
+[([
+Bruce Eckel
+])]
+
+[{[street]}]
+[([
+20 Sunnyside Ave, Suite A129
+])]
+
+[{[city]}]
+[([
+Mill Valley
+])]
+
+[{[state]}]
+[([
+CA
+])]
+
+[{[country]}]
+[([
+USA
+])]
+
+[{[zip]}]
+[([
+94941
+])]
+
+[{[busphone]}]
+[([
+415-555-1212
+])]
+///:~</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>This is a brief example, but there are as many fields as you
+have on your HTML form. Now, if your event is compelling you&#8217;ll have a
+whole lot of these files and what you&#8217;d like to do is automatically
+extract the information from them and put that data in any format you&#8217;d
+like. For example, the <B>ProcessApplication.exe</B> program mentioned above
+will use the data in an email confirmation message. You&#8217;ll also probably
+want to put the data in a form that can be easily brought into a spreadsheet. So
+it makes sense to start by creating a general-purpose tool that will
+automatically parse any file that is created by
+<B>ExtractInfo.cpp</B>:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:FormData.h</font>
+#include &lt;string&gt;
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;vector&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>class</font> DataPair : <font color=#0000ff>public</font> pair&lt;string, string&gt; {
+<font color=#0000ff>public</font>:
+  DataPair() {}
+  DataPair(istream&amp; in) { get(in); }
+  DataPair&amp; get(istream&amp; in);
+  <font color=#0000ff>operator</font> <font color=#0000ff>bool</font>() {
+    <font color=#0000ff>return</font> first.length() != 0;
+  }
+};
+
+<font color=#0000ff>class</font> FormData : <font color=#0000ff>public</font> vector&lt;DataPair&gt; {
+<font color=#0000ff>public</font>:
+  string filePath, email;
+  <font color=#009900>// Parse the data from a file:</font>
+  FormData(<font color=#0000ff>char</font>* fileName);
+  <font color=#0000ff>void</font> dump(ostream&amp; os = cout);
+  string <font color=#0000ff>operator</font>[](<font color=#0000ff>const</font> string&amp; key);
+}; <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>The <B>DataPair</B> class looks a bit like the <B>CGIpair</B>
+class, but it&#8217;s simpler. When you create a <B>DataPair</B>, the
+constructor calls <B>get(&#160;)</B> to extract the next pair from the input
+stream. The <B>operator bool</B> indicates an empty <B>DataPair</B>, which
+usually signals the end of an input stream.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>FormData</B> contains the path where the original file was
+placed (this path information is stored within the file), the email address of
+the user, and a <B>vector&lt;DataPair&gt;</B> to hold the information. The
+<B>operator[ ]</B> allows you to perform a map-like lookup, just as in
+<B>CGImap</B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Here are the definitions:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:FormData.cpp {O}</font>
+#include <font color=#004488>"FormData.h"</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+
+DataPair&amp; DataPair::get(istream&amp; in) {
+  first.erase(); second.erase();
+  string ln;
+  getline(in,ln);
+  <font color=#0000ff>while</font>(ln.find(<font color=#004488>"[{["</font>) == string::npos)
+    <font color=#0000ff>if</font>(!getline(in, ln)) <font color=#0000ff>return</font> *<font color=#0000ff>this</font>; <font color=#009900>// End</font>
+  first = ln.substr(3, ln.find(<font color=#004488>"]}]"</font>) - 3);
+  getline(in, ln); <font color=#009900>// Throw away [([</font>
+  <font color=#0000ff>while</font>(getline(in, ln))
+    <font color=#0000ff>if</font>(ln.find(<font color=#004488>"])]"</font>) == string::npos)
+      second += ln + string(<font color=#004488>" "</font>);
+    <font color=#0000ff>else</font>
+      <font color=#0000ff>return</font> *<font color=#0000ff>this</font>;
+}
+
+FormData::FormData(<font color=#0000ff>char</font>* fileName) {
+  ifstream in(fileName);
+  assure(in, fileName);
+  require(getline(in, filePath) != 0);
+  <font color=#009900>// Should be start of first line:</font>
+  require(filePath.find(<font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/</font><font color=#004488>/{"</font>) == 0); 
+  filePath = filePath.substr(strlen(<font color=#004488>"</font><font color=#004488>/</font><font color=#004488>/</font><font color=#004488>/{"</font>));
+  require(getline(in, email) != 0);
+   <font color=#009900>// Should be start of 2nd line:</font>
+  require(email.find(<font color=#004488>"From["</font>) == 0);
+  <font color=#0000ff>int</font> begin = strlen(<font color=#004488>"From["</font>);
+  <font color=#0000ff>int</font> end = email.find(<font color=#004488>"]"</font>);
+  <font color=#0000ff>int</font> length = end - begin;
+  email = email.substr(begin, length);
+  <font color=#009900>// Get the rest of the data:</font>
+  DataPair dp(in);
+  <font color=#0000ff>while</font>(dp) {
+    push_back(dp);
+    dp.get(in);
+  }
+} 
+
+string FormData::<font color=#0000ff>operator</font>[](<font color=#0000ff>const</font> string&amp; key) {
+  iterator i = begin();
+  <font color=#0000ff>while</font>(i != end()) {
+    <font color=#0000ff>if</font>((*i).first == key)
+      <font color=#0000ff>return</font> (*i).second;
+    i++;
+  }
+  <font color=#0000ff>return</font> string(); <font color=#009900>// Empty string == not found</font>
+}
+
+<font color=#0000ff>void</font> FormData::dump(ostream&amp; os) {
+  os &lt;&lt; <font color=#004488>"filePath = "</font> &lt;&lt; filePath &lt;&lt; endl;
+  os &lt;&lt; <font color=#004488>"email = "</font> &lt;&lt; email &lt;&lt; endl;
+  <font color=#0000ff>for</font>(iterator i = begin(); i != end(); i++)
+    os &lt;&lt; (*i).first &lt;&lt; <font color=#004488>" = "</font> 
+       &lt;&lt; (*i).second &lt;&lt; endl;
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>The <B>DataPair::get(&#160;)</B> function assumes you are
+using the same <B>DataPair</B> over and over (which is the case, in
+<B>FormData::FormData(&#160;)</B>) so it first calls <B>erase(&#160;)</B> for
+its <B>first</B> and <B>second</B> <B>string</B>s. Then it begins parsing the
+lines for the key (which is on a single line and is denoted by the
+&#8220;<B>[{[</B>&#8221; and &#8220;<B>]}]</B>&#8221;) and the value (which may
+be on multiple lines and is denoted by a begin-marker of
+&#8220;<B>[([</B>&#8221; and an end-marker of &#8220;<B>])]</B>&#8221;) which it
+places in the <B>first</B> and <B>second</B> members, respectively.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The <B>FormData</B> constructor is given a file name to open
+and read. The <B>FormData</B> object always expects there to be a file path and
+an email address, so it reads those itself before getting the rest of the data
+as <B>DataPair</B>s.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>With these tools in hand, extracting the data becomes quite
+easy:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:FormDump.cpp</font>
+<font color=#009900>//{L} FormData</font>
+#include <font color=#004488>"FormData.h"</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+
+<font color=#0000ff>int</font> main(<font color=#0000ff>int</font> argc, <font color=#0000ff>char</font>* argv[]) {
+  requireArgs(argc, 1);
+  FormData fd(argv[1]);
+  fd.dump();
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>The only reason that <B>ProcessApplication.cpp</B> is busier
+is that it is building the email reply. Other than that, it just relies on
+<B>FormData</B>:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:ProcessApplication.cpp</font>
+<font color=#009900>//{L} FormData</font>
+#include <font color=#004488>"FormData.h"</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>const</font> string from(<font color=#004488>"Bruce@EckelObjects.com"</font>);
+<font color=#0000ff>const</font> string replyto(<font color=#004488>"Bruce@EckelObjects.com"</font>);
+<font color=#0000ff>const</font> string basepath(<font color=#004488>"</font><font color=#004488>/home</font><font color=#004488>/eckel"</font>);
+
+<font color=#0000ff>int</font> main(<font color=#0000ff>int</font> argc, <font color=#0000ff>char</font>* argv[]) {
+  requireArgs(argc, 1);
+  FormData fd(argv[1]);
+  <font color=#0000ff>char</font> tfname[L_tmpnam];
+  tmpnam(tfname); <font color=#009900>// Create a temporary file name</font>
+  string tempfile(basepath + tfname + fd.email);
+  ofstream reply(tempfile.c_str());
+  assure(reply, tempfile.c_str());
+  reply &lt;&lt; <font color=#004488>"This message is to verify that you "</font>
+    <font color=#004488>"have been added to the list for the "</font>
+    &lt;&lt; fd[<font color=#004488>"subject-field"</font>] &lt;&lt; <font color=#004488>". Your signup "</font>
+    <font color=#004488>"form included the following data; please "</font>
+    <font color=#004488>"ensure it is correct. You will receive "</font>
+    <font color=#004488>"further updates via email. Thanks for your "</font>
+    <font color=#004488>"interest in the class!"</font> &lt;&lt; endl;
+  FormData::iterator i;
+  <font color=#0000ff>for</font>(i = fd.begin(); i != fd.end(); i++)
+    reply &lt;&lt; (*i).first &lt;&lt; <font color=#004488>" = "</font> 
+       &lt;&lt; (*i).second &lt;&lt; endl;
+  reply.close();
+  <font color=#009900>// "fastmail" only available on Linux/Unix:</font>
+  string command(<font color=#004488>"fastmail -F "</font> + from + 
+    <font color=#004488>" -r "</font> + replyto + <font color=#004488>" -s \"</font>" + 
+    fd[<font color=#004488>"subject-field"</font>] + <font color=#004488>"\"</font> " +
+    tempfile + <font color=#004488>" "</font> + fd.email);
+  system(command.c_str()); <font color=#009900>// Wait to finish</font>
+  remove(tempfile.c_str()); <font color=#009900>// Erase the file</font>
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>This program first creates a temporary file to build the email
+message in. Although it uses the Standard C library function
+<B>tmpnam(&#160;)</B> to create a temporary file name, this program takes the
+paranoid step of assuming that, since there can be many instances of this
+program running at once, it&#8217;s possible that a temporary name in one
+instance of the program could collide with the temporary name in another
+instance. So to be extra careful, the email address is appended onto the end of
+the temporary file name.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The message is built, the <B>DataPair</B>s are added to the
+end of the message, and once again the Linux/Unix <B>fastmail</B> command is
+built to send the information. An interesting note: if, in Linux/Unix, you add
+an ampersand (<B>&amp;</B>) to the end of the command before giving it to
+<B>system(&#160;)</B>, then this command will be spawned as a background process
+and <B>system(&#160;)</B> will immediately return (the same effect can be
+achieved in Win32 with <B>start</B>). Here, no ampersand is used, so
+<B>system(&#160;)</B> does not return until the command is finished &#8211;
+which is a good thing, since the next operation is to delete the temporary file
+which is used in the command.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The final operation in this project is to extract the data
+into an easily-usable form. A spreadsheet is a useful way to handle this kind of
+information, so this program will put the data into a form that&#8217;s easily
+readable by a spreadsheet program:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C10:DataToSpreadsheet.cpp</font>
+<font color=#009900>//{L} FormData</font>
+#include <font color=#004488>"FormData.h"</font>
+#include <font color=#004488>"..</font><font color=#004488>/require.h"</font>
+#include &lt;string&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+string delimiter(<font color=#004488>"\t"</font>);
+
+<font color=#0000ff>int</font> main(<font color=#0000ff>int</font> argc, <font color=#0000ff>char</font>* argv[]) {
+  <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 1; i &lt; argc; i++) {
+    FormData fd(argv[i]);
+    cout &lt;&lt; fd.email &lt;&lt; delimiter;
+    FormData::iterator i;
+    <font color=#0000ff>for</font>(i = fd.begin(); i != fd.end(); i++)
+      <font color=#0000ff>if</font>((*i).first != <font color=#004488>"workshop-suggestions"</font>)
+        cout &lt;&lt; (*i).second &lt;&lt; delimiter;
+    cout &lt;&lt; endl;
+  }
+} <font color=#009900>///:~</font></PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>Common data interchange formats use various delimiters to
+separate fields of information. Here, a tab is used but you can easily change it
+to something else. Also note that I have checked for the
+&#8220;workshop-suggestions&#8221; field and specifically excluded that, because
+it tends to be too long for the information I want in a spreadsheet. You can
+make another version of this program that only extracts the
+&#8220;workshop-suggestions&#8221; field.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>This program assumes that all the file names are expanded on
+the command line. Using it under Linux/Unix is easy since file-name global
+expansion (&#8220;globbing&#8221;) is handled for you. So you say:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>DataToSpreadsheet *.txt &gt;&gt; spread.out</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>In Win32 (at a DOS prompt) it&#8217;s a bit more involved,
+since you must do the &#8220;globbing&#8221; yourself:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE>For %f in (*.txt) do DataToSpreadsheet %f &gt;&gt; spread.out</PRE></FONT></BLOCKQUOTE>
+<DIV ALIGN="LEFT"><P>This technique is generally useful for writing Win32/DOS
+command lines.<A NAME="_Toc462393627"></A><BR></P></DIV>
+<A NAME="Heading365"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Summary<A NAME="_Toc462393628"></A></H2></FONT>
+<A NAME="Heading366"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Exercises</H2></FONT>
+<OL>
+<LI>	In <B>ExtractInfo.cpp</B>, change <B>store(&#160;)</B> so it stores the
+data in comma-separated ASCII format<LI>	(This exercise may require a little
+research and ingenuity, but you&#8217;ll have a good idea of how server-side
+programming works when you&#8217;re done.) Gain access to a Web server somehow,
+even if you do so by installing a Web server that runs on your local machine
+(the Apache server is freely available from http://www.Apache.org and runs on
+most platforms). Install and test <B>ExtractInfo.cpp</B> as a CGI program, using
+<B>INFOtest.html</B>.<LI>	Create a program called <B>ExtractSuggestions.cpp</B>
+that is a modification of <B>DataToSpreadsheet.cpp</B> which will only extract
+the suggestions along with the name and email address of the person that made
+them.</OL>
+<HR><DIV ALIGN="LEFT"><P><A NAME="fn28" HREF="#fnB28">[28]</A><FONT SIZE=2> Actually,
+Java Servlets look like a much better solution than CGI, but &#8211; at least at
+this writing &#8211; Servlets are still an up-and-coming solution and
+you&#8217;re unlikely to find them provided by your typical
+ISP.</FONT><BR></P></DIV>
+<DIV ALIGN="LEFT"><P><A NAME="fn29" HREF="#fnB29">[29]</A><FONT SIZE=2> Free Web
+servers are relatively common and can be found by browsing the Internet; Apache,
+for example, is the most popular Web server on the Internet.</FONT><BR></P></DIV>
+<DIV ALIGN="LEFT"><P><A NAME="fn30" HREF="#fnB30">[30]</A><FONT SIZE=2> GNU stands
+for &#8220;Gnu&#8217;s Not Unix.&#8221; The project, created by the Free
+Software Foundation, was originally intended to replace the Unix operating
+system with a free version of that OS. Linux appears to have replaced this
+initiative, but the GNU tools have played an integral part in the development of
+Linux, which comes packaged with many GNU components.</FONT><BR></P></DIV>
+
+<DIV ALIGN="CENTER">
+    <FONT FACE="Verdana" size = "-1">
+     [ <a href="Chapter12.html">Previous Chapter</a> ] 
+    [ <a href="SimpleContents.html">Short TOC</a> ] 
+    [ <a href="Contents.html">Table of Contents</a> ] 
+    [ <a href="DocIndex.html">Index</a> ]
+     [ <a href="AppendixA.html">Next Chapter</a> ] 
+    </FONT>
+    <BR>
+ Last Update:02/08/2000</P></DIV>
+
+</BODY>
+
+</HTML>

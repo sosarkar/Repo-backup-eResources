@@ -1,0 +1,302 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<!--
+This document was converted from RTF source: 
+By rtftohtml 4.19
+See http://www.sunpack.com/RTF
+Filename:TicV2.rtf
+Application Directory:c:\TOOLS\RTF2HTML\
+Subject:
+Author:Bruce Eckel
+Operator:Bruce Eckel
+Document Comments:
+Version Comments:
+Comments:
+Keywords:
+Translation Date:05/23/2000
+Translation Time:06:44:45
+Translation Platform:Win32
+Number of Output files:19
+This File:Chapter09.html
+SplitDepth=1
+SkipNavPanel=1
+SkipLeadingToc=1
+SkipTrailingToc=1
+GenContents=1
+GenFrames=1
+GenIndex=1
+-->
+<HEAD lang="en"><META http-equiv="Content-Type" content="text/html">
+<TITLE>9: Building stable systems</TITLE>
+</HEAD>
+
+<BODY  BGCOLOR="#FFFFFF"><DIV ALIGN="CENTER">
+  <a href="http://www.MindView.net">
+  <img src="mindview-head.gif" alt="MindView Inc." BORDER = "0"></a>
+  <CENTER>
+    <FONT FACE="Verdana" size = "-1">
+    [ <a href="README-HTML.txt">Viewing Hints</a> ]
+    [ <a href="RevisionHistory.html">Revision History</a> ]
+    [ <a href="http://www.mindview.net/MailingList.html">Free Newsletter</a> ] <br>
+    [ <a href="http://www.mindview.net/CPPServices/#PublicSeminars">Seminars</a> ]
+    [ <a href="http://www.mindview.net/CPPServices/#SeminarsOnCD">Seminars on CD ROM</a> ]
+    [ <a href="http://www.mindview.net/CPPServices/#ConsultingServices">Consulting</a> ]
+    </FONT>
+  <H2><FONT FACE="Verdana">
+  Thinking in C++, 2nd ed., Volume 2, Revision 3</FONT></H2>
+  <H3><FONT FACE="Verdana">&copy;2000 by Bruce Eckel</FONT></H3>
+  
+    <FONT FACE="Verdana" size = "-1">
+     [ <a href="Chapter08.html">Previous Chapter</a> ] 
+    [ <a href="SimpleContents.html">Short TOC</a> ] 
+    [ <a href="Contents.html">Table of Contents</a> ] 
+    [ <a href="DocIndex.html">Index</a> ]
+     [ <a href="Chapter10.html">Next Chapter</a> ] 
+    </FONT>
+    
+  </CENTER>
+  </P></DIV><A NAME="_Toc312374156"></A><A NAME="_Toc375545412"></A><A NAME="_Toc407441460"></A><A NAME="_Toc408018793"></A><A NAME="_Toc462393573"></A><A NAME="Heading298"></A><FONT FACE = "Verdana"><H1 ALIGN="LEFT">
+9: Building stable systems</H1></FONT>
+<DIV ALIGN="LEFT"><P><A NAME="MaintainingSystemIntegrity"></A><A NAME="_Toc462393574"></A><BR></P></DIV>
+<A NAME="Heading299"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Shared objects &amp; reference counting<A NAME="_Toc462393575"></A></H2></FONT>
+<A NAME="Heading300"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+Reference-counted class hierarchies<A NAME="_Toc462393576"></A></H3></FONT>
+<A NAME="Heading301"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Finding memory leaks</H2></FONT>
+<OL>
+<LI>	For array bounds checking, use the <B>Array</B> template in C16:Array3.cpp
+of Volume 1 for all arrays. You can turn off the checking and increase
+efficiency when you&#8217;re ready to ship. (This doesn&#8217;t deal with the
+case of taking a pointer to an array, though &#8211; perhaps that could be
+templatized somehow as well).<LI>	Use the C11:MemCheck to guarantee that dynamic
+memory is released properly.<LI>	Check for non-virtual destructors in base
+classes.</OL><A NAME="Heading302"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+The canonical object &amp; singly-rooted
+hierarchies<A NAME="_Toc462393577"></A></H2></FONT>
+<A NAME="Heading303"></A><FONT FACE = "Verdana"><H3 ALIGN="LEFT">
+An extended canonical form<A NAME="_Toc462393578"></A></H3></FONT>
+<A NAME="Heading304"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Design by contract<A NAME="_Toc462393579"></A></H2></FONT>
+<A NAME="Heading305"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Integrated unit testing<A NAME="_Toc462393580"></A></H2></FONT>
+<A NAME="Heading306"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Dynamic aggregation</H2></FONT>
+<DIV ALIGN="LEFT"><P>[[ This may actually be the &#8220;builder&#8221; design
+pattern in some form ]]<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The examples we&#8217;ve seen so far are illustrative, but
+fairly simple. It&#8217;s useful to see an example that has more complexity so
+you can see that the STL will work in all situations.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>[[ Add a factory method that takes a vector of
+string]]<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>The class that will be created as the example will be
+reasonably complex: it&#8217;s a bicycle which can have a choice of parts. In
+addition, you can change the parts during the lifetime of a <B>Bicycle</B>
+object; this includes the ability to add new parts or to upgrade from
+standard-quality parts to &#8220;fancy&#8221; parts. The <B>BicyclePart</B>
+class is a base class with many different types, and the <B>Bicycle</B> class
+contains a <B>vector&lt;BicyclePart*&gt;</B> to hold the various combination of
+parts that may be attached to a <B>Bicycle</B>:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C09:Bicycle.h</font>
+<font color=#009900>// Complex class involving dynamic aggregation</font>
+#ifndef BICYCLE_H
+#define BICYCLE_H
+#include &lt;vector&gt;
+#include &lt;string&gt;
+#include &lt;iostream&gt;
+#include &lt;typeinfo&gt;
+
+<font color=#0000ff>class</font> LeakChecker {
+  <font color=#0000ff>int</font> count;
+<font color=#0000ff>public</font>:
+  LeakChecker() : count(0) {}
+  <font color=#0000ff>void</font> print() {
+    std::cout &lt;&lt; count &lt;&lt; std::endl; 
+  }
+  ~LeakChecker() { print(); }
+  <font color=#0000ff>void</font> <font color=#0000ff>operator</font>++(<font color=#0000ff>int</font>) { count++; }
+  <font color=#0000ff>void</font> <font color=#0000ff>operator</font>--(<font color=#0000ff>int</font>) { count--; }
+};
+
+<font color=#0000ff>class</font> BicyclePart {
+  <font color=#0000ff>static</font> LeakChecker lc;
+<font color=#0000ff>public</font>:
+  BicyclePart() { lc++; }
+  <font color=#0000ff>virtual</font> BicyclePart* clone() = 0;
+  <font color=#0000ff>virtual</font> ~BicyclePart() { lc--; }
+  <font color=#0000ff>friend</font> std::ostream&amp; 
+  <font color=#0000ff>operator</font>&lt;&lt;(std::ostream&amp; os, BicyclePart* bp) {
+    <font color=#0000ff>return</font> os &lt;&lt; <font color=#0000ff>typeid</font>(*bp).name();
+  }
+  <font color=#0000ff>friend</font> <font color=#0000ff>class</font> Bicycle;
+};
+
+<font color=#0000ff>enum</font> BPart {
+  Frame, Wheel, Seat, HandleBar, 
+  Sprocket, Deraileur,
+};
+
+<font color=#0000ff>template</font>&lt;BPart id&gt; 
+<font color=#0000ff>class</font> Part : <font color=#0000ff>public</font> BicyclePart {
+<font color=#0000ff>public</font>:
+  BicyclePart* clone() { <font color=#0000ff>return</font> <font color=#0000ff>new</font> Part&lt;id&gt;; }
+};
+
+<font color=#0000ff>class</font> Bicycle {
+<font color=#0000ff>public</font>:
+  <font color=#0000ff>typedef</font> std::vector&lt;BicyclePart*&gt; VBP;
+  Bicycle();
+  Bicycle(<font color=#0000ff>const</font> Bicycle&amp; old);
+  Bicycle&amp; <font color=#0000ff>operator</font>=(<font color=#0000ff>const</font> Bicycle&amp; old);
+  <font color=#009900>// [Other operators as needed go here:]</font>
+  <font color=#009900>// [...]</font>
+  <font color=#009900>// [...]</font>
+  ~Bicycle() { purge(); }
+  <font color=#009900>// So you can change parts on a bike (but be </font>
+  <font color=#009900>// careful: you must clean up any objects you</font>
+  <font color=#009900>// remove from the bicycle!)</font>
+  VBP&amp; bikeParts() { <font color=#0000ff>return</font> parts; }
+  <font color=#0000ff>friend</font> std::ostream&amp; 
+  <font color=#0000ff>operator</font>&lt;&lt;(std::ostream&amp; os, Bicycle* b);
+  <font color=#0000ff>static</font> <font color=#0000ff>void</font> print(std::vector&lt;Bicycle*&gt;&amp; vb, 
+    std::ostream&amp; os = std::cout);
+<font color=#0000ff>private</font>:
+  <font color=#0000ff>static</font> <font color=#0000ff>int</font> counter;
+  <font color=#0000ff>int</font> id;
+  VBP parts;
+  <font color=#0000ff>void</font> purge();
+};
+
+<font color=#009900>// Both the Bicycle and the generator should </font>
+<font color=#009900>// provide more variety than this. But this gives</font>
+<font color=#009900>// you the idea.</font>
+<font color=#0000ff>struct</font> BicycleGenerator {
+  Bicycle* <font color=#0000ff>operator</font>()() {
+    <font color=#0000ff>return</font> <font color=#0000ff>new</font> Bicycle;
+  }
+}; </PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">#endif // BICYCLE_H
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>The <B>operator&lt;&lt;</B> for <B>ostream</B> and
+<B>Bicycle</B> moves through and calls the <B>operator&lt;&lt;</B> for each
+<B>BicyclePart</B>, and that prints out the class name of the part so you can
+see what a <B>Bicycle</B> contains. The <B>BicyclePart::clone(&#160;)</B> member
+function is necessary in the copy-constructor of <B>Bicycle</B>, since it just
+has a <B>vector&lt;BicyclePart*&gt;</B> and wouldn&#8217;t otherwise know how to
+copy the <B>BicyclePart</B>s correctly. The cloning process, of course, will be
+more involved when there are data members in a <B>BicyclePart</B>.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P><B>BicyclePart::partcount</B> is used to keep track of the
+number of parts created and destroyed (so you can detect memory leaks). It is
+incremented every time a new <B>BicyclePart</B> is created and decremented when
+one is destroyed; also, when <B>partcount</B> goes to zero this is reported and
+if it goes below zero there will be an <B>assert(&#160;)</B> failure.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>If you want to change <B>BicyclePart</B>s on a <B>Bicycle</B>,
+you just call <B>Bicycle::bikeParts(&#160;)</B> to get the
+<B>vector&lt;BicyclePart*&gt;</B> which you can then modify. But whenever you
+remove a part from a <B>Bicycle</B>, you must call <B>delete</B> for that
+pointer, otherwise it won&#8217;t get cleaned up.<BR></P></DIV>
+<DIV ALIGN="LEFT"><P>Here&#8217;s the implementation:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C09:Bicycle.cpp {O}</font>
+<font color=#009900>// Bicycle implementation</font>
+#include <font color=#004488>"Bicycle.h"</font>
+#include &lt;map&gt;
+#include &lt;algorithm&gt;
+#include &lt;cassert&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#009900>// Static member definitions:</font>
+LeakChecker BicyclePart::lc;
+<font color=#0000ff>int</font> Bicycle::counter = 0;
+
+Bicycle::Bicycle() : id(counter++) {
+  BicyclePart *bp[] = {
+    <font color=#0000ff>new</font> Part&lt;Frame&gt;, 
+    <font color=#0000ff>new</font> Part&lt;Wheel&gt;, <font color=#0000ff>new</font> Part&lt;Wheel&gt;, 
+    <font color=#0000ff>new</font> Part&lt;Seat&gt;, <font color=#0000ff>new</font> Part&lt;HandleBar&gt;,
+    <font color=#0000ff>new</font> Part&lt;Sprocket&gt;,  <font color=#0000ff>new</font> Part&lt;Deraileur&gt;,
+  };
+  <font color=#0000ff>const</font> <font color=#0000ff>int</font> bplen = <font color=#0000ff>sizeof</font> bp / <font color=#0000ff>sizeof</font> *bp;
+  parts = VBP(bp, bp + bplen);
+}
+
+Bicycle::Bicycle(<font color=#0000ff>const</font> Bicycle&amp; old) 
+  : parts(old.parts.begin(), old.parts.end()) {
+  <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; parts.size(); i++)
+    parts[i] = parts[i]-&gt;clone();
+}
+
+Bicycle&amp; Bicycle::<font color=#0000ff>operator</font>=(<font color=#0000ff>const</font> Bicycle&amp; old) {
+  purge(); <font color=#009900>// Remove old lvalues</font>
+  parts.resize(old.parts.size());
+  copy(old.parts.begin(), 
+    old.parts.end(), parts.begin());
+  <font color=#0000ff>for</font>(<font color=#0000ff>int</font> i = 0; i &lt; parts.size(); i++)
+    parts[i] = parts[i]-&gt;clone();
+  <font color=#0000ff>return</font> *<font color=#0000ff>this</font>;
+}
+
+<font color=#0000ff>void</font> Bicycle::purge() {
+  <font color=#0000ff>for</font>(VBP::iterator it = parts.begin();
+    it != parts.end(); it++) {
+      <font color=#0000ff>delete</font> *it;
+      *it = 0; <font color=#009900>// Prevent multiple deletes</font>
+  }
+}
+
+ostream&amp; <font color=#0000ff>operator</font>&lt;&lt;(ostream&amp; os, Bicycle* b) {
+  copy(b-&gt;parts.begin(), b-&gt;parts.end(),
+    ostream_iterator&lt;BicyclePart*&gt;(os, <font color=#004488>"\n"</font>));
+  os &lt;&lt; <font color=#004488>"--------"</font> &lt;&lt; endl;
+  <font color=#0000ff>return</font> os;
+}
+
+<font color=#0000ff>void</font> Bicycle::print(vector&lt;Bicycle*&gt;&amp; vb, 
+  ostream&amp; os) {
+  copy(vb.begin(), vb.end(),
+    ostream_iterator&lt;Bicycle*&gt;(os, <font color=#004488>"\n"</font>));
+  cout &lt;&lt; <font color=#004488>"--------"</font> &lt;&lt; endl;</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+
+<DIV ALIGN="LEFT"><P>Here&#8217;s a test:<BR></P></DIV>
+
+<BLOCKQUOTE><FONT SIZE = "+1"><PRE><font color=#009900>//: C09:BikeTest.cpp</font>
+<font color=#009900>//{L} Bicycle</font>
+#include <font color=#004488>"Bicycle.h"</font>
+#include &lt;algorithm&gt;
+<font color=#0000ff>using</font> <font color=#0000ff>namespace</font> std;
+
+<font color=#0000ff>int</font> main() {
+  vector&lt;Bicycle*&gt; bikes;
+  BicycleGenerator bg;
+  generate_n(back_inserter(bikes), 12, bg);
+  Bicycle::print(bikes);</PRE></FONT></BLOCKQUOTE><DIV ALIGN="LEFT"><P><TT><FONT FACE="Courier New">}
+///:~</FONT></TT><BR></P></DIV>
+<DIV ALIGN="LEFT"><P><A NAME="_Toc462393581"></A><BR></P></DIV>
+<A NAME="Heading307"></A><FONT FACE = "Verdana"><H2 ALIGN="LEFT">
+Exercises</H2></FONT>
+<OL>
+<LI>	Create a heap compactor for all dynamic memory in a particular program.
+This will require that you control how objects are dynamically created and used
+(do you overload <B>operator new</B> or does that approach work?). The typically
+heap-compaction scheme requires that all pointers are doubly-indirected (that
+is, pointers to pointers) so the &#8220;middle tier&#8221; pointer can be
+manipulated during compaction. Consider overloading <B>operator-&gt;</B> to
+accomplish this, since that operator has special behavior which will probably
+benefit your heap-compaction scheme. Write a program to test your
+heap-compaction scheme.</OL>
+<DIV ALIGN="CENTER">
+    <FONT FACE="Verdana" size = "-1">
+     [ <a href="Chapter08.html">Previous Chapter</a> ] 
+    [ <a href="SimpleContents.html">Short TOC</a> ] 
+    [ <a href="Contents.html">Table of Contents</a> ] 
+    [ <a href="DocIndex.html">Index</a> ]
+     [ <a href="Chapter10.html">Next Chapter</a> ] 
+    </FONT>
+    <BR>
+ Last Update:05/23/2000</P></DIV>
+
+</BODY>
+
+</HTML>
